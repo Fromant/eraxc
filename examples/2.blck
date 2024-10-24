@@ -1,0 +1,7 @@
+#ifdef test1
+you have to see this
+#endif
+
+#ifndef test1
+you have to not see this
+#endif

@@ -1,0 +1,2821 @@
+#include <defs.h>
+
+
+_DWORD *__fastcall blck::lexic::add_token(char *a1, void *a2, __int64 a3, __int64 *a4, _DWORD *a5);
+__int64 *__fastcall blck::lexic::tokenize(char *a1, void *a2, __int64 a3, __int64 *a4);
+__int64 __fastcall blck::blck_compiler::compile(char *a1, void *a2, __int64 a3, __int64 a4);
+__int64 __fastcall _tcf_0(void *a1, __int64 a2, __int64 a3);
+__int64 __fastcall _tcf_1(void *a1, unsigned __int64 a2, __int64 a3);
+__int64 __fastcall _tcf_2(void *a1, __int64 a2, __int64 a3);
+int __fastcall __static_initialization_and_destruction_0(char *a1, void *a2);
+int __fastcall GLOBAL__sub_I__ZN4blck13blck_compiler7compileERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_(char *a1, void *a2);
+__int64 std::__is_constant_evaluated(void); // idb
+__int64 std::is_constant_evaluated(void); // idb
+__int64 __fastcall operator new(unsigned __int64 a1, void *a2, __int64 a3);
+void __fastcall operator delete(void *a1, void *a2); // idb
+_BYTE *__fastcall std::char_traits<char>::assign(unsigned __int64 a1, void *a2, _BYTE *a3, _BYTE *a4);
+__int64 __fastcall std::char_traits<char>::length(const char *a1, __int64 a2, __int64 a3, __int64 a4);
+void *__fastcall std::char_traits<char>::find(const void *a1, __int64 a2, unsigned __int64 a3, __int64 a4, _BYTE *a5);
+void *__fastcall std::char_traits<char>::copy(void *a1, void *a2, size_t a3, __int64 a4, unsigned __int64 a5);
+__int64 __fastcall std::string::size(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+_QWORD *__fastcall std::min<unsigned long long>(__int64 a1, __int64 a2, _QWORD *a3, _QWORD *a4);
+__int64 __fastcall std::string::_Alloc_hider::~_Alloc_hider(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+void __fastcall std::string::basic_string(char *a1, void *a2, __int64 *a3, _QWORD *a4);
+__int64 __fastcall std::string::_M_local_data(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::__ptr_traits_ptr_to<char *,char,false>::pointer_to(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::addressof<char>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::__addressof<char>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+_QWORD *__fastcall std::string::_Alloc_hider::_Alloc_hider(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4);
+__int64 __fastcall std::initializer_list<char>::begin(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::initializer_list<char>::end(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::initializer_list<char>::size(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+_QWORD *__fastcall std::string::_M_construct<char const*>(char const*,char const*,std::forward_iterator_tag)::_Guard::_Guard(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4);
+void __fastcall std::string::_M_construct<char const*>(char const*,char const*,std::forward_iterator_tag)::_Guard::~_Guard(void *a1, __int64 a2, __int64 a3, __int64 *a4);
+void __fastcall std::string::_M_construct<char const*>(char *a1, void *a2, _BYTE *a3, _QWORD *a4, __int64 a5);
+__int64 __fastcall std::string::_M_create(const char *a1, __int64 a2, __int64 *a3, __int64 a4, unsigned __int64 a5);
+__int64 __fastcall std::string::max_size(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::string::_M_get_allocator(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::string::_M_get_allocator(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+_QWORD *__fastcall std::string::_M_data(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4);
+__int64 __fastcall std::string::_M_capacity(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::string::_M_data(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+_BYTE *__fastcall std::string::_S_copy_chars(void *a1, void *a2, _BYTE *a3, _BYTE *a4, __int64 a5);
+_BYTE *__fastcall std::string::_S_copy(void *a1, void *a2, _BYTE *a3, _BYTE *a4, unsigned __int64 a5);
+__int64 __fastcall __gnu_cxx::char_traits<char>::copy(void *a1, void *a2, size_t a3, __int64 a4, unsigned __int64 a5);
+_BYTE *__fastcall std::construct_at<char,char const&>(unsigned __int64 a1, void *a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::forward<char const&>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+_BYTE *__fastcall std::string::_M_set_length(unsigned __int64 a1, void *a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::string::_M_length(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+void __fastcall std::string::basic_string<std::allocator<char>>(char *a1, void *a2, _BYTE *a3, _QWORD *a4);
+__int64 __fastcall std::vector<std::string>::vector(char *a1, void *a2, __int64 *a3, __int64 *a4, __int64 a5);
+__int64 __fastcall __gnu_cxx::char_traits<char>::length(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+bool __fastcall __gnu_cxx::char_traits<char>::eq(__int64 a1, __int64 a2, _BYTE *a3, _BYTE *a4);
+__int64 __fastcall std::_Vector_base<std::string>::_Vector_impl::~_Vector_impl(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+_QWORD *__fastcall std::_Vector_base<std::string>::_Vector_base(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4);
+_QWORD *__fastcall std::_Vector_base<std::string>::_Vector_impl::_Vector_impl(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4);
+_QWORD *__fastcall std::_Vector_base<std::string>::_Vector_impl_data::_Vector_impl_data(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4);
+__int64 __fastcall std::initializer_list<std::string>::begin(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::initializer_list<std::string>::end(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::initializer_list<std::string>::size(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::vector<std::string>::_M_range_initialize<std::string const*>(char *a1, void *a2, __int64 a3, __int64 *a4, __int64 a5);
+__int64 __fastcall std::_Vector_base<std::string>::_M_get_Tp_allocator(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+unsigned __int64 __fastcall std::vector<std::string>::_S_check_init_len(const char *a1, __int64 a2, __int64 a3, unsigned __int64 a4);
+__int64 __fastcall std::vector<std::string>::_S_max_size(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::_Vector_base<std::string>::_M_allocate(unsigned __int64 a1, __int64 a2, unsigned __int64 a3);
+__int64 __fastcall std::__uninitialized_copy_a<std::string const*,std::string*,std::string>(char *a1, void *a2, __int64 a3, __int64 a4, __int64 a5);
+__int64 __fastcall std::__do_uninit_copy<std::string const*,std::string*>(char *a1, void *a2, __int64 a3, __int64 a4, __int64 a5);
+__int64 __fastcall std::__addressof<std::string>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+void __fastcall std::_Construct<std::string,std::string const&>(char *a1, void *a2, __int64 a3, void *a4);
+__int64 __fastcall std::forward<std::string const&>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 *__fastcall std::construct_at<std::string,std::string const&>(char *a1, __int64 a2, __int64 a3, void *a4);
+void __fastcall std::string::basic_string(char *a1, void *a2, __int64 a3, __int64 *a4);
+__int64 *__fastcall std::string::_Alloc_hider::_Alloc_hider(__int64 a1, __int64 a2, __int64 a3, __int64 *a4, __int64 a5);
+__int64 __fastcall std::move<std::allocator<char> &>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::string::length(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+_QWORD *__fastcall std::string::_M_construct<char *>(char *,char *,std::forward_iterator_tag)::_Guard::_Guard(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4);
+void __fastcall std::string::_M_construct<char *>(char *,char *,std::forward_iterator_tag)::_Guard::~_Guard(void *a1, __int64 a2, __int64 a3, __int64 *a4);
+void __fastcall std::string::_M_construct<char *>(char *a1, void *a2, _BYTE *a3, _QWORD *a4, __int64 a5);
+_BYTE *__fastcall std::string::_S_copy_chars(void *a1, void *a2, _BYTE *a3, _BYTE *a4, __int64 a5);
+_QWORD *__fastcall blck::lexic::Token::Token(char *a1, void *a2, __int64 a3, __int64 a4, __int64 a5);
+__int64 __fastcall std::_Vector_base<blck::lexic::Token>::_Vector_impl::~_Vector_impl(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall __gnu_cxx::char_traits<char>::find(__int64 a1, __int64 a2, unsigned __int64 a3, __int64 a4, _BYTE *a5);
+__int64 __fastcall std::string::~string(void *a1, __int64 a2, __int64 a3, __int64 a4);
+_BYTE *__fastcall std::string::basic_string(void *a1, __int64 a2, _QWORD *a3, __int64 *a4);
+_QWORD *__fastcall std::max<unsigned long long>(__int64 a1, __int64 a2, _QWORD *a3, _QWORD *a4);
+void __fastcall std::string::_M_dispose(void *a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::__new_allocator<char>::allocate(unsigned __int64 a1, __int64 a2, unsigned __int64 a3);
+__int64 __fastcall std::_Vector_base<std::string>::~_Vector_base(void *a1, unsigned __int64 a2, __int64 a3, __int64 *a4);
+__int64 __fastcall std::__new_allocator<std::string>::allocate(unsigned __int64 a1, __int64 a2, unsigned __int64 a3);
+__int64 __fastcall std::uninitialized_copy<std::string const*,std::string*>(char *a1, void *a2, __int64 a3, __int64 a4, __int64 a5);
+__int64 __fastcall std::_Destroy<std::string *>(void *a1, __int64 a2, __int64 a3, __int64 a4);
+_BYTE *__fastcall std::string::basic_string(unsigned __int64 a1, void *a2, __int64 a3, __int64 *a4);
+_QWORD *__fastcall std::string::operator=(char *a1, void *a2, __int64 a3, _QWORD *a4);
+__int64 __fastcall std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type &,std::string>(char *a1, __int64 a2, __int64 a3, __int64 *a4, __int64 a5);
+__int64 __fastcall std::_Vector_base<blck::lexic::Token>::~_Vector_base(void *a1, unsigned __int64 a2, __int64 a3, __int64 *a4);
+__int64 __fastcall std::vector<blck::lexic::Token>::~vector(blck::lexic::Token *a1, unsigned __int64 a2, __int64 a3, __int64 *a4);
+__int64 __fastcall std::string::operator[](__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(char *a1, __int64 a2, __int64 a3, __int64 *a4, __int64 a5);
+char *__fastcall std::string::find(const void *a1, __int64 a2, __int64 a3, __int64 a4, unsigned __int64 a5, __int64 a6, __int64 a7, char a8, unsigned __int64 a9);
+_BOOL8 __fastcall std::string::_M_is_local(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::string::capacity(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+void __fastcall std::string::_M_destroy(void *a1, __int64 a2, __int64 a3, __int64 a4);
+void __fastcall std::_Vector_base<std::string>::_M_deallocate(void *a1, unsigned __int64 a2, __int64 a3);
+__int64 __fastcall std::__uninitialized_copy<false>::__uninit_copy<std::string const*,std::string*>(char *a1, void *a2, __int64 a3, __int64 a4, __int64 a5);
+__int64 __fastcall std::_Destroy_aux<false>::__destroy<std::string *>(void *a1, __int64 a2, __int64 a3, __int64 a4);
+_QWORD *__fastcall std::string::assign(char *a1, void *a2, __int64 a3, _QWORD *a4);
+__int64 __fastcall std::forward<blck::lexic::Token::type &>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::forward<std::string>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::vector<blck::lexic::Token>::end(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+unsigned __int64 __fastcall std::vector<blck::lexic::Token>::size(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4);
+__int64 __fastcall std::vector<blck::lexic::Token>::_M_check_len(const char *a1, __int64 a2, __int64 a3, _QWORD *a4, __int64 a5, __int64 a6, __int64 a7, unsigned __int64 a8, __int64 a9);
+unsigned __int64 __fastcall __gnu_cxx::operator-<blck::lexic::Token *,std::vector<blck::lexic::Token>>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::vector<blck::lexic::Token>::begin(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4);
+__int64 *__fastcall std::vector<blck::lexic::Token>::_M_realloc_insert<blck::lexic::Token::type &,std::string>(char *a1, unsigned __int64 a2, __int64 a3, __int64 *a4, __int64 a5, __int64 a6, __int64 a7, __int64 a8, __int64 a9, __int64 a10);
+__int64 __fastcall std::vector<blck::lexic::Token>::back(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+void __fastcall std::_Vector_base<blck::lexic::Token>::_M_deallocate(void *a1, unsigned __int64 a2, __int64 a3);
+__int64 __fastcall std::_Vector_base<blck::lexic::Token>::_M_get_Tp_allocator(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::forward<blck::lexic::Token::type>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::forward<char const(&)[2]>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 *__fastcall std::vector<blck::lexic::Token>::_M_realloc_insert<blck::lexic::Token::type,char const(&)[2]>(char *a1, unsigned __int64 a2, __int64 a3, __int64 *a4, __int64 a5, __int64 a6, __int64 a7, __int64 a8, __int64 a9, __int64 a10);
+__int64 __fastcall std::string::_M_local_data(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::_Destroy<std::string>(void *a1, __int64 a2, __int64 a3, __int64 a4);
+unsigned __int8 __fastcall std::string::_M_assign(char *a1, void *a2, __int64 a3, _QWORD *a4);
+__int64 __fastcall std::construct_at<blck::lexic::Token,blck::lexic::Token::type &,std::string>(unsigned __int64 a1, __int64 a2, __int64 a3, void *a4, __int64 a5);
+_QWORD *__fastcall __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::__normal_iterator(__int64 a1, __int64 a2, _QWORD *a3, _QWORD *a4);
+__int64 __fastcall std::vector<blck::lexic::Token>::max_size(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::base(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::_Vector_base<blck::lexic::Token>::_M_allocate(unsigned __int64 a1, __int64 a2, unsigned __int64 a3);
+__int64 __fastcall std::vector<blck::lexic::Token>::_S_relocate(void *a1, __int64 a2, __int64 a3, __int64 a4, __int64 a5, __int64 a6);
+__int64 __fastcall __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::operator-(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4);
+__int64 __fastcall __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::operator*(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::_Destroy<blck::lexic::Token *>(blck::lexic::Token *a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::construct_at<blck::lexic::Token,blck::lexic::Token::type,char const(&)[2]>(char *a1, __int64 a2, __int64 a3, void *a4, __int64 a5);
+__int64 __fastcall std::__ptr_traits_ptr_to<char const*,char const,false>::pointer_to(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::destroy_at<std::string>(void *a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::__addressof<std::string const>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::vector<blck::lexic::Token>::_S_max_size(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::_Vector_base<blck::lexic::Token>::_M_get_Tp_allocator(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::__relocate_a<blck::lexic::Token *,blck::lexic::Token *,std::allocator<blck::lexic::Token>>(void *a1, __int64 a2, __int64 a3, __int64 a4, __int64 a5, __int64 a6);
+void __fastcall blck::lexic::Token::~Token(blck::lexic::Token *this, __int64 a2, __int64 a3, __int64 a4);
+void __fastcall std::destroy_at<blck::lexic::Token>(blck::lexic::Token *a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::_Destroy_aux<false>::__destroy<blck::lexic::Token *>(blck::lexic::Token *a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::addressof<char const>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+void __fastcall std::__new_allocator<char>::deallocate(void *a1, unsigned __int64 a2);
+void __fastcall std::__new_allocator<std::string>::deallocate(void *a1, unsigned __int64 a2);
+__int64 __fastcall std::__niter_base<blck::lexic::Token *>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::__relocate_a_1<blck::lexic::Token *,blck::lexic::Token *,std::allocator<blck::lexic::Token>>(void *a1, void *a2, __int64 a3, __int64 a4, __int64 a5, __int64 a6);
+void __fastcall std::__new_allocator<blck::lexic::Token>::deallocate(void *a1, unsigned __int64 a2);
+__int64 __fastcall std::__addressof<blck::lexic::Token>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+void __fastcall std::_Destroy<blck::lexic::Token>(blck::lexic::Token *a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::__addressof<char const>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::__new_allocator<blck::lexic::Token>::allocate(unsigned __int64 a1, __int64 a2, unsigned __int64 a3);
+void __fastcall std::__relocate_object_a<blck::lexic::Token,blck::lexic::Token,std::allocator<blck::lexic::Token>>(void *a1, void *a2, __int64 a3, __int64 a4, __int64 a5);
+__int64 __fastcall std::move<blck::lexic::Token &>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::forward<blck::lexic::Token>(__int64 a1, __int64 a2, __int64 a3, __int64 a4);
+_BYTE *__fastcall blck::lexic::Token::Token(void *a1, __int64 a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::construct_at<blck::lexic::Token,blck::lexic::Token>(void *a1, void *a2, __int64 a3, __int64 a4);
+__int64 __fastcall std::vector<std::string>::~vector(void *a1, unsigned __int64 a2, __int64 a3, __int64 *a4);
+// int __cdecl isprint(int C);
+// size_t __cdecl strlen(const char *Str);
+// void *__cdecl memchr(const void *Buf, int Val, size_t MaxCount);
+// void *__cdecl memcpy(void *, const void *Src, size_t Size);
+// void __fastcall __noreturn std::__throw_length_error(const char *); idb
+// _QWORD std::__throw_bad_array_new_length(void); idb
+// _QWORD __fastcall operator new(unsigned __int64); idb
+// void __fastcall __noreturn std::__throw_logic_error(const char *); idb
+// __int64 __fastcall std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::str(_QWORD, _QWORD, _QWORD, _QWORD); weak
+// __int64 __fastcall std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::str(_QWORD, _QWORD, _QWORD, _QWORD); weak
+// __int64 __fastcall std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::basic_stringstream(_QWORD, _QWORD, _QWORD, _QWORD); weak
+// __int64 __fastcall std::operator<<<std::char_traits<char>>(_QWORD, _QWORD, _QWORD, _QWORD); weak
+// __int64 __fastcall std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::~basic_stringstream(_QWORD, _QWORD, _QWORD, _QWORD); weak
+// __int64 __fastcall blck::preprocess(_QWORD, _QWORD, _QWORD, _QWORD); weak
+// __int64 __fastcall std::ofstream::basic_ofstream(_QWORD, _QWORD, _QWORD, _QWORD, _QWORD); weak
+// __int64 __fastcall std::ios::operator!(_QWORD, _QWORD, _QWORD, _QWORD); weak
+// __int64 __fastcall std::operator<<<std::char_traits<char>>(_QWORD, _QWORD, _QWORD, _QWORD); weak
+// __int64 __fastcall std::operator<<<char>(_QWORD, _QWORD, _QWORD, _QWORD); weak
+// void __cdecl __noreturn exit(int Code);
+// __int64 __fastcall std::ofstream::~ofstream(_QWORD, _QWORD, _QWORD, _QWORD); weak
+// void __noreturn std::__throw_bad_alloc(void); idb
+// void __fastcall operator delete(void *); idb
+// void __fastcall operator delete(void *, unsigned __int64); idb
+// int __cdecl atexit(void (__cdecl *)());
+
+//-------------------------------------------------------------------------
+// Data declarations
+
+char *blck::lexic::operator_chars = "<=>&|^%*/~+-"; // weak
+_QWORD blck::lexic::special_symbols[4]; // weak
+__int64 blck::lexic::operators[4]; // weak
+void *refptr__ZSt4cerr = &std::cerr; // weak
+
+
+//----- (0000000000000000) ----------------------------------------------------
+_DWORD *__fastcall blck::lexic::add_token(char *a1, void *a2, __int64 a3, __int64 *a4, _DWORD *a5)
+{
+  __int64 v5; // rdx
+  __int64 v6; // rdx
+  _DWORD *result; // rax
+  _BYTE v8[32]; // [rsp+20h] [rbp-58h] BYREF
+  __int64 v9[4]; // [rsp+40h] [rbp-38h] BYREF
+
+  if ( *a5 != 13 )
+  {
+    std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::str(a1, a2, a3, v8);
+    std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type &,std::string>(
+      a1,
+      (__int64)a2,
+      (__int64)a5,
+      a4,
+      (__int64)v8);
+    std::string::~string(a1, (__int64)a2, v5, (__int64)v8);
+  }
+  std::string::basic_string((unsigned __int64)a1, a2, a3, v9);
+  std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::str(a1, a2, v9, a3);
+  std::string::~string(a1, (__int64)a2, v6, (__int64)v9);
+  result = a5;
+  *a5 = 13;
+  return result;
+}
+// 50: variable 'v5' is possibly undefined
+// 5C: variable 'a3' is possibly undefined
+// 78: variable 'v6' is possibly undefined
+// 2A558: using guessed type __int64 __fastcall std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::str(_QWORD, _QWORD, _QWORD, _QWORD);
+// 2A560: using guessed type __int64 __fastcall std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::str(_QWORD, _QWORD, _QWORD, _QWORD);
+
+//----- (00000000000000C5) ----------------------------------------------------
+__int64 *__fastcall blck::lexic::tokenize(char *a1, void *a2, __int64 a3, __int64 *a4)
+{
+  __int64 v4; // rdx
+  __int64 v5; // r9
+  __int64 v6; // rdx
+  __int64 v7; // rdx
+  char *v8; // rax
+  unsigned __int64 v9; // rbx
+  char *v10; // rax
+  char *v11; // rax
+  __int64 v12; // r9
+  __int64 v13; // rdx
+  unsigned __int64 v14; // rbx
+  unsigned __int64 v16; // rbx
+  __int64 v17; // rdx
+  __int64 v19; // [rsp+0h] [rbp-208h] BYREF
+  char v20; // [rsp+8h] [rbp-200h]
+  unsigned __int64 v21; // [rsp+10h] [rbp-1F8h]
+  int v22; // [rsp+2Ch] [rbp-1DCh] BYREF
+  _BYTE v23[16]; // [rsp+30h] [rbp-1D8h] BYREF
+  _BYTE v24[64]; // [rsp+40h] [rbp-1C8h] BYREF
+  int v25; // [rsp+1C4h] [rbp-44h] BYREF
+  int v26; // [rsp+1C8h] [rbp-40h] BYREF
+  int v27; // [rsp+1CCh] [rbp-3Ch] BYREF
+  int v28; // [rsp+1D0h] [rbp-38h] BYREF
+  int v29; // [rsp+1D4h] [rbp-34h] BYREF
+  int v30; // [rsp+1D8h] [rbp-30h] BYREF
+  int v31; // [rsp+1DCh] [rbp-2Ch] BYREF
+  int v32; // [rsp+1E0h] [rbp-28h] BYREF
+  int v33; // [rsp+1E4h] [rbp-24h] BYREF
+  char v34; // [rsp+1EBh] [rbp-1Dh]
+  int i; // [rsp+1ECh] [rbp-1Ch]
+
+  *(_OWORD *)a4 = 0LL;
+  a4[2] = 0LL;
+  std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::basic_stringstream(a1, a2, a3, &v19 + 6);
+  v22 = 13;
+  for ( i = 0; ; ++i )
+  {
+    v16 = i;
+    if ( v16 >= std::string::size((__int64)a1, (__int64)a2, v4, a3) )
+      break;
+    v34 = *(_BYTE *)std::string::operator[]((__int64)a1, (__int64)a2, i, a3);
+    switch ( v34 )
+    {
+      case 59:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        v25 = 0;
+        std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(
+          a1,
+          (__int64)a2,
+          (__int64)&v25,
+          a4,
+          (__int64)";");
+        break;
+      case 32:
+      case 10:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        break;
+      case 40:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        v26 = 7;
+        std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(
+          a1,
+          (__int64)a2,
+          (__int64)&v26,
+          a4,
+          (__int64)"(");
+        break;
+      case 41:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        v27 = 8;
+        std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(
+          a1,
+          (__int64)a2,
+          (__int64)&v27,
+          a4,
+          (__int64)")");
+        break;
+      case 123:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        v28 = 12;
+        std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(
+          a1,
+          (__int64)a2,
+          (__int64)&v28,
+          a4,
+          (__int64)"{");
+        break;
+      case 125:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        v29 = 11;
+        std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(
+          a1,
+          (__int64)a2,
+          (__int64)&v29,
+          a4,
+          (__int64)"}");
+        break;
+      case 91:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        v30 = 10;
+        std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(
+          a1,
+          (__int64)a2,
+          (__int64)&v30,
+          a4,
+          (__int64)"[");
+        break;
+      case 93:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        v31 = 9;
+        std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(
+          a1,
+          (__int64)a2,
+          (__int64)&v31,
+          a4,
+          (__int64)"]");
+        break;
+      case 46:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        v32 = 2;
+        std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(
+          a1,
+          (__int64)a2,
+          (__int64)&v32,
+          a4,
+          (__int64)".");
+        break;
+      case 44:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        v33 = 1;
+        std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(
+          a1,
+          (__int64)a2,
+          (__int64)&v33,
+          a4,
+          (__int64)",");
+        break;
+      case 34:
+        blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        ++i;
+        while ( 1 )
+        {
+          v9 = i;
+          if ( v9 >= std::string::size((__int64)a1, (__int64)a2, v6, a3) )
+            break;
+          if ( *(_BYTE *)std::string::operator[]((__int64)a1, (__int64)a2, i, a3) == 34 )
+          {
+            v22 = 6;
+            blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+            break;
+          }
+          v8 = (char *)std::string::operator[]((__int64)a1, (__int64)a2, i, a3);
+          std::operator<<<std::char_traits<char>>(a1, a2, (unsigned int)*v8, v24);
+          ++i;
+        }
+        std::string::size((__int64)a1, (__int64)a2, v7, a3);
+        break;
+      default:
+        if ( std::string::find(
+               a1,
+               (__int64)a2,
+               (unsigned int)v34,
+               (__int64)&blck::lexic::operator_chars,
+               0LL,
+               v5,
+               v19,
+               v20,
+               v21) == (char *)-1LL )
+        {
+          if ( (unsigned int)(v34 - 48) <= 9 && v22 != 4 )
+            v22 = 5;
+          if ( isprint((int)a1) && v22 == 13 )
+            v22 = 4;
+          std::operator<<<std::char_traits<char>>(a1, a2, (unsigned int)v34, v24);
+        }
+        else
+        {
+          blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+          std::operator<<<std::char_traits<char>>(a1, a2, (unsigned int)v34, v24);
+          while ( 1 )
+          {
+            v11 = (char *)std::string::operator[]((__int64)a1, (__int64)a2, i + 1, a3);
+            if ( std::string::find(
+                   a1,
+                   (__int64)a2,
+                   (unsigned int)*v11,
+                   (__int64)&blck::lexic::operator_chars,
+                   0LL,
+                   v12,
+                   v19,
+                   v20,
+                   v21) == (char *)-1LL )
+              break;
+            v14 = i + 1;
+            if ( v14 >= std::string::size((__int64)a1, (__int64)a2, v13, a3) )
+              break;
+            v10 = (char *)std::string::operator[]((__int64)a1, (__int64)a2, i, a3);
+            std::operator<<<std::char_traits<char>>(a1, a2, (unsigned int)*v10, v24);
+            ++i;
+          }
+          v22 = 3;
+          blck::lexic::add_token(a1, a2, (__int64)v23, a4, &v22);
+        }
+        break;
+    }
+  }
+  std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::~basic_stringstream(a1, a2, v17, v23);
+  return a4;
+}
+// 4F0: variable 'v6' is possibly undefined
+// 516: variable 'v7' is possibly undefined
+// 53C: variable 'v5' is possibly undefined
+// 5E9: variable 'v12' is possibly undefined
+// 60A: variable 'v13' is possibly undefined
+// 6C6: variable 'v4' is possibly undefined
+// 6E1: variable 'v17' is possibly undefined
+// EE0: using guessed type char *blck::lexic::operator_chars;
+// 2A568: using guessed type __int64 __fastcall std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::basic_stringstream(_QWORD, _QWORD, _QWORD, _QWORD);
+// 2A570: using guessed type __int64 __fastcall std::operator<<<std::char_traits<char>>(_QWORD, _QWORD, _QWORD, _QWORD);
+// 2A578: using guessed type __int64 __fastcall std::basic_stringstream<char,std::char_traits<char>,std::allocator<char>>::~basic_stringstream(_QWORD, _QWORD, _QWORD, _QWORD);
+// C5: using guessed type int anonymous_12;
+
+//----- (0000000000000728) ----------------------------------------------------
+__int64 __fastcall blck::blck_compiler::compile(char *a1, void *a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rdx
+  __int64 v5; // rax
+  __int64 v6; // rax
+  __int64 v7; // rdx
+  __int64 v8; // rdx
+  __int64 v9; // rdx
+  __int64 v11[4]; // [rsp+20h] [rbp-228h] BYREF
+  _BYTE v12[64]; // [rsp+40h] [rbp-208h] BYREF
+  __int64 v13; // [rsp+108h] [rbp-140h] BYREF
+  _BYTE v14[56]; // [rsp+210h] [rbp-38h] BYREF
+
+  blck::preprocess(a1, a2, a4, v14);
+  std::ofstream::basic_ofstream(a1, a2, a3, v12, 16LL);
+  if ( (unsigned __int8)std::ios::operator!(a1, a2, v4, &v13) )
+  {
+    v5 = std::operator<<<std::char_traits<char>>(a1, a2, "Cannot write to file: ", refptr__ZSt4cerr);
+    v6 = std::operator<<<char>(a1, a2, a4, v5);
+    std::operator<<<std::char_traits<char>>(a1, a2, 10LL, v6);
+    exit((int)a1);
+  }
+  std::operator<<<char>(a1, a2, v14, v12);
+  blck::lexic::tokenize(a1, a2, (__int64)v14, v11);
+  std::vector<blck::lexic::Token>::~vector((blck::lexic::Token *)a1, (unsigned __int64)a2, v7, v11);
+  std::ofstream::~ofstream(a1, a2, v8, v12);
+  return std::string::~string(a1, (__int64)a2, v9, (__int64)v14);
+}
+// 783: variable 'v4' is possibly undefined
+// 7FB: variable 'v7' is possibly undefined
+// 807: variable 'v8' is possibly undefined
+// 816: variable 'v9' is possibly undefined
+// 27C88: using guessed type void *refptr__ZSt4cerr;
+// 2A570: using guessed type __int64 __fastcall std::operator<<<std::char_traits<char>>(_QWORD, _QWORD, _QWORD, _QWORD);
+// 2A580: using guessed type __int64 __fastcall blck::preprocess(_QWORD, _QWORD, _QWORD, _QWORD);
+// 2A588: using guessed type __int64 __fastcall std::ofstream::basic_ofstream(_QWORD, _QWORD, _QWORD, _QWORD, _QWORD);
+// 2A590: using guessed type __int64 __fastcall std::ios::operator!(_QWORD, _QWORD, _QWORD, _QWORD);
+// 2A598: using guessed type __int64 __fastcall std::operator<<<std::char_traits<char>>(_QWORD, _QWORD, _QWORD, _QWORD);
+// 2A5A0: using guessed type __int64 __fastcall std::operator<<<char>(_QWORD, _QWORD, _QWORD, _QWORD);
+// 2A5B0: using guessed type __int64 __fastcall std::ofstream::~ofstream(_QWORD, _QWORD, _QWORD, _QWORD);
+
+//----- (0000000000000856) ----------------------------------------------------
+__int64 __fastcall _tcf_0(void *a1, __int64 a2, __int64 a3)
+{
+  return std::string::~string(a1, a2, a3, (__int64)blck::lexic::special_symbols);
+}
+// F00: using guessed type _QWORD blck::lexic::special_symbols[4];
+
+//----- (0000000000000874) ----------------------------------------------------
+__int64 __fastcall _tcf_1(void *a1, unsigned __int64 a2, __int64 a3)
+{
+  return std::vector<std::string>::~vector(a1, a2, a3, blck::lexic::operators);
+}
+// F20: using guessed type __int64 blck::lexic::operators[4];
+
+//----- (0000000000000892) ----------------------------------------------------
+__int64 __fastcall _tcf_2(void *a1, __int64 a2, __int64 a3)
+{
+  return std::string::~string(a1, a2, a3, (__int64)&blck::lexic::operator_chars);
+}
+// EE0: using guessed type char *blck::lexic::operator_chars;
+
+//----- (00000000000008B0) ----------------------------------------------------
+int __fastcall __static_initialization_and_destruction_0(char *a1, void *a2)
+{
+  __int64 v2; // rdx
+  __int128 *i; // rbx
+  _BYTE v5[32]; // [rsp+0h] [rbp-468h] BYREF
+  _BYTE *v6; // [rsp+20h] [rbp-448h] BYREF
+  __int64 v7; // [rsp+28h] [rbp-440h]
+  _BYTE v8[26]; // [rsp+30h] [rbp-438h] BYREF
+  _QWORD v9[4]; // [rsp+50h] [rbp-418h] BYREF
+  _QWORD v10[2]; // [rsp+70h] [rbp-3F8h] BYREF
+  _QWORD v11[4]; // [rsp+90h] [rbp-3D8h] BYREF
+  _QWORD v12[4]; // [rsp+B0h] [rbp-3B8h] BYREF
+  _QWORD v13[4]; // [rsp+D0h] [rbp-398h] BYREF
+  _QWORD v14[4]; // [rsp+F0h] [rbp-378h] BYREF
+  _QWORD v15[4]; // [rsp+110h] [rbp-358h] BYREF
+  _QWORD v16[4]; // [rsp+130h] [rbp-338h] BYREF
+  _QWORD v17[4]; // [rsp+150h] [rbp-318h] BYREF
+  _QWORD v18[4]; // [rsp+170h] [rbp-2F8h] BYREF
+  _QWORD v19[4]; // [rsp+190h] [rbp-2D8h] BYREF
+  _QWORD v20[4]; // [rsp+1B0h] [rbp-2B8h] BYREF
+  _QWORD v21[4]; // [rsp+1D0h] [rbp-298h] BYREF
+  _QWORD v22[4]; // [rsp+1F0h] [rbp-278h] BYREF
+  _QWORD v23[4]; // [rsp+210h] [rbp-258h] BYREF
+  _QWORD v24[4]; // [rsp+230h] [rbp-238h] BYREF
+  _QWORD v25[4]; // [rsp+250h] [rbp-218h] BYREF
+  _QWORD v26[4]; // [rsp+270h] [rbp-1F8h] BYREF
+  _QWORD v27[4]; // [rsp+290h] [rbp-1D8h] BYREF
+  _QWORD v28[4]; // [rsp+2B0h] [rbp-1B8h] BYREF
+  _QWORD v29[4]; // [rsp+2D0h] [rbp-198h] BYREF
+  _QWORD v30[4]; // [rsp+2F0h] [rbp-178h] BYREF
+  _QWORD v31[4]; // [rsp+310h] [rbp-158h] BYREF
+  _QWORD v32[4]; // [rsp+330h] [rbp-138h] BYREF
+  _QWORD v33[4]; // [rsp+350h] [rbp-118h] BYREF
+  _QWORD v34[4]; // [rsp+370h] [rbp-F8h] BYREF
+  _QWORD v35[4]; // [rsp+390h] [rbp-D8h] BYREF
+  _QWORD v36[4]; // [rsp+3B0h] [rbp-B8h] BYREF
+  _QWORD v37[4]; // [rsp+3D0h] [rbp-98h] BYREF
+  __int64 v38[4]; // [rsp+3F0h] [rbp-78h] BYREF
+  __int128 v39; // [rsp+410h] [rbp-58h] BYREF
+  __int64 v40; // [rsp+420h] [rbp-48h]
+  _BYTE *v41; // [rsp+428h] [rbp-40h]
+
+  qmemcpy(v8, ";'\"=+<>%/*!&|^(){}[]-?:.,~", sizeof(v8));
+  v41 = &v5[79];
+  v6 = &v5[48];
+  v7 = 26LL;
+  std::string::basic_string(a1, a2, (__int64 *)&v6, blck::lexic::special_symbols);
+  atexit((void (__cdecl *)())a1);
+  v40 = (__int64)&v39 + 6;
+  std::string::basic_string<std::allocator<char>>((char *)v9, a2, "==", v9);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v10, "=", v10);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v11, ">", v11);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v12, "<", v12);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v13, ">=", v13);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v14, "<=", v14);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v15, "+", v15);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v16, "-", v16);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v17, "*", v17);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v18, "/", v18);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v19, "%", v19);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v20, "&&", v20);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v21, "||", v21);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v22, "&", v22);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v23, "|", v23);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v24, "^", v24);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v25, "~", v25);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v26, ">>", v26);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v27, "<<", v27);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v28, "+=", v28);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v29, "-=", v29);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v30, "*=", v30);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v31, "/=", v31);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v32, "%=", v32);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v33, "&=", v33);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v34, "^=", v34);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v35, "|=", v35);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v36, "~=", v36);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v37, ">>=", v37);
+  std::string::basic_string<std::allocator<char>>((char *)v9, v37, "<<=", v38);
+  *((_QWORD *)&v39 + 1) = (char *)&v39 + 7;
+  v6 = v9;
+  v7 = 30LL;
+  std::vector<std::string>::vector((char *)v9, v37, (__int64 *)&v6, blck::lexic::operators, (__int64)&v39 + 7);
+  for ( i = &v39; i != (__int128 *)v9; std::string::~string(v9, (__int64)v37, v2, (__int64)i) )
+    i -= 2;
+  atexit((void (__cdecl *)())v9);
+  return atexit((void (__cdecl *)())v9);
+}
+// E29: variable 'v2' is possibly undefined
+// F00: using guessed type _QWORD blck::lexic::special_symbols[4];
+// F20: using guessed type __int64 blck::lexic::operators[4];
+// 8B0: using guessed type __int64 anonymous_2[4];
+
+//----- (0000000000000EC3) ----------------------------------------------------
+int __fastcall GLOBAL__sub_I__ZN4blck13blck_compiler7compileERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_(
+        char *a1,
+        void *a2)
+{
+  return __static_initialization_and_destruction_0(a1, a2);
+}
+
+//----- (0000000000000F40) ----------------------------------------------------
+__int64 std::__is_constant_evaluated(void)
+{
+  return 0LL;
+}
+
+//----- (0000000000000F68) ----------------------------------------------------
+__int64 std::is_constant_evaluated(void)
+{
+  return 0LL;
+}
+
+//----- (0000000000000F90) ----------------------------------------------------
+__int64 __fastcall operator new(unsigned __int64 a1, void *a2, __int64 a3)
+{
+  return a3;
+}
+
+//----- (0000000000000FC8) ----------------------------------------------------
+void __fastcall operator delete(void *a1, void *a2)
+{
+  ;
+}
+
+//----- (0000000000000FF0) ----------------------------------------------------
+_BYTE *__fastcall std::char_traits<char>::assign(unsigned __int64 a1, void *a2, _BYTE *a3, _BYTE *a4)
+{
+  _BYTE *result; // rax
+
+  if ( (unsigned __int8)std::__is_constant_evaluated() )
+    return std::construct_at<char,char const&>(a1, a2, (__int64)a3, (__int64)a4);
+  result = a4;
+  *a4 = *a3;
+  return result;
+}
+
+//----- (0000000000001050) ----------------------------------------------------
+__int64 __fastcall std::char_traits<char>::length(const char *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rdx
+
+  if ( (unsigned __int8)std::__is_constant_evaluated() )
+    return __gnu_cxx::char_traits<char>::length((__int64)a1, a2, v4, a4);
+  else
+    return strlen(a1);
+}
+// 106C: variable 'v4' is possibly undefined
+
+//----- (00000000000010B0) ----------------------------------------------------
+void *__fastcall std::char_traits<char>::find(const void *a1, __int64 a2, unsigned __int64 a3, __int64 a4, _BYTE *a5)
+{
+  if ( !a3 )
+    return 0LL;
+  if ( (unsigned __int8)std::__is_constant_evaluated() )
+    return (void *)__gnu_cxx::char_traits<char>::find((__int64)a1, a2, a3, a4, a5);
+  return memchr(a1, a2, (unsigned int)(char)*a5);
+}
+
+//----- (0000000000001140) ----------------------------------------------------
+void *__fastcall std::char_traits<char>::copy(void *a1, void *a2, size_t a3, __int64 a4, unsigned __int64 a5)
+{
+  if ( !a5 )
+    return (void *)a4;
+  if ( (unsigned __int8)std::__is_constant_evaluated() )
+    return (void *)__gnu_cxx::char_traits<char>::copy(a1, a2, a3, a4, a5);
+  return memcpy(a1, a2, a3);
+}
+
+//----- (00000000000011D0) ----------------------------------------------------
+__int64 __fastcall std::string::size(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return *(_QWORD *)(a4 + 8);
+}
+
+//----- (0000000000001208) ----------------------------------------------------
+_QWORD *__fastcall std::min<unsigned long long>(__int64 a1, __int64 a2, _QWORD *a3, _QWORD *a4)
+{
+  if ( *a3 >= *a4 )
+    return a4;
+  else
+    return a3;
+}
+
+//----- (0000000000001250) ----------------------------------------------------
+__int64 __fastcall std::string::_Alloc_hider::~_Alloc_hider(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000001290) ----------------------------------------------------
+void __fastcall std::string::basic_string(char *a1, void *a2, __int64 *a3, _QWORD *a4)
+{
+  __int64 v4; // rax
+  __int64 v5; // rdx
+  __int64 v7; // rax
+  __int64 v8; // rdx
+  __int64 v9; // rbx
+  __int64 v10; // rdx
+  _BYTE *v11; // rax
+  _QWORD v12[2]; // [rsp+20h] [rbp-28h] BYREF
+
+  v4 = *a3;
+  v5 = a3[1];
+  v12[0] = v4;
+  v12[1] = v5;
+  v7 = std::string::_M_local_data((__int64)a1, (__int64)a2, v5, (__int64)a4);
+  std::string::_Alloc_hider::_Alloc_hider((__int64)a1, (__int64)a2, v7, a4);
+  v9 = std::initializer_list<char>::end((__int64)a1, (__int64)a2, v8, (__int64)v12);
+  v11 = (_BYTE *)std::initializer_list<char>::begin((__int64)a1, (__int64)a2, v10, (__int64)v12);
+  std::string::_M_construct<char const*>(a1, a2, v11, a4, v9);
+}
+// 12DF: variable 'v8' is possibly undefined
+// 12EE: variable 'v10' is possibly undefined
+
+//----- (0000000000001368) ----------------------------------------------------
+__int64 __fastcall std::string::_M_local_data(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return std::__ptr_traits_ptr_to<char *,char,false>::pointer_to(a1, a2, a3, a4 + 16);
+}
+
+//----- (00000000000013B8) ----------------------------------------------------
+__int64 __fastcall std::__ptr_traits_ptr_to<char *,char,false>::pointer_to(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4)
+{
+  return std::addressof<char>(a1, a2, a3, a4);
+}
+
+//----- (00000000000013F8) ----------------------------------------------------
+__int64 __fastcall std::addressof<char>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return std::__addressof<char>(a1, a2, a3, a4);
+}
+
+//----- (0000000000001438) ----------------------------------------------------
+__int64 __fastcall std::__addressof<char>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000001460) ----------------------------------------------------
+_QWORD *__fastcall std::string::_Alloc_hider::_Alloc_hider(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4)
+{
+  _QWORD *result; // rax
+
+  result = a4;
+  *a4 = a3;
+  return result;
+}
+
+//----- (00000000000014D0) ----------------------------------------------------
+__int64 __fastcall std::initializer_list<char>::begin(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return *(_QWORD *)a4;
+}
+
+//----- (0000000000001508) ----------------------------------------------------
+__int64 __fastcall std::initializer_list<char>::end(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rbx
+  __int64 v5; // rdx
+
+  v4 = std::initializer_list<char>::begin(a1, a2, a3, a4);
+  return v4 + std::initializer_list<char>::size(a1, a2, v5, a4);
+}
+// 152D: variable 'v5' is possibly undefined
+
+//----- (0000000000001568) ----------------------------------------------------
+__int64 __fastcall std::initializer_list<char>::size(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return *(_QWORD *)(a4 + 8);
+}
+
+//----- (00000000000015A0) ----------------------------------------------------
+_QWORD *__fastcall std::string::_M_construct<char const*>(char const*,char const*,std::forward_iterator_tag)::_Guard::_Guard(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        _QWORD *a4)
+{
+  _QWORD *result; // rax
+
+  result = a4;
+  *a4 = a3;
+  return result;
+}
+
+//----- (00000000000015D8) ----------------------------------------------------
+void __fastcall std::string::_M_construct<char const*>(char const*,char const*,std::forward_iterator_tag)::_Guard::~_Guard(
+        void *a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 *a4)
+{
+  if ( *a4 )
+    std::string::_M_dispose(a1, a2, a3, *a4);
+}
+
+//----- (0000000000001630) ----------------------------------------------------
+void __fastcall std::string::_M_construct<char const*>(char *a1, void *a2, _BYTE *a3, _QWORD *a4, __int64 a5)
+{
+  __int64 v5; // rax
+  __int64 v6; // rdx
+  __int64 v7; // rdx
+  _BYTE *v8; // rax
+  __int64 v9; // rdx
+  __int64 v10; // [rsp+38h] [rbp-50h] BYREF
+  __int64 v11; // [rsp+40h] [rbp-48h] BYREF
+  unsigned __int64 i; // [rsp+48h] [rbp-40h]
+  _QWORD *v13; // [rsp+50h] [rbp-38h]
+  __int64 v14; // [rsp+58h] [rbp-30h]
+  _BYTE *v15; // [rsp+60h] [rbp-28h]
+  __int64 v16; // [rsp+68h] [rbp-20h]
+
+  v16 = a5;
+  v15 = a3;
+  v14 = a5;
+  v11 = a5 - (_QWORD)a3;
+  if ( (unsigned __int64)(a5 - (_QWORD)a3) <= 0xF )
+  {
+    v13 = a4;
+    if ( (unsigned __int8)std::is_constant_evaluated() )
+    {
+      for ( i = 0LL; i <= 0xF; ++i )
+      {
+        v6 = (__int64)v13;
+        *((_BYTE *)v13 + i + 16) = 0;
+      }
+    }
+    std::string::_M_local_data((__int64)a1, (__int64)a2, v6, (__int64)v13);
+  }
+  else
+  {
+    v5 = std::string::_M_create(a1, (__int64)a2, &v11, (__int64)a4, 0LL);
+    std::string::_M_data((__int64)a1, (__int64)a2, v5, a4);
+    std::string::_M_capacity((__int64)a1, (__int64)a2, v11, (__int64)a4);
+  }
+  std::string::_M_construct<char const*>(char const*,char const*,std::forward_iterator_tag)::_Guard::_Guard(
+    (__int64)a1,
+    (__int64)a2,
+    (__int64)a4,
+    &v10);
+  v8 = (_BYTE *)std::string::_M_data((__int64)a1, (__int64)a2, v7, (__int64)a4);
+  std::string::_S_copy_chars(a1, a2, a3, v8, a5);
+  v10 = 0LL;
+  std::string::_M_set_length((unsigned __int64)a1, a2, v11, (__int64)a4);
+  std::string::_M_construct<char const*>(char const*,char const*,std::forward_iterator_tag)::_Guard::~_Guard(
+    a1,
+    (__int64)a2,
+    v9,
+    &v10);
+}
+// 16F6: variable 'v6' is possibly undefined
+// 1713: variable 'v7' is possibly undefined
+// 174D: variable 'v9' is possibly undefined
+
+//----- (00000000000018D8) ----------------------------------------------------
+__int64 __fastcall std::string::_M_create(const char *a1, __int64 a2, __int64 *a3, __int64 a4, unsigned __int64 a5)
+{
+  unsigned __int64 v5; // rbx
+  __int64 v6; // rdx
+  unsigned __int64 v7; // rbx
+  __int64 v8; // rax
+  unsigned __int64 v10; // [rsp+30h] [rbp-28h]
+
+  v5 = *a3;
+  if ( std::string::max_size((__int64)a1, a2, (__int64)a3, a4) < v5 )
+    std::__throw_length_error(a1);
+  if ( a5 < *a3 )
+  {
+    v6 = *a3;
+    if ( *a3 < 2 * a5 )
+    {
+      *a3 = 2 * a5;
+      v7 = *a3;
+      if ( std::string::max_size((__int64)a1, a2, 2 * a5, a4) < v7 )
+      {
+        v8 = std::string::max_size((__int64)a1, a2, v6, a4);
+        v6 = (__int64)a3;
+        *a3 = v8;
+      }
+    }
+  }
+  v10 = *a3 + 1;
+  std::string::_M_get_allocator((__int64)a1, a2, v6, a4);
+  if ( (unsigned __int8)std::__is_constant_evaluated() )
+    return operator new((unsigned __int64)a1);
+  else
+    return std::__new_allocator<char>::allocate((unsigned __int64)a1, a2, v10);
+}
+// 196E: variable 'v6' is possibly undefined
+
+//----- (0000000000001A18) ----------------------------------------------------
+__int64 __fastcall std::string::max_size(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  std::string::_M_get_allocator(a1, a2, a3, a4);
+  return 0x7FFFFFFFFFFFFFFFLL;
+}
+
+//----- (0000000000001A68) ----------------------------------------------------
+__int64 __fastcall std::string::_M_get_allocator(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000001A90) ----------------------------------------------------
+__int64 __fastcall std::string::_M_get_allocator(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000001AB8) ----------------------------------------------------
+_QWORD *__fastcall std::string::_M_data(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4)
+{
+  _QWORD *result; // rax
+
+  result = a4;
+  *a4 = a3;
+  return result;
+}
+
+//----- (0000000000001AF0) ----------------------------------------------------
+__int64 __fastcall std::string::_M_capacity(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 result; // rax
+
+  result = a4;
+  *(_QWORD *)(a4 + 16) = a3;
+  return result;
+}
+
+//----- (0000000000001B28) ----------------------------------------------------
+__int64 __fastcall std::string::_M_data(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return *(_QWORD *)a4;
+}
+
+//----- (0000000000001B60) ----------------------------------------------------
+_BYTE *__fastcall std::string::_S_copy_chars(void *a1, void *a2, _BYTE *a3, _BYTE *a4, __int64 a5)
+{
+  return std::string::_S_copy(a1, a2, a3, a4, a5 - (_QWORD)a3);
+}
+
+//----- (0000000000001BC8) ----------------------------------------------------
+_BYTE *__fastcall std::string::_S_copy(void *a1, void *a2, _BYTE *a3, _BYTE *a4, unsigned __int64 a5)
+{
+  if ( a5 == 1 )
+    return std::char_traits<char>::assign((unsigned __int64)a1, a2, a3, a4);
+  else
+    return std::char_traits<char>::copy(a1, a2, (size_t)a3, (__int64)a4, a5);
+}
+
+//----- (0000000000001C38) ----------------------------------------------------
+__int64 __fastcall __gnu_cxx::char_traits<char>::copy(void *a1, void *a2, size_t a3, __int64 a4, unsigned __int64 a5)
+{
+  unsigned __int64 i; // [rsp+28h] [rbp-8h]
+
+  if ( !a5 )
+    return a4;
+  if ( (unsigned __int8)std::__is_constant_evaluated() )
+  {
+    for ( i = 0LL; i < a5; ++i )
+      std::construct_at<char,char const&>((unsigned __int64)a1, a2, i + a3, a4 + i);
+    return a4;
+  }
+  else
+  {
+    memcpy(a1, a2, a3);
+    return a4;
+  }
+}
+
+//----- (0000000000001CE8) ----------------------------------------------------
+_BYTE *__fastcall std::construct_at<char,char const&>(unsigned __int64 a1, void *a2, __int64 a3, __int64 a4)
+{
+  _BYTE *v4; // rbx
+  __int64 v5; // rdx
+
+  v4 = (_BYTE *)operator new(a1, a2, a4);
+  *v4 = *(_BYTE *)std::forward<char const&>(a1, (__int64)a2, v5, a3);
+  return v4;
+}
+// 1D16: variable 'v5' is possibly undefined
+
+//----- (0000000000001D58) ----------------------------------------------------
+__int64 __fastcall std::forward<char const&>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000001D80) ----------------------------------------------------
+_BYTE *__fastcall std::string::_M_set_length(unsigned __int64 a1, void *a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rdx
+  __int64 v5; // rax
+  char v7; // [rsp+2Fh] [rbp-1h] BYREF
+
+  std::string::_M_length(a1, (__int64)a2, a3, a4);
+  v7 = 0;
+  v5 = std::string::_M_data(a1, (__int64)a2, v4, a4);
+  return std::char_traits<char>::assign(a1, a2, &v7, (_BYTE *)(v5 + a3));
+}
+// 1DAB: variable 'v4' is possibly undefined
+
+//----- (0000000000001DF0) ----------------------------------------------------
+__int64 __fastcall std::string::_M_length(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 result; // rax
+
+  result = a4;
+  *(_QWORD *)(a4 + 8) = a3;
+  return result;
+}
+
+//----- (0000000000001E28) ----------------------------------------------------
+void __fastcall std::string::basic_string<std::allocator<char>>(char *a1, void *a2, _BYTE *a3, _QWORD *a4)
+{
+  __int64 v5; // rax
+  __int64 v6; // rdx
+  __int64 v7; // rax
+
+  v5 = std::string::_M_local_data((__int64)a1, (__int64)a2, (__int64)a3, (__int64)a4);
+  std::string::_Alloc_hider::_Alloc_hider((__int64)a1, (__int64)a2, v5, a4);
+  if ( !a3 )
+    std::__throw_logic_error(a1);
+  v7 = std::char_traits<char>::length(a1, (__int64)a2, v6, (__int64)a3);
+  std::string::_M_construct<char const*>(a1, a2, a3, a4, (__int64)&a3[v7]);
+}
+// 1E7F: variable 'v6' is possibly undefined
+
+//----- (0000000000001F10) ----------------------------------------------------
+__int64 __fastcall std::vector<std::string>::vector(char *a1, void *a2, __int64 *a3, __int64 *a4, __int64 a5)
+{
+  __int64 v5; // rax
+  __int64 v6; // rdx
+  __int64 v7; // rdx
+  __int64 v8; // rbx
+  __int64 v9; // rdx
+  __int64 v10; // rax
+  _QWORD v12[4]; // [rsp+20h] [rbp-38h] BYREF
+
+  v5 = *a3;
+  v6 = a3[1];
+  v12[0] = v5;
+  v12[1] = v6;
+  std::_Vector_base<std::string>::_Vector_base((__int64)a1, (__int64)a2, a5, a4);
+  v8 = std::initializer_list<std::string>::end((__int64)a1, (__int64)a2, v7, (__int64)v12);
+  v10 = std::initializer_list<std::string>::begin((__int64)a1, (__int64)a2, v9, (__int64)v12);
+  return std::vector<std::string>::_M_range_initialize<std::string const*>(a1, a2, v10, a4, v8);
+}
+// 1F4D: variable 'v7' is possibly undefined
+// 1F5C: variable 'v9' is possibly undefined
+
+//----- (0000000000001FD0) ----------------------------------------------------
+__int64 __fastcall __gnu_cxx::char_traits<char>::length(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  char v5; // [rsp+27h] [rbp-9h] BYREF
+  __int64 i; // [rsp+28h] [rbp-8h]
+
+  for ( i = 0LL; ; ++i )
+  {
+    v5 = 0;
+    if ( __gnu_cxx::char_traits<char>::eq(a1, a2, &v5, (_BYTE *)(a4 + i)) )
+      break;
+  }
+  return i;
+}
+
+//----- (0000000000002040) ----------------------------------------------------
+bool __fastcall __gnu_cxx::char_traits<char>::eq(__int64 a1, __int64 a2, _BYTE *a3, _BYTE *a4)
+{
+  return *a4 == *a3;
+}
+
+//----- (0000000000002088) ----------------------------------------------------
+__int64 __fastcall std::_Vector_base<std::string>::_Vector_impl::~_Vector_impl(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4)
+{
+  return a4;
+}
+
+//----- (00000000000020C8) ----------------------------------------------------
+_QWORD *__fastcall std::_Vector_base<std::string>::_Vector_base(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4)
+{
+  return std::_Vector_base<std::string>::_Vector_impl::_Vector_impl(a1, a2, a3, a4);
+}
+
+//----- (0000000000002118) ----------------------------------------------------
+_QWORD *__fastcall std::_Vector_base<std::string>::_Vector_impl::_Vector_impl(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        _QWORD *a4)
+{
+  return std::_Vector_base<std::string>::_Vector_impl_data::_Vector_impl_data(a1, a2, a3, a4);
+}
+
+//----- (0000000000002188) ----------------------------------------------------
+_QWORD *__fastcall std::_Vector_base<std::string>::_Vector_impl_data::_Vector_impl_data(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        _QWORD *a4)
+{
+  _QWORD *result; // rax
+
+  *a4 = 0LL;
+  a4[1] = 0LL;
+  result = a4;
+  a4[2] = 0LL;
+  return result;
+}
+
+//----- (00000000000021D0) ----------------------------------------------------
+__int64 __fastcall std::initializer_list<std::string>::begin(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return *(_QWORD *)a4;
+}
+
+//----- (0000000000002208) ----------------------------------------------------
+__int64 __fastcall std::initializer_list<std::string>::end(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rbx
+  __int64 v5; // rdx
+
+  v4 = std::initializer_list<std::string>::begin(a1, a2, a3, a4);
+  return v4 + 32 * std::initializer_list<std::string>::size(a1, a2, v5, a4);
+}
+// 222D: variable 'v5' is possibly undefined
+
+//----- (0000000000002268) ----------------------------------------------------
+__int64 __fastcall std::initializer_list<std::string>::size(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return *(_QWORD *)(a4 + 8);
+}
+
+//----- (00000000000022A0) ----------------------------------------------------
+__int64 __fastcall std::vector<std::string>::_M_range_initialize<std::string const*>(
+        char *a1,
+        void *a2,
+        __int64 a3,
+        __int64 *a4,
+        __int64 a5)
+{
+  __int64 Tp_allocator; // rax
+  unsigned __int64 v7; // rax
+  __int64 v8; // rdx
+  __int64 result; // rax
+  __int64 v10; // [rsp+48h] [rbp-20h]
+
+  v10 = (a5 - a3) >> 5;
+  Tp_allocator = std::_Vector_base<std::string>::_M_get_Tp_allocator((__int64)a1, (__int64)a2, a3, (__int64)a4);
+  v7 = std::vector<std::string>::_S_check_init_len(a1, (__int64)a2, Tp_allocator, v10);
+  *a4 = std::_Vector_base<std::string>::_M_allocate((unsigned __int64)a1, (__int64)a2, v7);
+  v8 = *a4 + 32 * v10;
+  a4[2] = v8;
+  std::_Vector_base<std::string>::_M_get_Tp_allocator((__int64)a1, (__int64)a2, v8, (__int64)a4);
+  result = std::__uninitialized_copy_a<std::string const*,std::string*,std::string>(a1, a2, a5, a3, *a4);
+  a4[1] = result;
+  return result;
+}
+
+//----- (0000000000002390) ----------------------------------------------------
+__int64 __fastcall std::_Vector_base<std::string>::_M_get_Tp_allocator(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (00000000000023B8) ----------------------------------------------------
+unsigned __int64 __fastcall std::vector<std::string>::_S_check_init_len(
+        const char *a1,
+        __int64 a2,
+        __int64 a3,
+        unsigned __int64 a4)
+{
+  char v5; // [rsp+27h] [rbp-19h] BYREF
+  __int64 v6; // [rsp+28h] [rbp-18h]
+  char *v7; // [rsp+30h] [rbp-10h]
+  __int64 v8; // [rsp+38h] [rbp-8h]
+
+  v8 = a3;
+  v7 = &v5;
+  v6 = a3;
+  if ( std::vector<std::string>::_S_max_size((__int64)a1, a2, a3, (__int64)&v5) < a4 )
+    std::__throw_length_error(a1);
+  return a4;
+}
+
+//----- (0000000000002438) ----------------------------------------------------
+__int64 __fastcall std::vector<std::string>::_S_max_size(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v5; // [rsp+28h] [rbp-18h] BYREF
+  __int64 v6[2]; // [rsp+30h] [rbp-10h] BYREF
+
+  v6[0] = 0x3FFFFFFFFFFFFFFLL;
+  v6[1] = a4;
+  v5 = 0x7FFFFFFFFFFFFFFLL;
+  return *std::min<unsigned long long>(a1, a2, &v5, v6);
+}
+
+//----- (00000000000024A8) ----------------------------------------------------
+__int64 __fastcall std::_Vector_base<std::string>::_M_allocate(unsigned __int64 a1, __int64 a2, unsigned __int64 a3)
+{
+  if ( !a3 )
+    return 0LL;
+  if ( !(unsigned __int8)std::__is_constant_evaluated() )
+    return std::__new_allocator<std::string>::allocate(a1, a2, a3);
+  if ( a3 >> 59 )
+    std::__throw_bad_array_new_length();
+  return operator new(a1);
+}
+
+//----- (0000000000002578) ----------------------------------------------------
+__int64 __fastcall std::__uninitialized_copy_a<std::string const*,std::string*,std::string>(
+        char *a1,
+        void *a2,
+        __int64 a3,
+        __int64 a4,
+        __int64 a5)
+{
+  if ( (unsigned __int8)std::is_constant_evaluated() )
+    return std::__do_uninit_copy<std::string const*,std::string*>(a1, a2, a3, a4, a5);
+  else
+    return std::uninitialized_copy<std::string const*,std::string*>(a1, a2, a3, a4, a5);
+}
+
+//----- (00000000000025F8) ----------------------------------------------------
+__int64 __fastcall std::__do_uninit_copy<std::string const*,std::string*>(
+        char *a1,
+        void *a2,
+        __int64 a3,
+        __int64 a4,
+        __int64 a5)
+{
+  void *v5; // rax
+
+  while ( a4 != a3 )
+  {
+    v5 = (void *)std::__addressof<std::string>((__int64)a1, (__int64)a2, a3, a5);
+    std::_Construct<std::string,std::string const&>(a1, a2, a4, v5);
+    a4 += 32LL;
+    a5 += 32LL;
+  }
+  return a5;
+}
+// 2620: variable 'a3' is possibly undefined
+
+//----- (00000000000026C0) ----------------------------------------------------
+__int64 __fastcall std::__addressof<std::string>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (00000000000026E8) ----------------------------------------------------
+void __fastcall std::_Construct<std::string,std::string const&>(char *a1, void *a2, __int64 a3, void *a4)
+{
+  __int64 v4; // rdx
+  __int64 v5; // rax
+  void *v6; // rsi
+  __int64 v7; // rdx
+  __int64 v8; // rax
+
+  if ( (unsigned __int8)std::__is_constant_evaluated() )
+  {
+    v5 = std::forward<std::string const&>((__int64)a1, (__int64)a2, v4, a3);
+    std::construct_at<std::string,std::string const&>(a1, (__int64)a2, v5, a4);
+  }
+  else
+  {
+    v6 = (void *)operator new((unsigned __int64)a1, a2, (__int64)a4);
+    v8 = std::forward<std::string const&>((__int64)a1, (__int64)v6, v7, a3);
+    std::string::basic_string(a1, v6, v8, (__int64 *)v6);
+  }
+}
+// 270F: variable 'v4' is possibly undefined
+// 2746: variable 'v7' is possibly undefined
+
+//----- (00000000000027C8) ----------------------------------------------------
+__int64 __fastcall std::forward<std::string const&>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (00000000000027F0) ----------------------------------------------------
+__int64 *__fastcall std::construct_at<std::string,std::string const&>(char *a1, __int64 a2, __int64 a3, void *a4)
+{
+  __int64 *v5; // rbx
+  __int64 v6; // rdx
+  __int64 v7; // rax
+
+  v5 = (__int64 *)operator new((unsigned __int64)a1, a4, (__int64)a4);
+  v7 = std::forward<std::string const&>((__int64)a1, (__int64)a4, v6, a3);
+  std::string::basic_string(a1, a4, v7, v5);
+  return v5;
+}
+// 2828: variable 'v6' is possibly undefined
+
+//----- (00000000000028A8) ----------------------------------------------------
+void __fastcall std::string::basic_string(char *a1, void *a2, __int64 a3, __int64 *a4)
+{
+  __int64 v5; // rax
+  __int64 v6; // rdx
+  __int64 v7; // rbx
+  __int64 v8; // rdx
+  __int64 v9; // rbx
+  __int64 v10; // rdx
+  _BYTE *v11; // rax
+  _BYTE v12[9]; // [rsp+2Fh] [rbp-49h] BYREF
+  _BYTE *v13; // [rsp+38h] [rbp-40h]
+  __int64 v14; // [rsp+40h] [rbp-38h]
+  _BYTE *v15; // [rsp+48h] [rbp-30h]
+  __int64 v16; // [rsp+50h] [rbp-28h]
+  __int64 allocator; // [rsp+58h] [rbp-20h]
+
+  allocator = std::string::_M_get_allocator((__int64)a1, (__int64)a2, a3, a3);
+  v16 = allocator;
+  v15 = v12;
+  v14 = allocator;
+  v13 = v12;
+  *(_QWORD *)&v12[1] = allocator;
+  v5 = std::string::_M_local_data((__int64)a1, (__int64)a2, allocator, (__int64)a4);
+  std::string::_Alloc_hider::_Alloc_hider((__int64)a1, (__int64)a2, v5, a4, (__int64)v12);
+  v7 = std::string::_M_data((__int64)a1, (__int64)a2, v6, a3);
+  v9 = std::string::length((__int64)a1, (__int64)a2, v8, a3) + v7;
+  v11 = (_BYTE *)std::string::_M_data((__int64)a1, (__int64)a2, v10, a3);
+  std::string::_M_construct<char *>(a1, a2, v11, a4, v9);
+}
+// 2922: variable 'v6' is possibly undefined
+// 2931: variable 'v8' is possibly undefined
+// 2940: variable 'v10' is possibly undefined
+
+//----- (00000000000029C0) ----------------------------------------------------
+__int64 *__fastcall std::string::_Alloc_hider::_Alloc_hider(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 *a4,
+        __int64 a5)
+{
+  __int64 *result; // rax
+
+  std::move<std::allocator<char> &>(a1, a2, a3, a5);
+  result = a4;
+  *a4 = a3;
+  return result;
+}
+
+//----- (0000000000002A30) ----------------------------------------------------
+__int64 __fastcall std::move<std::allocator<char> &>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000002A58) ----------------------------------------------------
+__int64 __fastcall std::string::length(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return *(_QWORD *)(a4 + 8);
+}
+
+//----- (0000000000002A90) ----------------------------------------------------
+_QWORD *__fastcall std::string::_M_construct<char *>(char *,char *,std::forward_iterator_tag)::_Guard::_Guard(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        _QWORD *a4)
+{
+  _QWORD *result; // rax
+
+  result = a4;
+  *a4 = a3;
+  return result;
+}
+
+//----- (0000000000002AC8) ----------------------------------------------------
+void __fastcall std::string::_M_construct<char *>(char *,char *,std::forward_iterator_tag)::_Guard::~_Guard(
+        void *a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 *a4)
+{
+  if ( *a4 )
+    std::string::_M_dispose(a1, a2, a3, *a4);
+}
+
+//----- (0000000000002B20) ----------------------------------------------------
+void __fastcall std::string::_M_construct<char *>(char *a1, void *a2, _BYTE *a3, _QWORD *a4, __int64 a5)
+{
+  __int64 v5; // rax
+  __int64 v6; // rdx
+  __int64 v7; // rdx
+  _BYTE *v8; // rax
+  __int64 v9; // rdx
+  __int64 v10; // [rsp+38h] [rbp-38h] BYREF
+  __int64 v11; // [rsp+40h] [rbp-30h] BYREF
+  unsigned __int64 i; // [rsp+48h] [rbp-28h]
+  _QWORD *v13; // [rsp+50h] [rbp-20h]
+  __int64 v14; // [rsp+58h] [rbp-18h]
+  _BYTE *v15; // [rsp+60h] [rbp-10h]
+  __int64 v16; // [rsp+68h] [rbp-8h]
+
+  v16 = a5;
+  v15 = a3;
+  v14 = a5;
+  v11 = a5 - (_QWORD)a3;
+  if ( (unsigned __int64)(a5 - (_QWORD)a3) <= 0xF )
+  {
+    v13 = a4;
+    if ( (unsigned __int8)std::is_constant_evaluated() )
+    {
+      for ( i = 0LL; i <= 0xF; ++i )
+      {
+        v6 = (__int64)v13;
+        *((_BYTE *)v13 + i + 16) = 0;
+      }
+    }
+    std::string::_M_local_data((__int64)a1, (__int64)a2, v6, (__int64)v13);
+  }
+  else
+  {
+    v5 = std::string::_M_create(a1, (__int64)a2, &v11, (__int64)a4, 0LL);
+    std::string::_M_data((__int64)a1, (__int64)a2, v5, a4);
+    std::string::_M_capacity((__int64)a1, (__int64)a2, v11, (__int64)a4);
+  }
+  std::string::_M_construct<char *>(char *,char *,std::forward_iterator_tag)::_Guard::_Guard(
+    (__int64)a1,
+    (__int64)a2,
+    (__int64)a4,
+    &v10);
+  v8 = (_BYTE *)std::string::_M_data((__int64)a1, (__int64)a2, v7, (__int64)a4);
+  std::string::_S_copy_chars(a1, a2, a3, v8, a5);
+  v10 = 0LL;
+  std::string::_M_set_length((unsigned __int64)a1, a2, v11, (__int64)a4);
+  std::string::_M_construct<char *>(char *,char *,std::forward_iterator_tag)::_Guard::~_Guard(a1, (__int64)a2, v9, &v10);
+}
+// 2BE3: variable 'v6' is possibly undefined
+// 2C00: variable 'v7' is possibly undefined
+// 2C3A: variable 'v9' is possibly undefined
+
+//----- (0000000000002C70) ----------------------------------------------------
+_BYTE *__fastcall std::string::_S_copy_chars(void *a1, void *a2, _BYTE *a3, _BYTE *a4, __int64 a5)
+{
+  return std::string::_S_copy(a1, a2, a3, a4, a5 - (_QWORD)a3);
+}
+
+//----- (0000000000002CD0) ----------------------------------------------------
+_QWORD *__fastcall blck::lexic::Token::Token(char *a1, void *a2, __int64 a3, __int64 a4, __int64 a5)
+{
+  int v7; // [rsp+48h] [rbp+10h]
+
+  v7 = a3;
+  std::string::basic_string((unsigned __int64)a1, a2, a3, (__int64 *)(a4 + 8));
+  *(_DWORD *)a4 = v7;
+  return std::string::operator=(a1, a2, a5, (_QWORD *)(a4 + 8));
+}
+
+//----- (0000000000002EB8) ----------------------------------------------------
+__int64 __fastcall std::_Vector_base<blck::lexic::Token>::_Vector_impl::~_Vector_impl(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000002EF8) ----------------------------------------------------
+__int64 __fastcall __gnu_cxx::char_traits<char>::find(
+        __int64 a1,
+        __int64 a2,
+        unsigned __int64 a3,
+        __int64 a4,
+        _BYTE *a5)
+{
+  unsigned __int64 i; // [rsp+28h] [rbp-8h]
+
+  for ( i = 0LL; i < a3; ++i )
+  {
+    if ( __gnu_cxx::char_traits<char>::eq(a1, a2, a5, (_BYTE *)(a4 + i)) )
+      return a4 + i;
+  }
+  return 0LL;
+}
+
+//----- (0000000000002F88) ----------------------------------------------------
+__int64 __fastcall std::string::~string(void *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rdx
+
+  std::string::_M_dispose(a1, a2, a3, a4);
+  return std::string::_Alloc_hider::~_Alloc_hider((__int64)a1, a2, v4, a4);
+}
+// 2FA7: variable 'v4' is possibly undefined
+
+//----- (0000000000002FE0) ----------------------------------------------------
+_BYTE *__fastcall std::string::basic_string(void *a1, __int64 a2, _QWORD *a3, __int64 *a4)
+{
+  __int64 allocator; // rax
+  __int64 v6; // rdx
+  void *v7; // rsi
+  __int64 v8; // rdx
+  __int64 v9; // rax
+  __int64 v10; // rdx
+  __int64 v11; // rdx
+  __int64 v12; // rax
+  __int64 v13; // rdx
+  __int64 v14; // rax
+  __int64 v15; // rax
+  __int64 v16; // rdx
+  __int64 v17; // rax
+
+  allocator = std::string::_M_get_allocator((__int64)a1, a2, (__int64)a3, (__int64)a3);
+  v7 = (void *)std::move<std::allocator<char> &>((__int64)a1, a2, v6, allocator);
+  v9 = std::string::_M_local_data((__int64)a1, (__int64)v7, v8, (__int64)a4);
+  std::string::_Alloc_hider::_Alloc_hider((__int64)a1, (__int64)v7, v9, a4, (__int64)v7);
+  if ( std::string::_M_is_local((__int64)a1, (__int64)v7, v10, (__int64)a3) )
+  {
+    v12 = std::string::length((__int64)a1, (__int64)v7, v11, (__int64)a3);
+    std::char_traits<char>::copy(a1, v7, (size_t)(a3 + 2), (__int64)(a4 + 2), v12 + 1);
+  }
+  else
+  {
+    v14 = std::string::_M_data((__int64)a1, (__int64)v7, v11, (__int64)a3);
+    std::string::_M_data((__int64)a1, (__int64)v7, v14, a4);
+    std::string::_M_capacity((__int64)a1, (__int64)v7, a3[2], (__int64)a4);
+  }
+  v15 = std::string::length((__int64)a1, (__int64)v7, v13, (__int64)a3);
+  std::string::_M_length((__int64)a1, (__int64)v7, v15, (__int64)a4);
+  v17 = std::string::_M_local_data((__int64)a1, (__int64)v7, v16, (__int64)a3);
+  std::string::_M_data((__int64)a1, (__int64)v7, v17, a3);
+  return std::string::_M_set_length((unsigned __int64)a1, v7, 0LL, (__int64)a3);
+}
+// 3007: variable 'v6' is possibly undefined
+// 3016: variable 'v8' is possibly undefined
+// 3030: variable 'v10' is possibly undefined
+// 3040: variable 'v11' is possibly undefined
+// 309C: variable 'v13' is possibly undefined
+// 30B7: variable 'v16' is possibly undefined
+
+//----- (0000000000003118) ----------------------------------------------------
+_QWORD *__fastcall std::max<unsigned long long>(__int64 a1, __int64 a2, _QWORD *a3, _QWORD *a4)
+{
+  if ( *a4 >= *a3 )
+    return a4;
+  else
+    return a3;
+}
+
+//----- (0000000000003160) ----------------------------------------------------
+void __fastcall std::string::_M_dispose(void *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  if ( !std::string::_M_is_local((__int64)a1, a2, a3, a4) )
+    std::string::_M_destroy(a1, a2, *(_QWORD *)(a4 + 16), a4);
+}
+
+//----- (00000000000031C0) ----------------------------------------------------
+__int64 __fastcall std::__new_allocator<char>::allocate(unsigned __int64 a1, __int64 a2, unsigned __int64 a3)
+{
+  if ( a3 > 0x7FFFFFFFFFFFFFFFLL )
+    std::__throw_bad_alloc();
+  return operator new(a1);
+}
+
+//----- (0000000000003240) ----------------------------------------------------
+__int64 __fastcall std::_Vector_base<std::string>::~_Vector_base(
+        void *a1,
+        unsigned __int64 a2,
+        __int64 a3,
+        __int64 *a4)
+{
+  __int64 v4; // rdx
+
+  std::_Vector_base<std::string>::_M_deallocate(a1, a2, *a4);
+  return std::_Vector_base<std::string>::_Vector_impl::~_Vector_impl((__int64)a1, a2, v4, (__int64)a4);
+}
+// 3285: variable 'v4' is possibly undefined
+
+//----- (00000000000032C8) ----------------------------------------------------
+__int64 __fastcall std::__new_allocator<std::string>::allocate(unsigned __int64 a1, __int64 a2, unsigned __int64 a3)
+{
+  if ( a3 > 0x3FFFFFFFFFFFFFFLL )
+  {
+    if ( a3 > 0x7FFFFFFFFFFFFFFLL )
+      std::__throw_bad_array_new_length();
+    std::__throw_bad_alloc();
+  }
+  return operator new(a1);
+}
+
+//----- (0000000000003358) ----------------------------------------------------
+__int64 __fastcall std::uninitialized_copy<std::string const*,std::string*>(
+        char *a1,
+        void *a2,
+        __int64 a3,
+        __int64 a4,
+        __int64 a5)
+{
+  return std::__uninitialized_copy<false>::__uninit_copy<std::string const*,std::string*>(a1, a2, a3, a4, a5);
+}
+
+//----- (00000000000033B8) ----------------------------------------------------
+__int64 __fastcall std::_Destroy<std::string *>(void *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  std::__is_constant_evaluated();
+  return std::_Destroy_aux<false>::__destroy<std::string *>(a1, a2, a3, a4);
+}
+
+//----- (0000000000003428) ----------------------------------------------------
+_BYTE *__fastcall std::string::basic_string(unsigned __int64 a1, void *a2, __int64 a3, __int64 *a4)
+{
+  __int64 v5; // rax
+  __int64 v6; // rdx
+  __int64 v8; // [rsp+0h] [rbp-58h] BYREF
+  _BYTE v9[9]; // [rsp+27h] [rbp-31h] BYREF
+  unsigned __int64 i; // [rsp+30h] [rbp-28h]
+  __int64 *v11; // [rsp+38h] [rbp-20h]
+
+  *(_QWORD *)&v9[1] = (char *)&v8 + 39;
+  v5 = std::string::_M_local_data(a1, (__int64)a2, a3, (__int64)a4);
+  std::string::_Alloc_hider::_Alloc_hider(a1, (__int64)a2, v5, a4, (__int64)v9);
+  v11 = a4;
+  if ( (unsigned __int8)std::is_constant_evaluated() )
+  {
+    for ( i = 0LL; i <= 0xF; ++i )
+    {
+      v6 = (__int64)v11;
+      *((_BYTE *)v11 + i + 16) = 0;
+    }
+  }
+  std::string::_M_local_data(a1, (__int64)a2, v6, (__int64)v11);
+  return std::string::_M_set_length(a1, a2, 0LL, (__int64)a4);
+}
+// 34A4: variable 'v6' is possibly undefined
+
+//----- (00000000000034E8) ----------------------------------------------------
+_QWORD *__fastcall std::string::operator=(char *a1, void *a2, __int64 a3, _QWORD *a4)
+{
+  return std::string::assign(a1, a2, a3, a4);
+}
+
+//----- (0000000000003538) ----------------------------------------------------
+__int64 __fastcall std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type &,std::string>(
+        char *a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 *a4,
+        __int64 a5)
+{
+  __int64 v5; // rdx
+  __int64 v6; // rbx
+  __int64 v7; // rdx
+  __int64 v8; // rax
+  __int64 v9; // rbx
+  __int64 v10; // rdx
+  __int64 v11; // rax
+  __int64 v12; // rdx
+  __int64 v13; // rdx
+  __int64 v14; // rbx
+  __int64 v15; // rdx
+  __int64 v16; // rax
+  __int64 v18; // [rsp+0h] [rbp-58h]
+  __int64 v19; // [rsp+8h] [rbp-50h]
+  __int64 v20; // [rsp+10h] [rbp-48h]
+  __int64 v21; // [rsp+18h] [rbp-40h]
+  __int64 v22; // [rsp+28h] [rbp-30h]
+  void *v23; // [rsp+30h] [rbp-28h]
+
+  v5 = a4[1];
+  if ( v5 == a4[2] )
+  {
+    a2 = std::forward<std::string>((__int64)a1, a2, v5, a5);
+    v14 = std::forward<blck::lexic::Token::type &>((__int64)a1, a2, v13, a3);
+    v16 = std::vector<blck::lexic::Token>::end((__int64)a1, a2, v15, (__int64)a4);
+    std::vector<blck::lexic::Token>::_M_realloc_insert<blck::lexic::Token::type &,std::string>(
+      a1,
+      a2,
+      v16,
+      a4,
+      v14,
+      a2,
+      v18,
+      v19,
+      v20,
+      v21);
+  }
+  else
+  {
+    v6 = std::forward<std::string>((__int64)a1, a2, v5, a5);
+    v8 = std::forward<blck::lexic::Token::type &>((__int64)a1, a2, v7, a3);
+    v23 = (void *)a4[1];
+    v22 = v8;
+    v9 = std::forward<std::string>((__int64)a1, a2, (__int64)v23, v6);
+    v11 = std::forward<blck::lexic::Token::type &>((__int64)a1, a2, v10, v22);
+    std::construct_at<blck::lexic::Token,blck::lexic::Token::type &,std::string>((unsigned __int64)a1, a2, v11, v23, v9);
+    v12 = a4[1] + 40;
+    a4[1] = v12;
+  }
+  return std::vector<blck::lexic::Token>::back((__int64)a1, a2, v12, (__int64)a4);
+}
+// 357B: variable 'v7' is possibly undefined
+// 35B2: variable 'v10' is possibly undefined
+// 35F6: variable 'v13' is possibly undefined
+// 3605: variable 'v15' is possibly undefined
+// 361A: variable 'v18' is possibly undefined
+// 361A: variable 'v19' is possibly undefined
+// 361A: variable 'v20' is possibly undefined
+// 361A: variable 'v21' is possibly undefined
+// 3626: variable 'v12' is possibly undefined
+
+//----- (0000000000003658) ----------------------------------------------------
+__int64 __fastcall std::_Vector_base<blck::lexic::Token>::~_Vector_base(
+        void *a1,
+        unsigned __int64 a2,
+        __int64 a3,
+        __int64 *a4)
+{
+  __int64 v4; // rdx
+
+  std::_Vector_base<blck::lexic::Token>::_M_deallocate(a1, a2, *a4);
+  return std::_Vector_base<blck::lexic::Token>::_Vector_impl::~_Vector_impl((__int64)a1, a2, v4, (__int64)a4);
+}
+// 36A8: variable 'v4' is possibly undefined
+
+//----- (00000000000036E0) ----------------------------------------------------
+__int64 __fastcall std::vector<blck::lexic::Token>::~vector(
+        blck::lexic::Token *a1,
+        unsigned __int64 a2,
+        __int64 a3,
+        __int64 *a4)
+{
+  __int64 v4; // rdx
+
+  std::_Vector_base<blck::lexic::Token>::_M_get_Tp_allocator((__int64)a1, a2, a3, (__int64)a4);
+  std::_Destroy<blck::lexic::Token *>(a1, a2, a4[1], *a4);
+  return std::_Vector_base<blck::lexic::Token>::~_Vector_base(a1, a2, v4, a4);
+}
+// 372B: variable 'v4' is possibly undefined
+
+//----- (0000000000003768) ----------------------------------------------------
+__int64 __fastcall std::string::operator[](__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rdx
+
+  if ( (unsigned __int8)std::__is_constant_evaluated() )
+    std::string::size(a1, a2, v4, a4);
+  return a3 + std::string::_M_data(a1, a2, v4, a4);
+}
+// 3788: variable 'v4' is possibly undefined
+
+//----- (00000000000037E8) ----------------------------------------------------
+__int64 __fastcall std::vector<blck::lexic::Token>::emplace_back<blck::lexic::Token::type,char const(&)[2]>(
+        char *a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 *a4,
+        __int64 a5)
+{
+  __int64 v5; // rdx
+  __int64 v6; // rbx
+  __int64 v7; // rdx
+  __int64 v8; // rax
+  __int64 v9; // rbx
+  __int64 v10; // rdx
+  __int64 v11; // rax
+  __int64 v12; // rdx
+  __int64 v13; // rdx
+  __int64 v14; // rbx
+  __int64 v15; // rdx
+  __int64 v16; // rax
+  __int64 v18; // [rsp+0h] [rbp-58h]
+  __int64 v19; // [rsp+8h] [rbp-50h]
+  __int64 v20; // [rsp+10h] [rbp-48h]
+  __int64 v21; // [rsp+18h] [rbp-40h]
+  __int64 v22; // [rsp+28h] [rbp-30h]
+  void *v23; // [rsp+30h] [rbp-28h]
+
+  v5 = a4[1];
+  if ( v5 == a4[2] )
+  {
+    a2 = std::forward<char const(&)[2]>((__int64)a1, a2, v5, a5);
+    v14 = std::forward<blck::lexic::Token::type>((__int64)a1, a2, v13, a3);
+    v16 = std::vector<blck::lexic::Token>::end((__int64)a1, a2, v15, (__int64)a4);
+    std::vector<blck::lexic::Token>::_M_realloc_insert<blck::lexic::Token::type,char const(&)[2]>(
+      a1,
+      a2,
+      v16,
+      a4,
+      v14,
+      a2,
+      v18,
+      v19,
+      v20,
+      v21);
+  }
+  else
+  {
+    v6 = std::forward<char const(&)[2]>((__int64)a1, a2, v5, a5);
+    v8 = std::forward<blck::lexic::Token::type>((__int64)a1, a2, v7, a3);
+    v23 = (void *)a4[1];
+    v22 = v8;
+    v9 = std::forward<char const(&)[2]>((__int64)a1, a2, (__int64)v23, v6);
+    v11 = std::forward<blck::lexic::Token::type>((__int64)a1, a2, v10, v22);
+    std::construct_at<blck::lexic::Token,blck::lexic::Token::type,char const(&)[2]>(a1, a2, v11, v23, v9);
+    v12 = a4[1] + 40;
+    a4[1] = v12;
+  }
+  return std::vector<blck::lexic::Token>::back((__int64)a1, a2, v12, (__int64)a4);
+}
+// 382B: variable 'v7' is possibly undefined
+// 3862: variable 'v10' is possibly undefined
+// 38A6: variable 'v13' is possibly undefined
+// 38B5: variable 'v15' is possibly undefined
+// 38CA: variable 'v18' is possibly undefined
+// 38CA: variable 'v19' is possibly undefined
+// 38CA: variable 'v20' is possibly undefined
+// 38CA: variable 'v21' is possibly undefined
+// 38D6: variable 'v12' is possibly undefined
+
+//----- (0000000000003908) ----------------------------------------------------
+char *__fastcall std::string::find(
+        const void *a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4,
+        unsigned __int64 a5,
+        __int64 a6,
+        __int64 a7,
+        char a8,
+        unsigned __int64 a9)
+{
+  __int64 v9; // rdx
+  char *v11; // [rsp+28h] [rbp-28h]
+  __int64 v12; // [rsp+38h] [rbp-18h]
+  unsigned __int64 v13; // [rsp+40h] [rbp-10h]
+  __int64 v14; // [rsp+48h] [rbp-8h]
+
+  a9 = a5;
+  a8 = a3;
+  v14 = -1LL;
+  v13 = std::string::size((__int64)a1, a2, a3, a4);
+  if ( a9 < v13 )
+  {
+    v12 = std::string::_M_data((__int64)a1, a2, v9, a4);
+    v11 = (char *)std::char_traits<char>::find(a1, a2, v13 - a9, v12 + a9, &a8);
+    if ( v11 )
+      return &v11[-v12];
+  }
+  return (char *)v14;
+}
+// 3946: variable 'v9' is possibly undefined
+
+//----- (00000000000039C8) ----------------------------------------------------
+_BOOL8 __fastcall std::string::_M_is_local(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rbx
+  __int64 v5; // rdx
+
+  v4 = std::string::_M_data(a1, a2, a3, a4);
+  return v4 == std::string::_M_local_data(a1, a2, v5, a4);
+}
+// 39ED: variable 'v5' is possibly undefined
+
+//----- (0000000000003A48) ----------------------------------------------------
+__int64 __fastcall std::string::capacity(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  if ( std::string::_M_is_local(a1, a2, a3, a4) )
+    return 15LL;
+  else
+    return *(_QWORD *)(a4 + 16);
+}
+
+//----- (0000000000003AA8) ----------------------------------------------------
+void __fastcall std::string::_M_destroy(void *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  unsigned __int64 v4; // rsi
+  __int64 v5; // rdx
+
+  v4 = a3 + 1;
+  std::string::_M_data((__int64)a1, a3 + 1, a3, a4);
+  std::string::_M_get_allocator((__int64)a1, v4, v5, a4);
+  if ( (unsigned __int8)std::__is_constant_evaluated() )
+    operator delete(a1);
+  else
+    std::__new_allocator<char>::deallocate(a1, v4);
+}
+// 3ADA: variable 'v5' is possibly undefined
+
+//----- (0000000000003B68) ----------------------------------------------------
+void __fastcall std::_Vector_base<std::string>::_M_deallocate(void *a1, unsigned __int64 a2, __int64 a3)
+{
+  if ( a3 )
+  {
+    if ( (unsigned __int8)std::__is_constant_evaluated() )
+      operator delete(a1);
+    else
+      std::__new_allocator<std::string>::deallocate(a1, a2);
+  }
+}
+
+//----- (0000000000003C18) ----------------------------------------------------
+__int64 __fastcall std::__uninitialized_copy<false>::__uninit_copy<std::string const*,std::string*>(
+        char *a1,
+        void *a2,
+        __int64 a3,
+        __int64 a4,
+        __int64 a5)
+{
+  return std::__do_uninit_copy<std::string const*,std::string*>(a1, a2, a3, a4, a5);
+}
+
+//----- (0000000000003C78) ----------------------------------------------------
+__int64 __fastcall std::_Destroy_aux<false>::__destroy<std::string *>(void *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rax
+  __int64 v5; // rdx
+  __int64 result; // rax
+
+  while ( 1 )
+  {
+    result = a4;
+    if ( a4 == a3 )
+      break;
+    v4 = std::__addressof<std::string>((__int64)a1, a2, a3, a4);
+    std::_Destroy<std::string>(a1, a2, v5, v4);
+    a4 += 32LL;
+  }
+  return result;
+}
+// 3C91: variable 'a3' is possibly undefined
+// 3C99: variable 'v5' is possibly undefined
+
+//----- (0000000000003CD8) ----------------------------------------------------
+_QWORD *__fastcall std::string::assign(char *a1, void *a2, __int64 a3, _QWORD *a4)
+{
+  std::string::_M_assign(a1, a2, a3, a4);
+  return a4;
+}
+
+//----- (0000000000003F60) ----------------------------------------------------
+__int64 __fastcall std::forward<blck::lexic::Token::type &>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000003F88) ----------------------------------------------------
+__int64 __fastcall std::forward<std::string>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000003FB0) ----------------------------------------------------
+__int64 __fastcall std::vector<blck::lexic::Token>::end(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v5; // [rsp+28h] [rbp-8h] BYREF
+
+  __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::__normal_iterator(
+    a1,
+    a2,
+    (_QWORD *)(a4 + 8),
+    &v5);
+  return v5;
+}
+
+//----- (0000000000004000) ----------------------------------------------------
+unsigned __int64 __fastcall std::vector<blck::lexic::Token>::size(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4)
+{
+  return 0xCCCCCCCCCCCCCCCDLL * ((__int64)(a4[1] - *a4) >> 3);
+}
+
+//----- (0000000000004048) ----------------------------------------------------
+__int64 __fastcall std::vector<blck::lexic::Token>::_M_check_len(
+        const char *a1,
+        __int64 a2,
+        __int64 a3,
+        _QWORD *a4,
+        __int64 a5,
+        __int64 a6,
+        __int64 a7,
+        unsigned __int64 a8,
+        __int64 a9)
+{
+  __int64 v9; // rbx
+  __int64 v10; // rdx
+  unsigned __int64 v11; // rdx
+  unsigned __int64 v12; // rbx
+  __int64 v13; // rdx
+  __int64 v14; // rdx
+  unsigned __int64 v15; // rax
+  __int64 v16; // rdx
+  unsigned __int64 v17; // rax
+  unsigned __int64 v19; // [rsp+20h] [rbp-28h] BYREF
+  unsigned __int64 v20; // [rsp+28h] [rbp-20h]
+
+  a8 = a3;
+  a9 = a5;
+  v9 = std::vector<blck::lexic::Token>::max_size((__int64)a1, a2, a3, (__int64)a4);
+  v11 = v9 - std::vector<blck::lexic::Token>::size((__int64)a1, a2, v10, a4);
+  if ( v11 < a8 )
+    std::__throw_length_error(a1);
+  v12 = std::vector<blck::lexic::Token>::size((__int64)a1, a2, v11, a4);
+  v19 = std::vector<blck::lexic::Token>::size((__int64)a1, a2, v13, a4);
+  v20 = v12 + *std::max<unsigned long long>((__int64)a1, a2, &a8, &v19);
+  v15 = std::vector<blck::lexic::Token>::size((__int64)a1, a2, v14, a4);
+  if ( v20 >= v15 && (v17 = std::vector<blck::lexic::Token>::max_size((__int64)a1, a2, v16, (__int64)a4), v17 >= v20) )
+    return v20;
+  else
+    return std::vector<blck::lexic::Token>::max_size((__int64)a1, a2, v16, (__int64)a4);
+}
+// 4075: variable 'v10' is possibly undefined
+// 40B0: variable 'v13' is possibly undefined
+// 40DA: variable 'v14' is possibly undefined
+// 40EC: variable 'v16' is possibly undefined
+
+//----- (0000000000004138) ----------------------------------------------------
+unsigned __int64 __fastcall __gnu_cxx::operator-<blck::lexic::Token *,std::vector<blck::lexic::Token>>(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4)
+{
+  __int64 v4; // rbx
+  __int64 v5; // rdx
+
+  v4 = *(_QWORD *)__gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::base(
+                    a1,
+                    a2,
+                    a3,
+                    a4);
+  return 0xCCCCCCCCCCCCCCCDLL
+       * ((v4
+         - *(_QWORD *)__gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::base(
+                        a1,
+                        a2,
+                        v5,
+                        a3)) >> 3);
+}
+// 4161: variable 'v5' is possibly undefined
+
+//----- (00000000000041A8) ----------------------------------------------------
+__int64 __fastcall std::vector<blck::lexic::Token>::begin(__int64 a1, __int64 a2, __int64 a3, _QWORD *a4)
+{
+  __int64 v5; // [rsp+28h] [rbp-8h] BYREF
+
+  __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::__normal_iterator(a1, a2, a4, &v5);
+  return v5;
+}
+
+//----- (00000000000041F8) ----------------------------------------------------
+__int64 *__fastcall std::vector<blck::lexic::Token>::_M_realloc_insert<blck::lexic::Token::type &,std::string>(
+        char *a1,
+        unsigned __int64 a2,
+        __int64 a3,
+        __int64 *a4,
+        __int64 a5,
+        __int64 a6,
+        __int64 a7,
+        __int64 a8,
+        __int64 a9,
+        __int64 a10)
+{
+  __int64 v10; // rdx
+  __int64 v11; // rdx
+  __int64 v12; // rbx
+  __int64 v13; // rdx
+  __int64 v14; // rax
+  __int64 v15; // rbx
+  __int64 v16; // rdx
+  __int64 v17; // rax
+  __int64 v18; // rdx
+  __int64 Tp_allocator; // rbx
+  __int64 v20; // rdx
+  __int64 *v21; // rax
+  __int64 v22; // rdx
+  __int64 v23; // rbx
+  __int64 v24; // rdx
+  __int64 *v25; // rax
+  __int64 *result; // rax
+  __int64 v27; // [rsp+0h] [rbp-B8h]
+  unsigned __int64 v28; // [rsp+8h] [rbp-B0h]
+  __int64 v29; // [rsp+10h] [rbp-A8h]
+  _QWORD v30[7]; // [rsp+20h] [rbp-98h] BYREF
+  __int64 v31; // [rsp+58h] [rbp-60h]
+  void *v32; // [rsp+60h] [rbp-58h]
+  __int64 *v33; // [rsp+68h] [rbp-50h]
+  __int64 v34; // [rsp+70h] [rbp-48h]
+  __int64 v35; // [rsp+78h] [rbp-40h]
+  unsigned __int64 v36; // [rsp+80h] [rbp-38h]
+  __int64 v37; // [rsp+88h] [rbp-30h]
+  __int64 v38; // [rsp+90h] [rbp-28h]
+  __int64 v39; // [rsp+98h] [rbp-20h]
+
+  a8 = a3;
+  a9 = a5;
+  a10 = a6;
+  v39 = std::vector<blck::lexic::Token>::_M_check_len(
+          a1,
+          a2,
+          1LL,
+          a4,
+          (__int64)"vector::_M_realloc_insert",
+          a6,
+          v27,
+          v28,
+          v29);
+  v38 = *a4;
+  v37 = a4[1];
+  v30[0] = std::vector<blck::lexic::Token>::begin((__int64)a1, a2, v10, a4);
+  v36 = __gnu_cxx::operator-<blck::lexic::Token *,std::vector<blck::lexic::Token>>(
+          (__int64)a1,
+          a2,
+          (__int64)v30,
+          (__int64)&a8);
+  v35 = std::_Vector_base<blck::lexic::Token>::_M_allocate((unsigned __int64)a1, a2, v39);
+  v34 = v35;
+  v12 = std::forward<std::string>((__int64)a1, a2, v11, a10);
+  v14 = std::forward<blck::lexic::Token::type &>((__int64)a1, a2, v13, a9);
+  v33 = a4;
+  v32 = (void *)(v35 + 40 * v36);
+  v31 = v14;
+  v30[6] = v12;
+  v15 = std::forward<std::string>((__int64)a1, a2, (__int64)v32, v12);
+  v17 = std::forward<blck::lexic::Token::type &>((__int64)a1, a2, v16, v31);
+  std::construct_at<blck::lexic::Token,blck::lexic::Token::type &,std::string>((unsigned __int64)a1, a2, v17, v32, v15);
+  v34 = 0LL;
+  Tp_allocator = std::_Vector_base<blck::lexic::Token>::_M_get_Tp_allocator((__int64)a1, a2, v18, (__int64)a4);
+  v21 = (__int64 *)__gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::base(
+                     (__int64)a1,
+                     a2,
+                     v20,
+                     (__int64)&a8);
+  v34 = std::vector<blck::lexic::Token>::_S_relocate(a1, a2, *v21, v38, v35, Tp_allocator) + 40;
+  v23 = std::_Vector_base<blck::lexic::Token>::_M_get_Tp_allocator((__int64)a1, a2, v22, (__int64)a4);
+  v25 = (__int64 *)__gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::base(
+                     (__int64)a1,
+                     a2,
+                     v24,
+                     (__int64)&a8);
+  v34 = std::vector<blck::lexic::Token>::_S_relocate(a1, a2, v37, *v25, v34, v23);
+  std::_Vector_base<blck::lexic::Token>::_M_deallocate(a1, a2, v38);
+  *a4 = v35;
+  a4[1] = v34;
+  result = a4;
+  a4[2] = v35 + 40 * v39;
+  return result;
+}
+// 422C: variable 'v27' is possibly undefined
+// 422C: variable 'v28' is possibly undefined
+// 422C: variable 'v29' is possibly undefined
+// 4253: variable 'v10' is possibly undefined
+// 4293: variable 'v11' is possibly undefined
+// 42A2: variable 'v13' is possibly undefined
+// 42F0: variable 'v16' is possibly undefined
+// 4317: variable 'v18' is possibly undefined
+// 4326: variable 'v20' is possibly undefined
+// 4354: variable 'v22' is possibly undefined
+// 4363: variable 'v24' is possibly undefined
+
+//----- (0000000000004508) ----------------------------------------------------
+__int64 __fastcall std::vector<blck::lexic::Token>::back(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rdx
+  __int64 v6; // [rsp+20h] [rbp-10h] BYREF
+  __int64 v7; // [rsp+28h] [rbp-8h] BYREF
+
+  v7 = std::vector<blck::lexic::Token>::end(a1, a2, a3, a4);
+  v6 = __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::operator-(a1, a2, 1LL, &v7);
+  return __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::operator*(
+           a1,
+           a2,
+           v4,
+           (__int64)&v6);
+}
+// 4540: variable 'v4' is possibly undefined
+
+//----- (0000000000004578) ----------------------------------------------------
+void __fastcall std::_Vector_base<blck::lexic::Token>::_M_deallocate(void *a1, unsigned __int64 a2, __int64 a3)
+{
+  if ( a3 )
+  {
+    if ( (unsigned __int8)std::__is_constant_evaluated() )
+      operator delete(a1);
+    else
+      std::__new_allocator<blck::lexic::Token>::deallocate(a1, a2);
+  }
+}
+
+//----- (0000000000004628) ----------------------------------------------------
+__int64 __fastcall std::_Vector_base<blck::lexic::Token>::_M_get_Tp_allocator(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000004650) ----------------------------------------------------
+__int64 __fastcall std::forward<blck::lexic::Token::type>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000004678) ----------------------------------------------------
+__int64 __fastcall std::forward<char const(&)[2]>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (00000000000046A0) ----------------------------------------------------
+__int64 *__fastcall std::vector<blck::lexic::Token>::_M_realloc_insert<blck::lexic::Token::type,char const(&)[2]>(
+        char *a1,
+        unsigned __int64 a2,
+        __int64 a3,
+        __int64 *a4,
+        __int64 a5,
+        __int64 a6,
+        __int64 a7,
+        __int64 a8,
+        __int64 a9,
+        __int64 a10)
+{
+  __int64 v10; // rdx
+  __int64 v11; // rdx
+  __int64 v12; // rbx
+  __int64 v13; // rdx
+  __int64 v14; // rax
+  __int64 v15; // rbx
+  __int64 v16; // rdx
+  __int64 v17; // rax
+  __int64 v18; // rdx
+  __int64 Tp_allocator; // rbx
+  __int64 v20; // rdx
+  __int64 *v21; // rax
+  __int64 v22; // rdx
+  __int64 v23; // rbx
+  __int64 v24; // rdx
+  __int64 *v25; // rax
+  __int64 *result; // rax
+  __int64 v27; // [rsp+0h] [rbp-B8h]
+  unsigned __int64 v28; // [rsp+8h] [rbp-B0h]
+  __int64 v29; // [rsp+10h] [rbp-A8h]
+  _QWORD v30[7]; // [rsp+20h] [rbp-98h] BYREF
+  __int64 v31; // [rsp+58h] [rbp-60h]
+  void *v32; // [rsp+60h] [rbp-58h]
+  __int64 *v33; // [rsp+68h] [rbp-50h]
+  __int64 v34; // [rsp+70h] [rbp-48h]
+  __int64 v35; // [rsp+78h] [rbp-40h]
+  unsigned __int64 v36; // [rsp+80h] [rbp-38h]
+  __int64 v37; // [rsp+88h] [rbp-30h]
+  __int64 v38; // [rsp+90h] [rbp-28h]
+  __int64 v39; // [rsp+98h] [rbp-20h]
+
+  a8 = a3;
+  a9 = a5;
+  a10 = a6;
+  v39 = std::vector<blck::lexic::Token>::_M_check_len(
+          a1,
+          a2,
+          1LL,
+          a4,
+          (__int64)"vector::_M_realloc_insert",
+          a6,
+          v27,
+          v28,
+          v29);
+  v38 = *a4;
+  v37 = a4[1];
+  v30[0] = std::vector<blck::lexic::Token>::begin((__int64)a1, a2, v10, a4);
+  v36 = __gnu_cxx::operator-<blck::lexic::Token *,std::vector<blck::lexic::Token>>(
+          (__int64)a1,
+          a2,
+          (__int64)v30,
+          (__int64)&a8);
+  v35 = std::_Vector_base<blck::lexic::Token>::_M_allocate((unsigned __int64)a1, a2, v39);
+  v34 = v35;
+  v12 = std::forward<char const(&)[2]>((__int64)a1, a2, v11, a10);
+  v14 = std::forward<blck::lexic::Token::type>((__int64)a1, a2, v13, a9);
+  v33 = a4;
+  v32 = (void *)(v35 + 40 * v36);
+  v31 = v14;
+  v30[6] = v12;
+  v15 = std::forward<char const(&)[2]>((__int64)a1, a2, (__int64)v32, v12);
+  v17 = std::forward<blck::lexic::Token::type>((__int64)a1, a2, v16, v31);
+  std::construct_at<blck::lexic::Token,blck::lexic::Token::type,char const(&)[2]>(a1, a2, v17, v32, v15);
+  v34 = 0LL;
+  Tp_allocator = std::_Vector_base<blck::lexic::Token>::_M_get_Tp_allocator((__int64)a1, a2, v18, (__int64)a4);
+  v21 = (__int64 *)__gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::base(
+                     (__int64)a1,
+                     a2,
+                     v20,
+                     (__int64)&a8);
+  v34 = std::vector<blck::lexic::Token>::_S_relocate(a1, a2, *v21, v38, v35, Tp_allocator) + 40;
+  v23 = std::_Vector_base<blck::lexic::Token>::_M_get_Tp_allocator((__int64)a1, a2, v22, (__int64)a4);
+  v25 = (__int64 *)__gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::base(
+                     (__int64)a1,
+                     a2,
+                     v24,
+                     (__int64)&a8);
+  v34 = std::vector<blck::lexic::Token>::_S_relocate(a1, a2, v37, *v25, v34, v23);
+  std::_Vector_base<blck::lexic::Token>::_M_deallocate(a1, a2, v38);
+  *a4 = v35;
+  a4[1] = v34;
+  result = a4;
+  a4[2] = v35 + 40 * v39;
+  return result;
+}
+// 46D4: variable 'v27' is possibly undefined
+// 46D4: variable 'v28' is possibly undefined
+// 46D4: variable 'v29' is possibly undefined
+// 46FB: variable 'v10' is possibly undefined
+// 473B: variable 'v11' is possibly undefined
+// 474A: variable 'v13' is possibly undefined
+// 4798: variable 'v16' is possibly undefined
+// 47BF: variable 'v18' is possibly undefined
+// 47CE: variable 'v20' is possibly undefined
+// 47FC: variable 'v22' is possibly undefined
+// 480B: variable 'v24' is possibly undefined
+
+//----- (00000000000049A8) ----------------------------------------------------
+__int64 __fastcall std::string::_M_local_data(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return std::__ptr_traits_ptr_to<char const*,char const,false>::pointer_to(a1, a2, a3, a4 + 16);
+}
+
+//----- (00000000000049F8) ----------------------------------------------------
+__int64 __fastcall std::_Destroy<std::string>(void *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return std::destroy_at<std::string>(a1, a2, a3, a4);
+}
+
+//----- (0000000000004A38) ----------------------------------------------------
+unsigned __int8 __fastcall std::string::_M_assign(char *a1, void *a2, __int64 a3, _QWORD *a4)
+{
+  unsigned __int8 result; // al
+  __int64 v5; // rdx
+  __int64 v6; // rdx
+  __int64 v7; // rdx
+  __int64 v8; // rdx
+  _BYTE *v9; // rbx
+  __int64 v10; // rdx
+  _BYTE *v11; // rax
+  __int64 v12; // [rsp+20h] [rbp-38h] BYREF
+  __int64 v13; // [rsp+28h] [rbp-30h]
+  unsigned __int64 v14; // [rsp+30h] [rbp-28h]
+  unsigned __int64 v15; // [rsp+38h] [rbp-20h]
+
+  result = a4 != (_QWORD *)std::__addressof<std::string const>((__int64)a1, (__int64)a2, a3, a3);
+  if ( result )
+  {
+    v15 = std::string::length((__int64)a1, (__int64)a2, v5, a3);
+    v14 = std::string::capacity((__int64)a1, (__int64)a2, v6, (__int64)a4);
+    if ( v14 < v15 )
+    {
+      v12 = v15;
+      v13 = std::string::_M_create(a1, (__int64)a2, &v12, (__int64)a4, v14);
+      std::string::_M_dispose(a1, (__int64)a2, v8, (__int64)a4);
+      std::string::_M_data((__int64)a1, (__int64)a2, v13, a4);
+      std::string::_M_capacity((__int64)a1, (__int64)a2, v12, (__int64)a4);
+    }
+    if ( v15 )
+    {
+      v9 = (_BYTE *)std::string::_M_data((__int64)a1, (__int64)a2, v7, a3);
+      v11 = (_BYTE *)std::string::_M_data((__int64)a1, (__int64)a2, v10, (__int64)a4);
+      std::string::_S_copy(a1, a2, v9, v11, v15);
+    }
+    return (unsigned __int8)std::string::_M_set_length((unsigned __int64)a1, a2, v15, (__int64)a4);
+  }
+  return result;
+}
+// 4A6D: variable 'v5' is possibly undefined
+// 4A7D: variable 'v6' is possibly undefined
+// 4ABA: variable 'v8' is possibly undefined
+// 4AED: variable 'v7' is possibly undefined
+// 4AFC: variable 'v10' is possibly undefined
+
+//----- (0000000000004B58) ----------------------------------------------------
+__int64 __fastcall std::construct_at<blck::lexic::Token,blck::lexic::Token::type &,std::string>(
+        unsigned __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        void *a4,
+        __int64 a5)
+{
+  __int64 v6; // rbx
+  __int64 v7; // rdx
+  char *v8; // rdi
+  __int64 v9; // rdx
+  unsigned int *v10; // rax
+
+  v6 = operator new(a1, a4, (__int64)a4);
+  v8 = (char *)std::forward<std::string>(a1, (__int64)a4, v7, a5);
+  v10 = (unsigned int *)std::forward<blck::lexic::Token::type &>((__int64)v8, (__int64)a4, v9, a3);
+  blck::lexic::Token::Token(v8, a4, *v10, v6, (__int64)v8);
+  return v6;
+}
+// 4B94: variable 'v7' is possibly undefined
+// 4BA3: variable 'v9' is possibly undefined
+
+//----- (0000000000004C20) ----------------------------------------------------
+_QWORD *__fastcall __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::__normal_iterator(
+        __int64 a1,
+        __int64 a2,
+        _QWORD *a3,
+        _QWORD *a4)
+{
+  _QWORD *result; // rax
+
+  result = a4;
+  *a4 = *a3;
+  return result;
+}
+
+//----- (0000000000004C58) ----------------------------------------------------
+__int64 __fastcall std::vector<blck::lexic::Token>::max_size(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 Tp_allocator; // rax
+  __int64 v5; // rdx
+
+  Tp_allocator = std::_Vector_base<blck::lexic::Token>::_M_get_Tp_allocator(a1, a2, a3, a4);
+  return std::vector<blck::lexic::Token>::_S_max_size(a1, a2, v5, Tp_allocator);
+}
+// 4C73: variable 'v5' is possibly undefined
+
+//----- (0000000000004CA8) ----------------------------------------------------
+__int64 __fastcall __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::base(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000004CD0) ----------------------------------------------------
+__int64 __fastcall std::_Vector_base<blck::lexic::Token>::_M_allocate(
+        unsigned __int64 a1,
+        __int64 a2,
+        unsigned __int64 a3)
+{
+  if ( !a3 )
+    return 0LL;
+  if ( !(unsigned __int8)std::__is_constant_evaluated() )
+    return std::__new_allocator<blck::lexic::Token>::allocate(a1, a2, a3);
+  if ( !is_mul_ok(0x28uLL, a3) )
+    std::__throw_bad_array_new_length();
+  return operator new(a1);
+}
+
+//----- (0000000000004D90) ----------------------------------------------------
+__int64 __fastcall std::vector<blck::lexic::Token>::_S_relocate(
+        void *a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4,
+        __int64 a5,
+        __int64 a6)
+{
+  return std::__relocate_a<blck::lexic::Token *,blck::lexic::Token *,std::allocator<blck::lexic::Token>>(
+           a1,
+           a2,
+           a3,
+           a4,
+           a5,
+           a6);
+}
+
+//----- (0000000000004DF0) ----------------------------------------------------
+__int64 __fastcall __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::operator-(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        _QWORD *a4)
+{
+  __int64 v5; // [rsp+20h] [rbp-10h] BYREF
+  __int64 v6; // [rsp+28h] [rbp-8h] BYREF
+
+  v6 = *a4 - 40 * a3;
+  __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::__normal_iterator(
+    a1,
+    a2,
+    &v6,
+    &v5);
+  return v5;
+}
+
+//----- (0000000000004E60) ----------------------------------------------------
+__int64 __fastcall __gnu_cxx::__normal_iterator<blck::lexic::Token *,std::vector<blck::lexic::Token>>::operator*(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4)
+{
+  return *(_QWORD *)a4;
+}
+
+//----- (0000000000004E98) ----------------------------------------------------
+__int64 __fastcall std::_Destroy<blck::lexic::Token *>(blck::lexic::Token *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  std::__is_constant_evaluated();
+  return std::_Destroy_aux<false>::__destroy<blck::lexic::Token *>(a1, a2, a3, a4);
+}
+
+//----- (0000000000004F08) ----------------------------------------------------
+__int64 __fastcall std::construct_at<blck::lexic::Token,blck::lexic::Token::type,char const(&)[2]>(
+        char *a1,
+        __int64 a2,
+        __int64 a3,
+        void *a4,
+        __int64 a5)
+{
+  __int64 v6; // rbx
+  __int64 v7; // rdx
+  _BYTE *v8; // rax
+  __int64 v9; // rdx
+  unsigned int *v10; // rax
+  __int64 v11; // rdx
+  _QWORD v13[4]; // [rsp+20h] [rbp-58h] BYREF
+  _BYTE v14[9]; // [rsp+47h] [rbp-31h] BYREF
+
+  v6 = operator new((unsigned __int64)a1, a4, (__int64)a4);
+  *(_QWORD *)&v14[1] = v14;
+  v8 = (_BYTE *)std::forward<char const(&)[2]>((__int64)a1, (__int64)a4, v7, a5);
+  std::string::basic_string<std::allocator<char>>(a1, a4, v8, v13);
+  v10 = (unsigned int *)std::forward<blck::lexic::Token::type>((__int64)a1, (__int64)a4, v9, a3);
+  blck::lexic::Token::Token(a1, a4, *v10, v6, (__int64)v13);
+  std::string::~string(a1, (__int64)a4, v11, (__int64)v13);
+  return v6;
+}
+// 4F4E: variable 'v7' is possibly undefined
+// 4F70: variable 'v9' is possibly undefined
+// 4F8F: variable 'v11' is possibly undefined
+
+//----- (0000000000005018) ----------------------------------------------------
+__int64 __fastcall std::__ptr_traits_ptr_to<char const*,char const,false>::pointer_to(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4)
+{
+  return std::addressof<char const>(a1, a2, a3, a4);
+}
+
+//----- (0000000000005058) ----------------------------------------------------
+__int64 __fastcall std::destroy_at<std::string>(void *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return std::string::~string(a1, a2, a3, a4);
+}
+
+//----- (0000000000005098) ----------------------------------------------------
+__int64 __fastcall std::__addressof<std::string const>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (00000000000050C0) ----------------------------------------------------
+__int64 __fastcall std::vector<blck::lexic::Token>::_S_max_size(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  __int64 v5; // [rsp+28h] [rbp-18h] BYREF
+  __int64 v6[2]; // [rsp+30h] [rbp-10h] BYREF
+
+  v6[0] = 0x333333333333333LL;
+  v6[1] = a4;
+  v5 = 0x666666666666666LL;
+  return *std::min<unsigned long long>(a1, a2, &v5, v6);
+}
+
+//----- (0000000000005130) ----------------------------------------------------
+__int64 __fastcall std::_Vector_base<blck::lexic::Token>::_M_get_Tp_allocator(
+        __int64 a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000005158) ----------------------------------------------------
+__int64 __fastcall std::__relocate_a<blck::lexic::Token *,blck::lexic::Token *,std::allocator<blck::lexic::Token>>(
+        void *a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4,
+        __int64 a5,
+        __int64 a6)
+{
+  void *v6; // rsi
+  __int64 v7; // rdx
+  __int64 v8; // rbx
+  __int64 v9; // rdx
+  __int64 v10; // rax
+
+  v6 = (void *)std::__niter_base<blck::lexic::Token *>((__int64)a1, a2, a3, a5);
+  v8 = std::__niter_base<blck::lexic::Token *>((__int64)a1, (__int64)v6, v7, a3);
+  v10 = std::__niter_base<blck::lexic::Token *>((__int64)a1, (__int64)v6, v9, a4);
+  return std::__relocate_a_1<blck::lexic::Token *,blck::lexic::Token *,std::allocator<blck::lexic::Token>>(
+           a1,
+           v6,
+           v8,
+           v10,
+           (__int64)v6,
+           a6);
+}
+// 518A: variable 'v7' is possibly undefined
+// 5199: variable 'v9' is possibly undefined
+
+//----- (00000000000051E8) ----------------------------------------------------
+void __fastcall blck::lexic::Token::~Token(blck::lexic::Token *this, __int64 a2, __int64 a3, __int64 a4)
+{
+  std::string::~string(this, a2, a3, a4 + 8);
+}
+
+//----- (0000000000005238) ----------------------------------------------------
+void __fastcall std::destroy_at<blck::lexic::Token>(blck::lexic::Token *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  blck::lexic::Token::~Token(a1, a2, a3, a4);
+}
+
+//----- (0000000000005278) ----------------------------------------------------
+__int64 __fastcall std::_Destroy_aux<false>::__destroy<blck::lexic::Token *>(
+        blck::lexic::Token *a1,
+        __int64 a2,
+        __int64 a3,
+        __int64 a4)
+{
+  __int64 v4; // rax
+  __int64 v5; // rdx
+  __int64 result; // rax
+
+  while ( 1 )
+  {
+    result = a4;
+    if ( a4 == a3 )
+      break;
+    v4 = std::__addressof<blck::lexic::Token>((__int64)a1, a2, a3, a4);
+    std::_Destroy<blck::lexic::Token>(a1, a2, v5, v4);
+    a4 += 40LL;
+  }
+  return result;
+}
+// 5291: variable 'a3' is possibly undefined
+// 5299: variable 'v5' is possibly undefined
+
+//----- (00000000000052D8) ----------------------------------------------------
+__int64 __fastcall std::addressof<char const>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return std::__addressof<char const>(a1, a2, a3, a4);
+}
+
+//----- (0000000000005318) ----------------------------------------------------
+void __fastcall std::__new_allocator<char>::deallocate(void *a1, unsigned __int64 a2)
+{
+  operator delete(a1, a2);
+}
+
+//----- (0000000000005368) ----------------------------------------------------
+void __fastcall std::__new_allocator<std::string>::deallocate(void *a1, unsigned __int64 a2)
+{
+  operator delete(a1, a2);
+}
+
+//----- (00000000000053C8) ----------------------------------------------------
+__int64 __fastcall std::__niter_base<blck::lexic::Token *>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (00000000000053F0) ----------------------------------------------------
+__int64 __fastcall std::__relocate_a_1<blck::lexic::Token *,blck::lexic::Token *,std::allocator<blck::lexic::Token>>(
+        void *a1,
+        void *a2,
+        __int64 a3,
+        __int64 a4,
+        __int64 a5,
+        __int64 a6)
+{
+  __int64 v6; // rbx
+  __int64 v7; // rdx
+  __int64 v8; // rax
+
+  while ( a4 != a3 )
+  {
+    v6 = std::__addressof<blck::lexic::Token>((__int64)a1, (__int64)a2, a3, a4);
+    v8 = std::__addressof<blck::lexic::Token>((__int64)a1, (__int64)a2, v7, a5);
+    std::__relocate_object_a<blck::lexic::Token,blck::lexic::Token,std::allocator<blck::lexic::Token>>(
+      a1,
+      a2,
+      v6,
+      v8,
+      a6);
+    a4 += 40LL;
+    a5 += 40LL;
+  }
+  return a5;
+}
+// 541C: variable 'a3' is possibly undefined
+// 542B: variable 'v7' is possibly undefined
+
+//----- (0000000000005490) ----------------------------------------------------
+void __fastcall std::__new_allocator<blck::lexic::Token>::deallocate(void *a1, unsigned __int64 a2)
+{
+  operator delete(a1, a2);
+}
+
+//----- (00000000000054F0) ----------------------------------------------------
+__int64 __fastcall std::__addressof<blck::lexic::Token>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000005518) ----------------------------------------------------
+void __fastcall std::_Destroy<blck::lexic::Token>(blck::lexic::Token *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  std::destroy_at<blck::lexic::Token>(a1, a2, a3, a4);
+}
+
+//----- (0000000000005558) ----------------------------------------------------
+__int64 __fastcall std::__addressof<char const>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000005580) ----------------------------------------------------
+__int64 __fastcall std::__new_allocator<blck::lexic::Token>::allocate(
+        unsigned __int64 a1,
+        __int64 a2,
+        unsigned __int64 a3)
+{
+  if ( a3 > 0x333333333333333LL )
+  {
+    if ( a3 > 0x666666666666666LL )
+      std::__throw_bad_array_new_length();
+    std::__throw_bad_alloc();
+  }
+  return operator new(a1);
+}
+
+//----- (0000000000005620) ----------------------------------------------------
+void __fastcall std::__relocate_object_a<blck::lexic::Token,blck::lexic::Token,std::allocator<blck::lexic::Token>>(
+        void *a1,
+        void *a2,
+        __int64 a3,
+        __int64 a4,
+        __int64 a5)
+{
+  __int64 v5; // rax
+  __int64 v6; // rax
+  __int64 v7; // rdx
+  __int64 v8; // rax
+
+  v5 = std::move<blck::lexic::Token &>((__int64)a1, (__int64)a2, a3, a3);
+  v6 = std::forward<blck::lexic::Token>((__int64)a1, (__int64)a2, a4, v5);
+  std::construct_at<blck::lexic::Token,blck::lexic::Token>(a1, a2, v6, a4);
+  v8 = std::__addressof<blck::lexic::Token>((__int64)a1, (__int64)a2, v7, a3);
+  std::destroy_at<blck::lexic::Token>((blck::lexic::Token *)a1, (__int64)a2, a5, v8);
+}
+// 5677: variable 'v7' is possibly undefined
+
+//----- (00000000000056C0) ----------------------------------------------------
+__int64 __fastcall std::move<blck::lexic::Token &>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (00000000000056E8) ----------------------------------------------------
+__int64 __fastcall std::forward<blck::lexic::Token>(__int64 a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  return a4;
+}
+
+//----- (0000000000005710) ----------------------------------------------------
+_BYTE *__fastcall blck::lexic::Token::Token(void *a1, __int64 a2, __int64 a3, __int64 a4)
+{
+  *(_DWORD *)a4 = *(_DWORD *)a3;
+  return std::string::basic_string(a1, a2, (_QWORD *)(a3 + 8), (__int64 *)(a4 + 8));
+}
+
+//----- (0000000000005770) ----------------------------------------------------
+__int64 __fastcall std::construct_at<blck::lexic::Token,blck::lexic::Token>(void *a1, void *a2, __int64 a3, __int64 a4)
+{
+  __int64 v4; // rbx
+  __int64 v5; // rdx
+  __int64 v6; // rax
+
+  v4 = operator new((unsigned __int64)a1, a2, a4);
+  v6 = std::forward<blck::lexic::Token>((__int64)a1, (__int64)a2, v5, a3);
+  blck::lexic::Token::Token(a1, (__int64)a2, v6, v4);
+  return v4;
+}
+// 579E: variable 'v5' is possibly undefined
+
+//----- (00000000000057E0) ----------------------------------------------------
+__int64 __fastcall std::vector<std::string>::~vector(void *a1, unsigned __int64 a2, __int64 a3, __int64 *a4)
+{
+  __int64 v4; // rdx
+
+  std::_Vector_base<std::string>::_M_get_Tp_allocator((__int64)a1, a2, a3, (__int64)a4);
+  std::_Destroy<std::string *>(a1, a2, a4[1], *a4);
+  return std::_Vector_base<std::string>::~_Vector_base(a1, a2, v4, a4);
+}
+// 582B: variable 'v4' is possibly undefined
+
+// nfuncs=181 queued=154 decompiled=154 lumina nreq=0 worse=0 better=0
+// ALL OK, 154 function(s) have been successfully decompiled

@@ -1,0 +1,20 @@
+int main() {
+    int a = 1;
+    int b = a+12;
+    printnl("Hello, world!");
+}
+
+#define test1
+
+int c = a+1; //you have to not see this comment
+
+//have to not see this comment line
+
+#ifdef test1
+bool see = true;
+#endif
+#ifndef test1
+bool see = false;
+#endif
+
+
