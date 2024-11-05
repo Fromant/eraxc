@@ -39,6 +39,9 @@ namespace blck::syntax {
         BITWISE_NOT_ASSIGN, BITWISE_AND_ASSIGN, BITWISE_OR_ASSIGN,
         BITWISE_XOR_ASSIGN, BITWISE_LSHIFT_ASSIGN, BITWISE_RSHIFT_ASSIGN,
 
+        //unary
+        POSITIVE, NEGATIVE, ADDRESSOF, INDIRECTION,
+
         //call operator
 //        CALL,
         NONE
@@ -159,6 +162,15 @@ namespace blck::syntax {
             {"~=",  BITWISE_NOT_ASSIGN},
             {">>=", BITWISE_RSHIFT_ASSIGN},
             {"<<=", BITWISE_LSHIFT_ASSIGN}
+    };
+
+    const inline std::unordered_map<std::string, operator_type> unary_operators{
+            {"+",   POSITIVE},
+            {"-",   NEGATIVE},
+            {"*",   INDIRECTION},
+            {"&",   ADDRESSOF},
+            {"!",   NOT},
+            {"~",   BITWISE_NOT},
     };
 
     const std::string &find_op(blck::syntax::operator_type t);

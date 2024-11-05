@@ -10,13 +10,16 @@ int test(int a, int b) {
     int sex = 124;
 
 
-//    return sex;
+    return sex;
 }
 
 int main() {
-    int a = 1;
+    int a = 1 + -1;
     int b = a+12;
+    ad=2;
 //    printnl("Hello, world!");
+
+    return -0;
 };
 
 #define test1

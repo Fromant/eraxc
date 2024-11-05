@@ -1,2 +1,4 @@
 1. #if macro
-2. Build [AST](https://ru.hexlet.io/courses/algorithms-trees/lessons/astree/theory_unit) instead of binary syntax tree... 
+2. Pipeline execution
+3. Parallel pipelined execution
+4. extern keyword

@@ -19,6 +19,8 @@ namespace blck::syntax {
 
         scope *father_scope = nullptr;
 
+        size_t id_offset = 0;
+
         explicit scope(scope *const father) {
             if (father == nullptr) {
                 //global scope
@@ -44,7 +46,7 @@ namespace blck::syntax {
                         {"short", SHORT},
                         {"void",  VOID}
                 };
-            }
+            } else id_offset = father->identifiers.size() + father->id_offset;
             father_scope = father;
         }
 
@@ -88,7 +90,7 @@ namespace blck::syntax {
         /// \param id identifier to add
         /// \return the index of identifier
         size_t add_id(const std::string &id) {
-            size_t tr = identifiers.size();
+            size_t tr = identifiers.size() + id_offset;
             identifiers[id] = tr;
             return tr;
         }
@@ -102,17 +104,23 @@ namespace blck::syntax {
     struct syntax_analyzer {
         static error::errable<std::vector<AST::node>> analyze(const std::vector<lexic::Token> &ts);
 
-        static error::errable<AST::expr_node *> parse_expr_node(const lexic::Token &t, scope &scope);
+        static error::errable<AST::expr_node *>
+        parse_expr_node(const std::vector<lexic::Token> &ts, size_t &i, scope &scope);
 
-        static error::errable<AST::expr_node *> parse_expr(const std::vector<lexic::Token> &ts, int &i, scope &scope);
+        static error::errable<AST::expr_node *>
+        parse_expr(const std::vector<lexic::Token> &ts, size_t &i, scope &scope);
 
-        static error::errable<AST::statement_node>
-        parse_statement(const std::vector<lexic::Token> &ts, int &i, scope &scope);
+        static error::errable<std::vector<AST::statement_node>>
+        parse_func_body(const std::vector<lexic::Token> &ts, size_t &i, scope &scope);
 
-        static error::errable<AST::func_node *> parse_func(const std::vector<lexic::Token> &ts, int &i, scope &scope);
+        static error::errable<AST::func_node *>
+        parse_func(const std::vector<lexic::Token> &ts, size_t &i, scope &scope);
+
+        static error::errable<void>
+        parse_function_definition(const std::vector<lexic::Token> &ts, size_t &i, scope &global_scope);
 
         static error::errable<AST::decl_node> parse_decl(const std::vector<lexic::Token> &ts,
-                                                         int &i,
+                                                         size_t &i,
                                                          scope &scope,
                                                          lexic::Token::type);
     };

@@ -41,13 +41,13 @@ namespace blck::backend {
         //all to file
         std::ofstream of{o_filename};
 
-        of << "global _start\nbits 64\nsection .data\nextern puts\n";
+        of << "global main\nbits 64\nextern puts\nsection .data\n";
         //copy vars
         for (const auto &s: ints_labels) {
             of << s.label << " dq " << s.init_val << '\n';
         }
         //copy data
-        of << "section .text\n_start:\n";
+        of << "section .text\nmain:\n";
         of << ss.str();
         of<<"sub rsp, 28h\nmov rcx, message\ncall puts\nadd rsp, 28h\nret\nmessage: db 'Hello',0\n";
         of.close();

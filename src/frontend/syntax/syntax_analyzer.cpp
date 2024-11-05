@@ -24,32 +24,43 @@ namespace blck::syntax {
         }
     }
 
-    error::errable<AST::expr_node *> syntax_analyzer::parse_expr_node(const lexic::Token &t, scope &scope) {
-        size_t data;
+    error::errable<AST::expr_node *>
+    syntax_analyzer::parse_expr_node(const std::vector<lexic::Token> &ts, size_t &i, scope &scope) {
+        auto t = ts[i];
+        auto *tr = new AST::expr_node();
+        tr->op = ASSIGN;
+        if (t.t == lexic::Token::OPERATOR) {
+            auto it = unary_operators.find(t.data);
+            if (it != unary_operators.cend()) {
+                tr->unary = it->second;
+                i++;
+            } else return {t.data + " IS NOT AN UNARY OPERATOR. UNARY EXPECTED", tr};
+        }
+        t = ts[i];
         if (t.t == lexic::Token::INSTANT) {
-            data = std::stoll(t.data);
-            return {"", new AST::expr_node{ASSIGN, data, true}};
+            tr->isInstant = true;
+            tr->data = std::stoll(t.data);
+            return {"", tr};
         } else if (t.t == lexic::Token::STRING_INSTANT) {
-            data = string_instants.size();
-            auto r = string_instants.emplace(t.data, data);
-            if (!r.second) {
-                data = r.first->second;
-            }
-            return {"", new AST::expr_node{ASSIGN, data, true}};
+            tr->isInstant = true;
+            tr->data = string_instants.size();
+            auto r = string_instants.emplace(t.data, tr->data);
+            if (!r.second) tr->data = r.first->second;
+            return {"", tr};
         } else if (t.t == lexic::Token::IDENTIFIER) {
+            tr->isInstant = false;
             if (scope.contains_id(t.data)) {
-                data = scope.get_id(t.data);
-                return {"", new AST::expr_node{ASSIGN, data, false}};
+                tr->data = scope.get_id(t.data);
+                return {"", tr};
             } else return {"UNKNOWN IDENTIFIER: " + t.data, new AST::expr_node{NONE, 0xFFFFFFFF, false}};
         } else
             return {"EXPECTED IDENTIFIER OR INSTANT", new AST::expr_node{NONE, 0xFFFFFFFF, false}};
     }
 
     error::errable<AST::expr_node *>
-    syntax_analyzer::parse_expr(const std::vector<lexic::Token> &ts, int &i, scope &scope) {
+    syntax_analyzer::parse_expr(const std::vector<lexic::Token> &ts, size_t &i, scope &scope) {
         //start with first operand
-        //TODO resolve unary operations
-        auto node = parse_expr_node(ts[i], scope);
+        auto node = parse_expr_node(ts, i, scope);
         if (!node) return node;
         auto *cur = node.value;
         auto top = cur;
@@ -59,7 +70,7 @@ namespace blck::syntax {
         lexic::Token t = ts[i];
         while (t.t != lexic::Token::SEMICOLON) {
             if (isFull) {
-                node = parse_expr_node(ts[i], scope);
+                node = parse_expr_node(ts, i, scope);
                 if (!node) return node;
                 cur->right = node.value;
                 cur = cur->right;
@@ -77,13 +88,27 @@ namespace blck::syntax {
     }
 
     error::errable<std::vector<AST::statement_node>>
-    parse_func_body(const std::vector<lexic::Token> &ts, int &i, scope &scope) {
+    syntax_analyzer::parse_func_body(const std::vector<lexic::Token> &ts, size_t &i, blck::syntax::scope &scope) {
         std::vector<AST::statement_node> tr{};
 
         while (ts[i].t != lexic::Token::R_F_BRACKET) {
             AST::statement_node ta{};
 
-            //TODO parse if for while return
+            //TODO parse if for while
+
+            if (ts[i].t == lexic::Token::IDENTIFIER && ts[i].data == "return") {
+                i++;
+                ta.type = AST::statement_node::RETURN;
+                auto expr = parse_expr(ts, i, scope);
+                i++;
+                if (!expr) return {expr.error, tr};
+                ta.data.ret = expr.value;
+                tr.emplace_back(ta);
+                //gen error if there is more statements after return
+                if (ts[i].t != lexic::Token::R_F_BRACKET)
+                    return {"EXPECTED END OF FUNCTION BODY '}' AFTER RETURN: " + ts[i].data, tr};
+                break;
+            }
 
             if (ts[i].t == lexic::Token::IDENTIFIER && ts[i + 1].t == lexic::Token::IDENTIFIER) {
                 if (ts[i + 2].t == lexic::Token::L_BRACKET) {
@@ -110,7 +135,7 @@ namespace blck::syntax {
     }
 
     error::errable<AST::func_node *> syntax_analyzer::parse_func(const std::vector<lexic::Token> &ts,
-                                                                 int &i,
+                                                                 size_t &i,
                                                                  scope &global_scope) {
         scope func_scope{&global_scope};
         auto *tr = new AST::func_node();
@@ -119,10 +144,7 @@ namespace blck::syntax {
         if (type == -1) {
             return {"NO SUCH TYPENAME IN THIS SCOPE: " + ts[i].data, tr};
         }
-        if (func_scope.contains_id(ts[i + 1].data)) {
-            return {ts[i + 1].data + " IS ALREADY DEFINED IN THIS SCOPE", tr};
-        }
-        auto id = global_scope.add_id(ts[i + 1].data);
+        auto id = global_scope.get_id(ts[i + 1].data);
 
         tr->return_typename = type;
         tr->id = id;
@@ -142,21 +164,26 @@ namespace blck::syntax {
         }
         i++;
 
-        //parse function body
         if (ts[i].t != lexic::Token::L_F_BRACKET) {
             return {"EXPECTED FUNCTION BODY '{...}': " + ts[i].data, tr};
         }
         i++;
 
+        //parse function body
         auto body = parse_func_body(ts, i, func_scope);
         if (!body) return {body.error, tr};
         tr->body = body.value;
+
+        //check if last is return
+        if (tr->return_typename != VOID && tr->body[tr->body.size() - 1].type != AST::statement_node::RETURN) {
+            return {"EXPECTED RETURN IN A FUNCTION RETURNING NON-VOID: " + get_identifier(tr->id), tr};
+        }
 
         return {"", tr};
     }
 
     error::errable<AST::decl_node> syntax_analyzer::parse_decl(const std::vector<lexic::Token> &ts,
-                                                               int &i,
+                                                               size_t &i,
                                                                scope &scope,
                                                                lexic::Token::type end = lexic::Token::SEMICOLON) {
         AST::decl_node tr{};
@@ -189,20 +216,64 @@ namespace blck::syntax {
         return {"", tr};
     }
 
+
+    /// function to parse function definition with skipping all the declaration
+    /// \param ts vector of tokens
+    /// \param i current index
+    /// \param global_scope current global scope
+    /// \return index of last token of function
+    error::errable<void>
+    syntax_analyzer::parse_function_definition(const std::vector<lexic::Token> &ts, size_t &i, scope &global_scope) {
+        auto type = global_scope.get_type(ts[i].data);
+        if (type == -1) {
+            return {"NO SUCH TYPENAME IN THIS SCOPE: " + ts[i].data};
+        }
+        if (global_scope.contains_id(ts[i + 1].data)) {
+            return {ts[i + 1].data + " IS ALREADY DEFINED IN THIS SCOPE"};
+        }
+        global_scope.add_id(ts[i + 1].data);
+
+        i += 3;
+        //skip args decl
+        while (ts[i].t != lexic::Token::R_BRACKET) {
+            i++;
+            if (i == ts.size()) return {"EXPECTED END OF FUNCTION ARGUMENTS DECLARATION BEFORE EOF"};
+        }
+        i++;
+
+        if (ts[i].t != lexic::Token::L_F_BRACKET) {
+            return {"EXPECTED FUNCTION BODY '{...}': " + ts[i].data};
+        }
+        i++;
+
+        //skip function body
+        while (ts[i].t != lexic::Token::R_F_BRACKET) {
+            i++;
+            if (i == ts.size()) return {"EXPECTED END OF FUNCTION BODY BEFORE EOF"};
+        }
+
+        return {""};
+    }
+
     error::errable<std::vector<AST::node>> syntax_analyzer::analyze(const std::vector<lexic::Token> &ts) {
         using namespace lexic;
 
         std::vector<AST::node> tr{};
-        int i = 0;
+        size_t i = 0;
+
+        //TODO 0 iter - parse all types declaration (enums & structs & typedefs)
+
+        //first iter - parse all definition(including functions)
+        //and save all functions, so we can loop over them and parse declarations later
+        std::vector<size_t> fns{};
         while (ts[i].t != Token::NONE) {
             if (ts[i].t == Token::IDENTIFIER && ts[i + 1].t == Token::IDENTIFIER) {
                 if (ts[i + 2].t == Token::L_BRACKET) {
-                    //parse func
-                    AST::node ta{AST::node::FUNCTION};
-                    auto func = parse_func(ts, i, global_scope);
-                    if (!func) return {func.error, tr};
-                    ta.d.func = func.value;
-                    tr.emplace_back(ta);
+                    //parse func definition
+                    size_t start = i;
+                    auto t = parse_function_definition(ts, i, global_scope);
+                    if (!t) return {t.error, tr};
+                    fns.emplace_back(start);
                 } else {
                     //parse decl
                     AST::node ta{AST::node::DECLARATION};
@@ -211,6 +282,32 @@ namespace blck::syntax {
                     ta.d.decl = decl.value;
                     tr.emplace_back(ta);
                 }
+            }
+            i++;
+        }
+
+
+        //iter 2 - parse all functions declaration
+        i = 0;
+
+        for (auto &start: fns) {
+            i = start;
+            scope func_scope{global_scope};
+            auto t = parse_func(ts, i, func_scope);
+            if (!t) return {t.error, tr};
+            AST::node ta{AST::node::FUNCTION};
+            ta.d.func = t.value;
+            tr.emplace_back(ta);
+        }
+
+        while (ts[i].t != Token::NONE) {
+            if (ts[i].t == Token::IDENTIFIER && ts[i + 1].t == Token::IDENTIFIER && ts[i + 2].t == Token::L_BRACKET) {
+                //parse func
+                AST::node ta{AST::node::FUNCTION};
+                auto func = parse_func(ts, i, global_scope);
+                if (!func) return {func.error, tr};
+                ta.d.func = func.value;
+                tr.emplace_back(ta);
             }
             i++;
         }

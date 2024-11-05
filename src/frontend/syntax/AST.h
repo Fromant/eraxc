@@ -8,6 +8,7 @@ namespace blck::syntax::AST {
 
     struct expr_node {
         operator_type op = NONE;
+        operator_type unary = NONE;
 
         bool isInstant = false;
         size_t data = 0xFFFFFFFF;
@@ -17,10 +18,11 @@ namespace blck::syntax::AST {
 
         expr_node() = default;
 
-        expr_node(operator_type op, size_t data, bool isInstant) {
+        expr_node(operator_type op, size_t data, bool isInstant, operator_type unary = NONE) {
             this->op = op;
             this->data = data;
             this->isInstant = isInstant;
+            this->unary = unary;
         };
 
         void print() const {
@@ -28,18 +30,16 @@ namespace blck::syntax::AST {
 
             while (it->right != nullptr) {
                 if (it->isInstant) {
-                    std::cout << it->data << ' ' << find_op(it->op) << ' ';
+                    std::cout << find_op(it->unary) << it->data << ' ' << find_op(it->op) << ' ';
                 } else {
-                    std::cout << '{' << it->data << "} " << find_op(it->op) << ' ';
+                    std::cout << find_op(it->unary) << '{' << it->data << "} " << find_op(it->op) << ' ';
                 }
                 it = it->right;
             }
-            if (it->op != NONE) {
-                if (it->isInstant) {
-                    std::cout << it->data << ' ';
-                } else {
-                    std::cout << '{' << it->data << "} ";
-                }
+            if (it->isInstant) {
+                std::cout << find_op(it->unary) << it->data;
+            } else {
+                std::cout << find_op(it->unary) << '{' << it->data << "}";
             }
             std::cout << ';' << '\n';
         }
@@ -51,7 +51,7 @@ namespace blck::syntax::AST {
         expr_node assign_to{};
 
         void print() const {
-            std::cout << get_typename(type) << ":{" << id <<'}';
+            std::cout << get_typename(type) << ":{" << id << '}';
             if (assign_to.op != operator_type::NONE) {
                 std::cout << " = ";
                 assign_to.print();
@@ -69,7 +69,7 @@ namespace blck::syntax::AST {
         union statement_data {
             expr_node *expr = nullptr;
             decl_node decl;
-//                return_node ret;
+            expr_node *ret;
 //                selection_onde sel;
 //                loop_node loop;
         };
@@ -79,6 +79,9 @@ namespace blck::syntax::AST {
                 data.decl.print();
             } else if (type == EXPRESSION) {
                 data.expr->print();
+            } else if (type == RETURN) {
+                std::cout << "return ";
+                data.ret->print();
             }
         }
 
