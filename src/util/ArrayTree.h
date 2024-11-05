@@ -1,7 +1,3 @@
-//
-// Created by frama on 23.10.2024.
-//
-
 #ifndef BLCK_COMPILER_ARRAYTREE_H
 #define BLCK_COMPILER_ARRAYTREE_H
 

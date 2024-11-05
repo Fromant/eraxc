@@ -1,20 +1,36 @@
+
+int ad;
+
+int a=0;
+int b=1;
+
+int c = 100+120+a+b*13;
+
+int test(int a, int b) {
+    int sex = 124;
+
+
+//    return sex;
+}
+
 int main() {
     int a = 1;
     int b = a+12;
-    printnl("Hello, world!");
-}
+//    printnl("Hello, world!");
+};
 
 #define test1
 
-int c = a+1; //you have to not see this comment
+int c2 = a+1; //you have to not see this comment
+int c3 = a;
 
 //have to not see this comment line
 
 #ifdef test1
-bool see = true;
+bool see = 1;
 #endif
 #ifndef test1
-bool see = false;
+bool see = 0;
 #endif
 
 

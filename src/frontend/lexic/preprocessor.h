@@ -4,7 +4,6 @@
 #include <fstream>
 #include <unordered_map>
 #include <sstream>
-#include <iostream>
 
 namespace blck {
     extern std::unordered_map<std::string, std::string> defines;

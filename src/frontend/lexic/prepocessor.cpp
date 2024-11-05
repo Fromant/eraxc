@@ -1,4 +1,5 @@
 #include "preprocessor.h"
+#include "../../util/error.h"
 
 namespace blck {
     std::unordered_map<std::string, std::string> defines{};
@@ -22,15 +23,7 @@ namespace blck {
                 to_def = "";
             }
 
-            if (defines.contains(define)) {
-                //already defined. err
-            } else {
-                defines[define] = to_def;
-            }
-
-
-
-//        else defines[m.substr(last + 1, m.size() - last)] = "";
+            defines[define] = to_def;
             return {};
         }
         if (macro == "ifdef") {
@@ -46,8 +39,7 @@ namespace blck {
                     tr << l << ' ';
                 } while (!f.eof());
                 if (l != "#endif") {
-                    std::cerr << "No #endif in file " << filename << '\n';
-                    exit(1);
+                    error::fatal(filename, 0, "expected #endif before EOF: ", -1);
                 }
                 return tr.str();
             } else {
@@ -57,8 +49,7 @@ namespace blck {
                     if (l == "#endif") break;
                 } while (!f.eof());
                 if (l != "#endif") {
-                    std::cerr << "No #endif in file " << filename << '\n';
-                    exit(1);
+                    error::fatal(filename, 0, "expected #endif before EOF: ", -1);
                 }
                 return {};
             }
@@ -76,8 +67,7 @@ namespace blck {
                     tr << l;
                 } while (f.eof());
                 if (l != "#endif") {
-                    std::cerr << "No #endif in file " << filename << '\n';
-                    exit(1);
+                    error::fatal(filename, 0, "expected #endif before EOF: ", -1);
                 }
                 return tr.str();
             } else {
@@ -87,21 +77,19 @@ namespace blck {
                     if (l == "#endif") break;
                 } while (!f.eof());
                 if (l != "#endif") {
-                    std::cerr << "No #endif in file " << filename << '\n';
-                    exit(1);
+                    error::fatal(filename, 0, "expected #endif before EOF: ", -1);
                 }
                 return {};
             }
         }
-        std::cerr << "No such macro in " << filename << ": " << macro << '\n';
+        error::fatal(filename, 0, "No such macro: " + macro, -1);
         return macro;
     }
 
     std::string preprocess(const std::string &filename) {
         std::ifstream f(filename, std::ios::in);
         if (!f) {
-            std::cerr << "Cannot open file: " << filename << '\n';
-            exit(-1);
+            error::fatal(filename, 0, "cannot open file", - 1);
         }
         std::stringstream ss{};
         int c;

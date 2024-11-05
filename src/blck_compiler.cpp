@@ -1,11 +1,7 @@
-//
-// Created by frama on 22.10.2024.
-//
-
 #include <thread>
 #include "blck_compiler.h"
-#include "lexic/preprocessor.h"
-#include "lexic/lexic.h"
+#include "frontend/lexic/preprocessor.h"
+#include "frontend/lexic/lexic.h"
 
 namespace blck {
 
@@ -19,7 +15,7 @@ namespace blck {
         }
         of << r;
 
-        auto tokens = lexic::tokenize(r);
+        auto tokens = lexic::tokenize(r, in_file);
 
     }
 

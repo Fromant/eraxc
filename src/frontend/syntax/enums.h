@@ -1,0 +1,167 @@
+//
+// Created by frama on 03.11.2024.
+//
+
+#ifndef BLCK_COMPILER_ENUMS_H
+#define BLCK_COMPILER_ENUMS_H
+
+#include <string>
+#include <unordered_map>
+
+namespace blck::syntax {
+
+    const std::string &get_identifier(size_t id);
+
+    const std::string &get_typename(size_t id);
+
+    inline constexpr std::string NOT_FOUND{"NOT_FOUND"};
+
+    enum operator_type {
+        //arithmetic
+        ADD,  //+
+        SUBTRACT, //-
+        MULTIPLY, //*
+        DIVIDE, // /
+        MODULO, //%
+
+        //compare
+        EQUAL, NOT_EQUAL,
+        GREATER, GREATER_EQ,
+        LESS, LESS_EQ,
+
+        //logic
+        AND, OR, NOT, XOR,
+        //bitwise
+        BITWISE_NOT, BITWISE_AND, BITWISE_OR, BITWISE_XOR, BITWISE_LSHIFT, BITWISE_RSHIFT,
+
+        //assign
+        ASSIGN, ADD_ASSIGN, SUBTRACT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN, MOD_ASSIGN,
+        BITWISE_NOT_ASSIGN, BITWISE_AND_ASSIGN, BITWISE_OR_ASSIGN,
+        BITWISE_XOR_ASSIGN, BITWISE_LSHIFT_ASSIGN, BITWISE_RSHIFT_ASSIGN,
+
+        //call operator
+//        CALL,
+        NONE
+    };
+
+    enum Keyword {
+        i8, i16, i32, i64, i128, i256,
+        u8, u16, u32, u64, u128, u256,
+        INT, LONG, CHAR, BOOL, SHORT,
+        AUTO, VOID,
+        TRUE, FALSE,
+
+        ENUM, STRUCT,
+        THIS,
+        PUBLIC, PRIVATE, PROTECTED,
+        UNION,
+
+        CONST,
+        STATIC,
+        OPERATOR,
+        NEW, DELETE,
+        DEFER,
+        SIZEOF,
+        ALIGNAS,
+        ASM,
+        FOR, WHILE, DO, BREAK, CONTINUE,
+        RETURN,
+        NAMESPACE
+    };
+
+    static inline std::unordered_map<std::string, Keyword> keywords{
+            {"i8",        i8},
+            {"i16",       i16},
+            {"i32",       i32},
+            {"i64",       i64},
+            {"i128",      i128},
+            {"i256",      i256},
+
+            {"u8",        u8},
+            {"u16",       u16},
+            {"u32",       u32},
+            {"u64",       u64},
+            {"u128",      u128},
+            {"u256",      u256},
+
+            {"int",       INT},
+            {"long",      LONG},
+            {"char",      CHAR},
+            {"bool",      BOOL},
+            {"short",     SHORT},
+
+            {"auto",      AUTO},
+            {"void",      VOID},
+
+            {"true",      TRUE},
+            {"false",     FALSE},
+
+            {"enum",      ENUM},
+            {"namespace", NAMESPACE},
+            {"struct",    STRUCT},
+            {"this",      THIS},
+            {"public",    PUBLIC},
+            {"private",   PRIVATE},
+            {"protected", PROTECTED},
+            {"union",     UNION},
+
+            {"const",     CONST},
+            {"static",    STATIC},
+            {"operator",  OPERATOR},
+            {"return",    RETURN},
+
+            {"new",       NEW},
+            {"delete",    DELETE},
+            {"defer",     DEFER},
+            {"sizeof",    SIZEOF},
+            {"alignas",   ALIGNAS},
+
+            {"asm",       ASM},
+
+            {"for",       FOR},
+            {"while",     WHILE},
+            {"do",        DO},
+            {"break",     BREAK},
+            {"continue",  CONTINUE}
+    };
+
+    const inline std::unordered_map<std::string, operator_type> operators{
+            {"==",  EQUAL},
+            {"!=",  NOT_EQUAL},
+            {"=",   ASSIGN},
+            {">",   GREATER},
+            {"<",   LESS},
+            {">=",  GREATER_EQ},
+            {"<=",  LESS_EQ},
+            {"+",   ADD},
+            {"-",   SUBTRACT},
+            {"*",   MULTIPLY},
+            {"/",   DIVIDE},
+            {"%",   MODULO},
+            {"&&",  AND},
+            {"||",  OR},
+            {"^^",  XOR},
+            {"!",   NOT},
+            {"&",   BITWISE_AND},
+            {"|",   BITWISE_OR},
+            {"^",   BITWISE_XOR},
+            {"~",   BITWISE_NOT},
+            {">>",  BITWISE_RSHIFT},
+            {"<<",  BITWISE_LSHIFT},
+            {"+=",  ADD_ASSIGN},
+            {"-=",  SUBTRACT_ASSIGN},
+            {"*=",  MULT_ASSIGN},
+            {"/=",  DIV_ASSIGN},
+            {"%=",  MOD_ASSIGN},
+            {"&=",  BITWISE_AND_ASSIGN},
+            {"^=",  BITWISE_XOR_ASSIGN},
+            {"|=",  BITWISE_OR_ASSIGN},
+            {"~=",  BITWISE_NOT_ASSIGN},
+            {">>=", BITWISE_RSHIFT_ASSIGN},
+            {"<<=", BITWISE_LSHIFT_ASSIGN}
+    };
+
+    const std::string &find_op(blck::syntax::operator_type t);
+}
+
+#endif //BLCK_COMPILER_ENUMS_H

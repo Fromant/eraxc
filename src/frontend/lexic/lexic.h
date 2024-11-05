@@ -1,7 +1,3 @@
-//
-// Created by frama on 22.10.2024.
-//
-
 #ifndef COMPILER_LEXIC_H
 #define COMPILER_LEXIC_H
 
@@ -9,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <unordered_map>
+#include "../../util/error.h"
 
 namespace blck::lexic {
 
@@ -42,12 +39,6 @@ namespace blck::lexic {
 
         type t;
         std::string data;
-
-
-        explicit Token(type t, const std::string &data) {
-            this->t = t;
-            this->data = data;
-        }
     };
 
     static void add_token(std::vector<Token> &tr, std::stringstream &tmp, Token::type &t) {
@@ -56,7 +47,8 @@ namespace blck::lexic {
         t = Token::NONE;
     }
 
-    static std::vector<Token> tokenize(const std::string &s) {
+    static std::vector<Token> tokenize(const std::string &s, const std::string &filename) {
+        int line = 1;
         std::vector<Token> tr{};
         std::stringstream tmp{};
         Token::type t = Token::NONE;
@@ -67,7 +59,12 @@ namespace blck::lexic {
                 tr.emplace_back(Token::SEMICOLON, ";");
                 continue;
             }
-            if (c == ' ' || c == '\n') {
+            if (c == '\n') {
+                add_token(tr, tmp, t);
+                line++;
+                continue;
+            }
+            if (c == ' ') {
                 add_token(tr, tmp, t);
                 continue;
             }
@@ -115,6 +112,7 @@ namespace blck::lexic {
                 add_token(tr, tmp, t);
                 i++;
                 while (i < s.size()) {
+                    if (s[i] == '\n') break;
                     if (s[i] == '"') {
                         t = Token::STRING_INSTANT;
                         add_token(tr, tmp, t);
@@ -124,8 +122,7 @@ namespace blck::lexic {
                     i++;
                 }
                 if (i == s.size()) {
-                    //not found
-                    //TODO error
+                    error::fatal(filename,line,"expected '\"' before EOF",1);
                 }
                 continue;
             }
@@ -148,56 +145,9 @@ namespace blck::lexic {
 
             tmp << c;
         }
-        //scan till space or operator or endl
-
+        tr.emplace_back(Token::NONE, "");
         return tr;
     }
-
-    enum operators {
-        //arithmetic
-        ADD,  //+
-        SUBTRACT, //-
-        MULTIPLY, //*
-        DIVIDE, // /
-        MODULO, //%
-
-        //compare
-        EQUAL,
-        NOT_EQUAL,
-        GREATER,
-        LESS,
-        GREATER_EQ,
-        LESS_EQ,
-
-        //logic
-        AND,
-        OR,
-        NOT,
-        //bitwise
-        BITWISE_NOT,
-        BITWISE_AND,
-        BITWISE_OR,
-        BITWISE_XOR,
-        BITWISE_LSHIFT,
-        BITWISE_RSHIFT,
-
-        //assign
-        ASSIGN,
-        ADD_ASSIGN,
-        SUBTRACT_ASSIGN,
-        MULT_ASSIGN,
-        DIV_ASSIGN,
-        MOD_ASSIGN,
-        BITWISE_AND_ASSIGN,
-        BITWISE_OR_ASSIGN,
-        BITWISE_XOR_ASSIGN,
-        BITWISE_LSHIFT_ASSIGN,
-        BITWISE_RSHIFT_ASSIGN,
-
-        //call operator
-    };
-
-
 }
 
 
