@@ -30,6 +30,22 @@ namespace error {
         }
     };
 
+    template<>
+    struct errable<void> {
+        std::string error;
+        errable(const char* error) {
+            this->error=std::string{error};
+        }
+
+        errable(const std::string &error) {
+            this->error=std::string{error};
+        }
+
+        explicit operator bool() const {
+            return error.empty();
+        }
+    };
+
     /// Fatal error stops the process of compilation of file
     /// \param what error to print
     void fatal(const std::string& filename, int line, const std::string &what, int err_code);
