@@ -51,7 +51,7 @@ namespace blck::syntax::AST {
         expr_node assign_to{};
 
         void print() const {
-            std::cout << get_typename(type) << ":{" << id << '}';
+            std::cout << type << ":{" << id << '}';
             if (assign_to.op != operator_type::NONE) {
                 std::cout << " = ";
                 assign_to.print();
@@ -95,14 +95,14 @@ namespace blck::syntax::AST {
         std::vector<statement_node> body;
 
         void print() {
-            std::cout << get_typename(return_typename) << ' ' << get_identifier(id) << "(";
+            std::cout << return_typename << " {" << id << "} (";
             //print parameters
             const int n = (int) args.size();
             if (n > 0) {
                 for (int i = 0; i < n - 1; i++) {
-                    std::cout << get_typename(args[i].type) << " {" << args[i].id << "}, ";
+                    std::cout << args[i].type << " {" << args[i].id << "}, ";
                 }
-                std::cout << get_typename(args[n - 1].type) << " {" << args[n - 1].id << '}';
+                std::cout << args[n - 1].type << " {" << args[n - 1].id << '}';
             }
             std::cout << ')' << ' ' << '{' << '\n';
             for (statement_node &stat: body) {

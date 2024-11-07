@@ -10,10 +10,6 @@
 
 namespace blck::syntax {
 
-    const std::string &get_identifier(size_t id);
-
-    const std::string &get_typename(size_t id);
-
     inline constexpr std::string NOT_FOUND{"NOT_FOUND"};
 
     enum operator_type {
