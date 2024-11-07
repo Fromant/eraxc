@@ -2,14 +2,14 @@
 
 namespace blck::syntax {
 
-    const std::string &get_typename(size_t id) {
+    const std::string &syntax_analyzer::get_typename(size_t id) {
         for (const auto &it: global_scope.typenames) {
             if (it.second == id) return it.first;
         }
         return NOT_FOUND;
     }
 
-    const std::string &get_identifier(size_t id) {
+    const std::string &syntax_analyzer::get_identifier(size_t id) {
         for (const auto &it: global_scope.identifiers) {
             if (it.second == id) return it.first;
         }
@@ -49,8 +49,9 @@ namespace blck::syntax {
             return {"", tr};
         } else if (t.t == lexic::Token::IDENTIFIER) {
             tr->isInstant = false;
-            if (scope.contains_id(t.data)) {
-                tr->data = scope.get_id(t.data);
+            auto id = scope.get_id(t.data);
+            if (id != -1) {
+                tr->data = id;
                 return {"", tr};
             } else return {"UNKNOWN IDENTIFIER: " + t.data, new AST::expr_node{NONE, 0xFFFFFFFF, false}};
         } else
@@ -105,6 +106,7 @@ namespace blck::syntax {
                 ta.data.ret = expr.value;
                 tr.emplace_back(ta);
                 //gen error if there is more statements after return
+                //TODO nah that's all shi because of branching and anonymous namespaces
                 if (ts[i].t != lexic::Token::R_F_BRACKET)
                     return {"EXPECTED END OF FUNCTION BODY '}' AFTER RETURN: " + ts[i].data, tr};
                 break;
