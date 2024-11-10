@@ -1,0 +1,21 @@
+#define test
+
+#ifdef test
+
+123
+
+//should skip that line lol
+
+#endif
+
+#ifndef test
+
+321
+
+#endif
+
+#ifndef test1
+
+test11
+
+#endif

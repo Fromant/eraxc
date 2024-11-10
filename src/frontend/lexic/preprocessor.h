@@ -6,7 +6,7 @@
 #include <sstream>
 
 namespace blck {
-    extern std::unordered_map<std::string, std::string> defines;
+    static inline std::unordered_map<std::string, std::string> defines{};
 
     std::string preprocess(const std::string &filename);
 
