@@ -1,12 +1,27 @@
-1. all defined words in preprocessor should be changed
-2. prefix multi operator `~~~a;`
-3. postfix operators `a++;` `a++++;`
-4. actually call functions
-5. some temp built-in call function or `asm()` directive for printf
-6. asm translation linux support or somewhat
-7. preprocessor fix extensive whitespaces + fix tests
-8. preprocessor #if macro + tests
-9. preprocessor #else macro + tests
-10. Pipeline execution
-11. Parallel pipelined execution
-12. extern keyword
+# Globals ideas
+
+1. Pipeline execution
+2. Parallel pipelined execution
+
+# Preprocessor:
+
+- [ ] preprocessor fix extensive whitespaces + tests
+- [ ] preprocessor #if macro + tests
+- [ ] preprocessor #else macro + tests
+- [ ] all defined words in preprocessor should be changed ; preprocess needs rework
+
+# Lexer:
+
+# Syntax:
+
+- [x] parentheses support `~(~a)[]`
+- [x] postfix operators `a++;` `(a++)++;`
+- [ ] extern keyword
+- [ ] operator precedence
+- [ ] actually call functions
+- [ ] some temp built-in call function or `asm()` directive for printf
+
+# Backend:
+
+- [ ] Add middle-end IL for optimisation reasons
+- [ ] asm translation linux support or somewhat

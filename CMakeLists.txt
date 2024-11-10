@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.28)
-project(blck-compiler)
+project(eraxc)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(blck-compiler src/main.cpp
+add_executable(eraxc src/main.cpp
         src/frontend/lexic/preprocessor.h
         src/frontend/lexic/lexic.cpp
         src/blck_compiler.cpp

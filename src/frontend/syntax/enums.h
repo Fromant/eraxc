@@ -12,7 +12,7 @@ namespace blck::syntax {
 
     inline constexpr std::string NOT_FOUND{"NOT_FOUND"};
 
-    enum operator_type {
+    enum operator_type : unsigned char {
         //arithmetic
         ADD,  //+
         SUBTRACT, //-
@@ -35,15 +35,15 @@ namespace blck::syntax {
         BITWISE_NOT_ASSIGN, BITWISE_AND_ASSIGN, BITWISE_OR_ASSIGN,
         BITWISE_XOR_ASSIGN, BITWISE_LSHIFT_ASSIGN, BITWISE_RSHIFT_ASSIGN,
 
-        //unary
-        POSITIVE, NEGATIVE, ADDRESSOF, INDIRECTION,
+        //unary and postfix
+        POSITIVE, NEGATIVE, ADDRESSOF, INDIRECTION, INCREMENT, DECREMENT,
 
         //call operator
 //        CALL,
         NONE
     };
 
-    enum Keyword {
+    enum Keyword : unsigned char{
         i8, i16, i32, i64, i128, i256,
         u8, u16, u32, u64, u128, u256,
         INT, LONG, CHAR, BOOL, SHORT,
@@ -161,12 +161,19 @@ namespace blck::syntax {
     };
 
     const inline std::unordered_map<std::string, operator_type> unary_operators{
-            {"+",   POSITIVE},
-            {"-",   NEGATIVE},
-            {"*",   INDIRECTION},
-            {"&",   ADDRESSOF},
-            {"!",   NOT},
-            {"~",   BITWISE_NOT},
+            {"+",  POSITIVE},
+            {"-",  NEGATIVE},
+            {"*",  INDIRECTION},
+            {"&",  ADDRESSOF},
+            {"!",  NOT},
+            {"~",  BITWISE_NOT},
+            {"++", INCREMENT},
+            {"--", DECREMENT}
+    };
+
+    const inline std::unordered_map<std::string, operator_type> postfix_operators{
+            {"++", INCREMENT},
+            {"--", DECREMENT},
     };
 
     const std::string &find_op(blck::syntax::operator_type t);

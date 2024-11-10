@@ -28,7 +28,7 @@ namespace blck::syntax {
     syntax_analyzer::parse_expr_node(const std::vector<lexic::Token> &ts, size_t &i, scope &scope) {
         auto t = ts[i];
         auto *tr = new AST::expr_node();
-        tr->op = ASSIGN;
+        tr->op = NONE;
         if (t.t == lexic::Token::OPERATOR) {
             auto it = unary_operators.find(t.data);
             if (it != unary_operators.cend()) {
@@ -37,39 +37,53 @@ namespace blck::syntax {
             } else return {t.data + " IS NOT AN UNARY OPERATOR. UNARY EXPECTED", tr};
         }
         t = ts[i];
-        if (t.t == lexic::Token::INSTANT) {
+        if (t.t == lexic::Token::L_BRACKET) {
+            i++;
+            auto r = parse_expr(ts, i, scope, lexic::Token::R_BRACKET);
+            if (!r) return {r.error, tr};
+            tr->hasParenthesis = true;
+            tr->data.parenthesis = r.value;
+        } else if (t.t == lexic::Token::INSTANT) {
             tr->isInstant = true;
-            tr->data = std::stoll(t.data);
-            return {"", tr};
+            tr->data.data = std::stoll(t.data);
         } else if (t.t == lexic::Token::STRING_INSTANT) {
             tr->isInstant = true;
-            tr->data = string_instants.size();
-            auto r = string_instants.emplace(t.data, tr->data);
-            if (!r.second) tr->data = r.first->second;
-            return {"", tr};
+            tr->data.data = string_instants.size();
+            auto r = string_instants.emplace(t.data, tr->data.data);
+            if (!r.second) tr->data.data = r.first->second;
         } else if (t.t == lexic::Token::IDENTIFIER) {
             tr->isInstant = false;
             auto id = scope.get_id(t.data);
             if (id != -1) {
-                tr->data = id;
-                return {"", tr};
+                tr->data.data = id;
             } else return {"UNKNOWN IDENTIFIER: " + t.data, new AST::expr_node{NONE, 0xFFFFFFFF, false}};
         } else
-            return {"EXPECTED IDENTIFIER OR INSTANT", new AST::expr_node{NONE, 0xFFFFFFFF, false}};
+            return {"EXPECTED IDENTIFIER OR INSTANT OR '('", new AST::expr_node{NONE, 0xFFFFFFFF, false}};
+
+
+        i++;
+        auto it = postfix_operators.find(t.data);
+        if (t.t == lexic::Token::OPERATOR && it != postfix_operators.end()) {
+            //there is a postfix operator
+            tr->postfix = it->second;
+            i++;
+        }
+
+        return {"", tr};
     }
 
     error::errable<AST::expr_node *>
-    syntax_analyzer::parse_expr(const std::vector<lexic::Token> &ts, size_t &i, scope &scope) {
+    syntax_analyzer::parse_expr(const std::vector<lexic::Token> &ts, size_t &i, scope &scope,
+                                lexic::Token::type end = lexic::Token::SEMICOLON) {
         //start with first operand
         auto node = parse_expr_node(ts, i, scope);
         if (!node) return node;
         auto *cur = node.value;
         auto top = cur;
         bool isFull = false;
-        i++;
 
         lexic::Token t = ts[i];
-        while (t.t != lexic::Token::SEMICOLON) {
+        while (t.t != end) {
             if (isFull) {
                 node = parse_expr_node(ts, i, scope);
                 if (!node) return node;
@@ -77,11 +91,12 @@ namespace blck::syntax {
                 cur = cur->right;
             } else {
                 if (ts[i].t != lexic::Token::OPERATOR)
-                    return {"EXPECTED OPERATOR", new AST::expr_node{NONE, 0xFFFFFFFF, false}};
+                    return {"EXPECTED OPERATOR",
+                            new AST::expr_node{NONE, 0xFFFFFFFF, false}};
                 cur->op = blck::syntax::operators.at(ts[i].data);
+                i++;
             }
             isFull = !isFull;
-            i++;
             t = ts[i];
         }
 
@@ -89,7 +104,8 @@ namespace blck::syntax {
     }
 
     error::errable<std::vector<AST::statement_node>>
-    syntax_analyzer::parse_func_body(const std::vector<lexic::Token> &ts, size_t &i, blck::syntax::scope &scope) {
+    syntax_analyzer::parse_func_body(const std::vector<lexic::Token> &ts, size_t &i,
+                                     blck::syntax::scope &scope) {
         std::vector<AST::statement_node> tr{};
 
         while (ts[i].t != lexic::Token::R_F_BRACKET) {
@@ -219,11 +235,11 @@ namespace blck::syntax {
     }
 
 
-    /// function to parse function definition with skipping all the declaration
-    /// \param ts vector of tokens
-    /// \param i current index
-    /// \param global_scope current global scope
-    /// \return index of last token of function
+/// function to parse function definition with skipping all the declaration
+/// \param ts vector of tokens
+/// \param i current index
+/// \param global_scope current global scope
+/// \return index of last token of function
     error::errable<void>
     syntax_analyzer::parse_function_definition(const std::vector<lexic::Token> &ts, size_t &i, scope &global_scope) {
         auto type = global_scope.get_type(ts[i].data);
@@ -315,4 +331,5 @@ namespace blck::syntax {
         }
         return {std::string{""}, tr};
     }
+
 }

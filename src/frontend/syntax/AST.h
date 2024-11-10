@@ -9,18 +9,25 @@ namespace blck::syntax::AST {
     struct expr_node {
         operator_type op = NONE;
         operator_type unary = NONE;
+        operator_type postfix = NONE;
 
         bool isInstant = false;
-        size_t data = 0xFFFFFFFF;
+        bool hasParenthesis = false;
 
-        //data
+        union data {
+            expr_node *parenthesis;
+            size_t data = 0xFFFFFFFF;
+        };
+
+        data data;
+
         expr_node *right = nullptr;
 
         expr_node() = default;
 
         expr_node(operator_type op, size_t data, bool isInstant, operator_type unary = NONE) {
             this->op = op;
-            this->data = data;
+            this->data.data = data;
             this->isInstant = isInstant;
             this->unary = unary;
         };
@@ -28,20 +35,22 @@ namespace blck::syntax::AST {
         void print() const {
             auto it = this;
 
-            while (it->right != nullptr) {
-                if (it->isInstant) {
-                    std::cout << find_op(it->unary) << it->data << ' ' << find_op(it->op) << ' ';
+            while (it != nullptr) {
+                if (!it->hasParenthesis) {
+                    if (it->isInstant) {
+                        std::cout << ' ' << find_op(it->unary) << it->data.data << find_op(it->postfix) << ' '
+                                  << find_op(it->op);
+                    } else {
+                        std::cout << ' ' << find_op(it->unary) << '{' << it->data.data << '}' << find_op(it->postfix)
+                                  << ' ' << find_op(it->op);
+                    }
                 } else {
-                    std::cout << find_op(it->unary) << '{' << it->data << "} " << find_op(it->op) << ' ';
+                    std::cout << ' ' << find_op(it->unary) << '(';
+                    it->data.parenthesis->print();
+                    std::cout << ')' << find_op(it->postfix) << ' ' << find_op(it->op);
                 }
                 it = it->right;
             }
-            if (it->isInstant) {
-                std::cout << find_op(it->unary) << it->data;
-            } else {
-                std::cout << find_op(it->unary) << '{' << it->data << "}";
-            }
-            std::cout << ';' << '\n';
         }
     };
 
@@ -53,8 +62,9 @@ namespace blck::syntax::AST {
         void print() const {
             std::cout << type << ":{" << id << '}';
             if (assign_to.op != operator_type::NONE) {
-                std::cout << " = ";
+                std::cout << " =";
                 assign_to.print();
+                std::cout << ";\n";
             } else std::cout << ';' << '\n';
         }
     };
@@ -79,9 +89,11 @@ namespace blck::syntax::AST {
                 data.decl.print();
             } else if (type == EXPRESSION) {
                 data.expr->print();
+                std::cout << ";\n";
             } else if (type == RETURN) {
                 std::cout << "return ";
                 data.ret->print();
+                std::cout << ";\n";
             }
         }
 
@@ -106,6 +118,7 @@ namespace blck::syntax::AST {
             }
             std::cout << ')' << ' ' << '{' << '\n';
             for (statement_node &stat: body) {
+                std::cout << '\t';
                 stat.print();
             }
             std::cout << "}\n";

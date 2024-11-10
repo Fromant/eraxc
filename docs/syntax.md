@@ -16,12 +16,15 @@ list of expr, funcs, and defs
 - a==2
 - sqrt(a)*129
 - a
+- unary prefix ops : `!a` `-a` `~a`
+- unary postfix ops: `a++` `a--`
+- parentheses: `++(*a)`
 
 ## selection, loops:
 
 - if(expr) {[statement_list]}
 - while(expr) {[statement_list]}
-- TODO for(def,expr,expr) {[statement_list]}
+- TODO for(def;expr;expr) {[statement_list]}
 
 ## Statements
 
@@ -30,6 +33,7 @@ list of expr, funcs, and defs
 - return
 - selections
 - loops
+- anonymous namespaces (?)
 
 ## Fuctions:
 

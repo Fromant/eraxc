@@ -117,7 +117,7 @@ namespace blck::syntax {
         parse_expr_node(const std::vector<lexic::Token> &ts, size_t &i, scope &scope);
 
         static error::errable<AST::expr_node *>
-        parse_expr(const std::vector<lexic::Token> &ts, size_t &i, scope &scope);
+        parse_expr(const std::vector<lexic::Token> &ts, size_t &i, scope &scope, lexic::Token::type end);
 
         static error::errable<std::vector<AST::statement_node>>
         parse_func_body(const std::vector<lexic::Token> &ts, size_t &i, scope &scope);

@@ -13,6 +13,9 @@ namespace blck::syntax {
         for (auto &p: unary_operators) {
             if (p.second == t) return p.first;
         }
+        for(auto &p : postfix_operators) {
+            if (p.second == t) return p.first;
+        }
         return NOT_FOUND;
     }
 }
