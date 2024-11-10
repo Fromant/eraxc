@@ -1,0 +1,5 @@
+int test() {
+    return a;
+}
+
+int a=12;
