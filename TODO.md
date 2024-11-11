@@ -16,6 +16,7 @@
 
 - [x] parentheses support `~(~a)[]`
 - [x] postfix operators `a++;` `(a++)++;`
+- [ ] Check if file contains int main()
 - [ ] extern keyword
 - [ ] operator precedence
 - [ ] actually call functions

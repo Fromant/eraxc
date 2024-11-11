@@ -1,6 +1,6 @@
 #include "syntax_analyzer.h"
 
-namespace blck::syntax {
+namespace eraxc::syntax {
 
     const std::string &syntax_analyzer::get_typename(size_t id) {
         for (const auto &it: global_scope.typenames) {
@@ -93,7 +93,7 @@ namespace blck::syntax {
                 if (ts[i].t != lexic::Token::OPERATOR)
                     return {"EXPECTED OPERATOR",
                             new AST::expr_node{NONE, 0xFFFFFFFF, false}};
-                cur->op = blck::syntax::operators.at(ts[i].data);
+                cur->op = eraxc::syntax::operators.at(ts[i].data);
                 i++;
             }
             isFull = !isFull;
@@ -105,7 +105,7 @@ namespace blck::syntax {
 
     error::errable<std::vector<AST::statement_node>>
     syntax_analyzer::parse_func_body(const std::vector<lexic::Token> &ts, size_t &i,
-                                     blck::syntax::scope &scope) {
+                                     eraxc::syntax::scope &scope) {
         std::vector<AST::statement_node> tr{};
 
         while (ts[i].t != lexic::Token::R_F_BRACKET) {

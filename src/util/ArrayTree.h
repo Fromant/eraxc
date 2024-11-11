@@ -1,10 +1,10 @@
-#ifndef BLCK_COMPILER_ARRAYTREE_H
-#define BLCK_COMPILER_ARRAYTREE_H
+#ifndef ERAXC_ARRAYTREE_H
+#define ERAXC_ARRAYTREE_H
 
 #include <vector>
 #include <string>
 
-namespace blck {
+namespace eraxc {
 
     template<typename T>
     struct ArrayTree {
@@ -41,6 +41,6 @@ namespace blck {
         std::vector<T> nodes;
     };
 
-} // blck
+} // eraxc
 
-#endif //BLCK_COMPILER_ARRAYTREE_H
+#endif //ERAXC_ARRAYTREE_H

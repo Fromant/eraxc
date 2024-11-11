@@ -4,7 +4,7 @@
 
 - Signed (i8, i16, i32, i64, i128, i256)
 - Unsigned (u8, u16, u32, u64, u128, u256)
-- CPP types (int, long, char, bool, short)
+- CPP types (int, long, char, bool, short, byte)
 - auto
 - void
 

@@ -2,7 +2,7 @@
 #include "asm_translator.h"
 
 
-namespace blck::backend {
+namespace eraxc::backend {
 
 
     std::string asm_translator::translate_NASM(const std::vector<syntax::AST::node> &tree,

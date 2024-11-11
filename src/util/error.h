@@ -1,5 +1,5 @@
-#ifndef BLCK_COMPILER_ERROR_H
-#define BLCK_COMPILER_ERROR_H
+#ifndef ERAXC_ERROR_H
+#define ERAXC_ERROR_H
 
 #include <string>
 
@@ -10,19 +10,19 @@ namespace error {
         std::string error;
         v value;
 
-        errable(const char* error, v val) {
-            this->error=std::string{error};
-            value=val;
+        errable(const char *error, v val) {
+            this->error = std::string{error};
+            value = val;
         }
 
         errable(const std::string &error, const v &val) {
-            this->error=std::string{error};
-            value=val;
+            this->error = std::string{error};
+            value = val;
         }
 
         explicit errable(v val) {
             error;
-            value=val;
+            value = val;
         }
 
         explicit operator bool() {
@@ -33,12 +33,13 @@ namespace error {
     template<>
     struct errable<void> {
         std::string error;
-        errable(const char* error) {
-            this->error=std::string{error};
+
+        errable(const char *error) {
+            this->error = std::string{error};
         }
 
         errable(const std::string &error) {
-            this->error=std::string{error};
+            this->error = std::string{error};
         }
 
         explicit operator bool() const {
@@ -48,7 +49,7 @@ namespace error {
 
     /// Fatal error stops the process of compilation of file
     /// \param what error to print
-    void fatal(const std::string& filename, int line, const std::string &what, int err_code);
+    void fatal(const std::string &filename, int line, const std::string &what, int err_code);
 
     /// Critical error does not exits the process of compilation
     /// \param what error to print
@@ -59,4 +60,4 @@ namespace error {
     void warning(const std::string &filename, int line, const std::string &what, int err_code);
 }
 
-#endif //BLCK_COMPILER_ERROR_H
+#endif //ERAXC_ERROR_H

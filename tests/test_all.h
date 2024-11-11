@@ -1,9 +1,5 @@
-//
-// Created by frama on 23.10.2024.
-//
-
-#ifndef BLCK_COMPILER_TEST_ALL_H
-#define BLCK_COMPILER_TEST_ALL_H
+#ifndef ERAXC_TEST_ALL_H
+#define ERAXC_TEST_ALL_H
 
 #ifdef TEST
 
@@ -50,4 +46,4 @@ bool test_all() {
     return true;
 }
 
-#endif //BLCK_COMPILER_TEST_ALL_H
+#endif //ERAXC_TEST_ALL_H

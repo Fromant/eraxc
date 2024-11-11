@@ -1,14 +1,10 @@
-//
-// Created by frama on 03.11.2024.
-//
-
-#ifndef BLCK_COMPILER_ENUMS_H
-#define BLCK_COMPILER_ENUMS_H
+#ifndef ERAXC_ENUMS_H
+#define ERAXC_ENUMS_H
 
 #include <string>
 #include <unordered_map>
 
-namespace blck::syntax {
+namespace eraxc::syntax {
 
     inline constexpr std::string NOT_FOUND{"NOT_FOUND"};
 
@@ -43,10 +39,10 @@ namespace blck::syntax {
         NONE
     };
 
-    enum Keyword : unsigned char{
+    enum Keyword : unsigned char {
         i8, i16, i32, i64, i128, i256,
         u8, u16, u32, u64, u128, u256,
-        INT, LONG, CHAR, BOOL, SHORT,
+        INT, LONG, CHAR, BOOL, SHORT, BYTE,
         AUTO, VOID,
         TRUE, FALSE,
 
@@ -176,7 +172,7 @@ namespace blck::syntax {
             {"--", DECREMENT},
     };
 
-    const std::string &find_op(blck::syntax::operator_type t);
+    const std::string &find_op(eraxc::syntax::operator_type t);
 }
 
-#endif //BLCK_COMPILER_ENUMS_H
+#endif //ERAXC_ENUMS_H

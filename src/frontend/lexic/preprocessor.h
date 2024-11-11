@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <sstream>
 
-namespace blck {
+namespace eraxc {
     static inline std::unordered_map<std::string, std::string> defines{};
 
     std::string preprocess(const std::string &filename);

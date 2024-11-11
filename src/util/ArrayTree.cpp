@@ -1,4 +1,4 @@
 #include "ArrayTree.h"
 
-namespace blck {
-} // blck
+namespace eraxc {
+} // eraxc

@@ -1,9 +1,5 @@
-//
-// Created by frama on 05.11.2024.
-//
-
-#ifndef BLCK_COMPILER_TEST_SYNTAX_ANALYZER_H
-#define BLCK_COMPILER_TEST_SYNTAX_ANALYZER_H
+#ifndef ERAXC_TEST_SYNTAX_ANALYZER_H
+#define ERAXC_TEST_SYNTAX_ANALYZER_H
 
 namespace tests {
     int test_syntax_analyzer() {
@@ -11,4 +7,4 @@ namespace tests {
     }
 }
 
-#endif //BLCK_COMPILER_TEST_SYNTAX_ANALYZER_H
+#endif //ERAXC_TEST_SYNTAX_ANALYZER_H

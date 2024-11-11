@@ -1,10 +1,11 @@
-#ifndef BLCK_COMPILER_AST_H
-#define BLCK_COMPILER_AST_H
+#ifndef ERAXC_AST_H
+#define ERAXC_AST_H
 
-#include "syntax_analyzer.h"
+#include <iostream>
+
 #include "enums.h"
 
-namespace blck::syntax::AST {
+namespace eraxc::syntax::AST {
 
     struct expr_node {
         operator_type op = NONE;
@@ -141,4 +142,4 @@ namespace blck::syntax::AST {
     };
 }
 
-#endif //BLCK_COMPILER_AST_H
+#endif //ERAXC_AST_H

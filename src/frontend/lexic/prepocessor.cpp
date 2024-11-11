@@ -1,7 +1,7 @@
 #include "preprocessor.h"
 #include "../../util/error.h"
 
-namespace blck {
+namespace eraxc {
     std::string preprocess_lines(std::stringstream &tp, const std::string &filename);
 
     std::string process_macro(std::stringstream &ss, const std::string &filename) {

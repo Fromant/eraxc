@@ -1,9 +1,9 @@
-#ifndef BLCK_COMPILER_ASM_TRANSLATOR_H
-#define BLCK_COMPILER_ASM_TRANSLATOR_H
+#ifndef ERAXC_ASM_TRANSLATOR_H
+#define ERAXC_ASM_TRANSLATOR_H
 
 #include "../frontend/syntax/syntax_analyzer.h"
 
-namespace blck::backend {
+namespace eraxc::backend {
 
     struct asm_translator {
 
@@ -15,9 +15,8 @@ namespace blck::backend {
         static std::string translate_NASM(const std::vector<syntax::AST::node>&, const std::string& o_filename);
 
 
-
     };
 
 }
 
-#endif //BLCK_COMPILER_ASM_TRANSLATOR_H
+#endif //ERAXC_ASM_TRANSLATOR_H

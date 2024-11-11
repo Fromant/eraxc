@@ -1,5 +1,5 @@
-#ifndef BLCK_COMPILER_TEST_LEXER_H
-#define BLCK_COMPILER_TEST_LEXER_H
+#ifndef ERAXC_TEST_LEXER_H
+#define ERAXC_TEST_LEXER_H
 
 namespace tests {
     int test_lexer() {
@@ -7,4 +7,4 @@ namespace tests {
     }
 }
 
-#endif //BLCK_COMPILER_TEST_LEXER_H
+#endif //ERAXC_TEST_LEXER_H

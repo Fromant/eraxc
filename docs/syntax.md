@@ -1,6 +1,8 @@
-# File .blck consists of:
+# File .eraxc consists of:
 
-list of expr, funcs, and defs
+- `int main() {...}`
+- functions
+- declarations
 
 ## Declarations:
 - int a;

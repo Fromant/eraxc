@@ -1,9 +1,5 @@
-//
-// Created by frama on 23.10.2024.
-//
-
-#ifndef BLCK_COMPILER_TEST_ARRAYTREE_H
-#define BLCK_COMPILER_TEST_ARRAYTREE_H
+#ifndef ERAXC_TEST_ARRAYTREE_H
+#define ERAXC_TEST_ARRAYTREE_H
 
 #include "../src/util/ArrayTree.h"
 #include <cassert>
@@ -11,7 +7,7 @@
 namespace tests {
     int test_ArrayTree() {
 
-        blck::ArrayTree<int> test{};
+        eraxc::ArrayTree<int> test{};
 
         assert(test.root() == 0);
         assert(test.getLeft(0) == 0);
@@ -25,7 +21,7 @@ namespace tests {
 
 
         //same with harder struct, e.g. std::string
-        blck::ArrayTree<std::string> test1{};
+        eraxc::ArrayTree<std::string> test1{};
         assert(test1.root().empty());
         assert(test1.getLeft(0).empty());
         test1.getRight(0) = "1";
@@ -43,4 +39,4 @@ namespace tests {
 }
 
 
-#endif //BLCK_COMPILER_TEST_ARRAYTREE_H
+#endif //ERAXC_TEST_ARRAYTREE_H

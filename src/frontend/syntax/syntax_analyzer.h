@@ -1,5 +1,5 @@
-#ifndef BLCK_COMPILER_SYNTAX_ANALYZER_H
-#define BLCK_COMPILER_SYNTAX_ANALYZER_H
+#ifndef ERAXC_SYNTAX_ANALYZER_H
+#define ERAXC_SYNTAX_ANALYZER_H
 
 
 #include <set>
@@ -8,10 +8,11 @@
 #include <iostream>
 
 #include "../lexic/lexic.h"
+#include "enums.h"
 #include "AST.h"
 
 
-namespace blck::syntax {
+namespace eraxc::syntax {
 
     static inline std::unordered_map<std::string, size_t> string_instants{};
 
@@ -129,10 +130,10 @@ namespace blck::syntax {
         parse_function_definition(const std::vector<lexic::Token> &ts, size_t &i, scope &global_scope);
 
         static error::errable<AST::decl_node> parse_decl(const std::vector<lexic::Token> &ts,
-                                                  size_t &i,
-                                                  scope &scope,
-                                                  lexic::Token::type);
+                                                         size_t &i,
+                                                         scope &scope,
+                                                         lexic::Token::type);
     };
 }
 
-#endif //BLCK_COMPILER_SYNTAX_ANALYZER_H
+#endif //ERAXC_SYNTAX_ANALYZER_H

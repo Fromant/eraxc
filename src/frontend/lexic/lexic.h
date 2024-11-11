@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include "../../util/error.h"
 
-namespace blck::lexic {
+namespace eraxc::lexic {
 
     static inline std::string special_symbols{';', '\'', '\"', '=', '+', '<', '>',
                                               '%', '/', '*', '!', '&', '|', '^', '(', ')',
@@ -122,7 +122,7 @@ namespace blck::lexic {
                     i++;
                 }
                 if (i == s.size()) {
-                    error::fatal(filename,line,"expected '\"' before EOF",1);
+                    error::fatal(filename, line, "expected '\"' before EOF", 1);
                 }
                 continue;
             }
