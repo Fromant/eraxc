@@ -5,12 +5,13 @@
 #include "frontend/lexic/lexic.h"
 #include "frontend/syntax/syntax_analyzer.h"
 #include "backend/asm_translator.h"
+#include "backend/IL_handler.h"
 
 #define TEST
 
 #include "../tests/test_all.h"
 
-using namespace blck;
+using namespace eraxc;
 
 int main() {
 
@@ -29,7 +30,7 @@ int main() {
     auto t2 = std::chrono::high_resolution_clock::now();
 
     double dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
-    std::cout << s1;
+//    std::cout << s1;
     std::cout << "Preprocessor done in: " << dur << "ms\n";
 //    std::cout << "Speed: " << (double) (s3.size() + s1.size() + s2.size()) / 1024 / 1024 / dur * 1000 << "mb/s\n";
     std::cout << "Speed: " << (double) (s1.size()) / 1024 / 1024 / dur * 1000 << "mb/s\n";
@@ -38,16 +39,10 @@ int main() {
     t1 = std::chrono::high_resolution_clock::now();
 
     auto tokens = lexic::tokenize(s1, f1);
-//    auto tokens2 = lexic::tokenize(s2, f2);
-//    auto tokens3 = lexic::tokenize(s3, f3);
 
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
-    for (const auto &t: tokens) {
-        std::cout << t.t << ": " << t.data << '\n';
-    }
     std::cout << "Lexer done in: " << dur << "ms\n";
-//    std::cout << "Speed: " << (double) (s3.size() + s1.size() + s2.size()) / 1024 / 1024 / dur * 1000 << "mb/s\n";
     std::cout << "Speed: " << (double) (s1.size()) / 1024 / 1024 / dur * 1000 << "mb/s\n";
 
     t1 = std::chrono::high_resolution_clock::now();
@@ -55,8 +50,6 @@ int main() {
     syntax::syntax_analyzer analyzer{};
 
     auto st1 = analyzer.analyze(tokens);
-//    auto st2 = syntax::AST::analyze(tokens2);
-//    auto st3 = syntax::AST::analyze(tokens3);
 
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
@@ -70,6 +63,12 @@ int main() {
         t.print();
     }
 
+    t1 = std::chrono::high_resolution_clock::now();
+    eraxc::IL::IL_handler a{st1.value};
+    t2 = std::chrono::high_resolution_clock::now();
+    dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
+    std::cout << "IL Handler done in: " << dur << "ms\n";
+
     backend::asm_translator::translate_NASM(st1.value, "test.asm");
 
     syntax::syntax_analyzer analyzer2{};
@@ -78,10 +77,6 @@ int main() {
     auto cycle_lexed = lexic::tokenize(cycle, "cycle.erx");
     auto t3 = analyzer2.analyze(cycle_lexed);
     if (!t3) std::cout << "ERROR: " << t3.error << '\n';
-    for (auto &t: t3.value) {
-        t.print();
-    }
-
 
     return 0;
 }

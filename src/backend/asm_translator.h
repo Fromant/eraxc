@@ -7,12 +7,7 @@ namespace eraxc::backend {
 
     struct asm_translator {
 
-        struct data_label {
-            std::string label;
-            size_t init_val;
-        };
-
-        static std::string translate_NASM(const std::vector<syntax::AST::node>&, const std::string& o_filename);
+        static std::string translate_NASM(const std::vector<syntax::AST::node> &, const std::string &o_filename);
 
 
     };

@@ -13,5 +13,5 @@ add_executable(eraxc src/main.cpp
         tests/test_all.h
         src/backend/asm_translator.cpp
         src/util/error.cpp
-
+        src/backend/IL_handler.cpp
 )
