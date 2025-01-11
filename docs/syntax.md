@@ -41,5 +41,5 @@
 
 - int main() {}
 - int main(int a) {}
-- int main([decl_list]) {[statement_list]}
+- int name([decl_list]) {[statement_list]}
 

@@ -21,7 +21,7 @@ namespace error {
         }
 
         explicit errable(v val) {
-            error;
+            error="";
             value = val;
         }
 

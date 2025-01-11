@@ -2,9 +2,10 @@
 1. detect macros and open them
 2. get and save to autoheader all the definitions of the file (or AST tree of definitions)
 3. analyze syntax, create AST
-4. optimize AST
-5. turn AST into asm code
-6. run asm compiler
+4. Turn AST into IL
+5. optimize IL
+6. turn IL into asm code
+7. run asm compiler
 
 
 

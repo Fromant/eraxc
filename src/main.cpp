@@ -10,12 +10,15 @@
 #define TEST
 
 #include "../tests/test_all.h"
+#include "frontend/lexic/preprocessor_tokenizer.h"
 
 using namespace eraxc;
 
 int main() {
-
+    #ifdef DEBUG
+    std::cout << "DEBUGtest\n";
     if (!test_all()) return -1;
+    #endif
 
     const std::string f1{"../examples/1.erx"};
     const std::string f2{"../examples/2.erx"};
@@ -24,16 +27,16 @@ int main() {
     auto t1 = std::chrono::high_resolution_clock::now();
 
     auto s1 = preprocess(f1);
-//    auto s2 = preprocess(f2);
-//    auto s3 = preprocess(f3);
+    //    auto s2 = preprocess(f2);
+    //    auto s3 = preprocess(f3);
 
     auto t2 = std::chrono::high_resolution_clock::now();
 
     double dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
-//    std::cout << s1;
+    //    std::cout << s1;
     std::cout << "Preprocessor done in: " << dur << "ms\n";
-//    std::cout << "Speed: " << (double) (s3.size() + s1.size() + s2.size()) / 1024 / 1024 / dur * 1000 << "mb/s\n";
-    std::cout << "Speed: " << (double) (s1.size()) / 1024 / 1024 / dur * 1000 << "mb/s\n";
+    //    std::cout << "Speed: " << (double) (s3.size() + s1.size() + s2.size()) / 1024 / 1024 / dur * 1000 << "mb/s\n";
+    std::cout << "Speed: " << (double)(s1.size()) / 1024 / 1024 / dur * 1000 << "mb/s\n";
 
 
     t1 = std::chrono::high_resolution_clock::now();
@@ -43,7 +46,7 @@ int main() {
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     std::cout << "Lexer done in: " << dur << "ms\n";
-    std::cout << "Speed: " << (double) (s1.size()) / 1024 / 1024 / dur * 1000 << "mb/s\n";
+    std::cout << "Speed: " << (double)(s1.size()) / 1024 / 1024 / dur * 1000 << "mb/s\n";
 
     t1 = std::chrono::high_resolution_clock::now();
 
@@ -59,12 +62,12 @@ int main() {
         std::cout << "ERROR: " << st1.error << '\n';
     }
 
-    for (auto &t: st1.value) {
+    for (auto& t : st1.value) {
         t.print();
     }
 
     t1 = std::chrono::high_resolution_clock::now();
-    eraxc::IL::IL_handler a{st1.value};
+    IL::IL_handler a{st1.value};
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     std::cout << "IL Handler done in: " << dur << "ms\n";
@@ -77,6 +80,16 @@ int main() {
     auto cycle_lexed = lexic::tokenize(cycle, "cycle.erx");
     auto t3 = analyzer2.analyze(cycle_lexed);
     if (!t3) std::cout << "ERROR: " << t3.error << '\n';
+
+
+    t1 = std::chrono::high_resolution_clock::now();
+    tokenizer tokenizer;
+    auto r = tokenizer.tokenize_file("../examples/1.erx");
+    t2 = std::chrono::high_resolution_clock::now();
+    dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
+    std::cout << "preprocessor_tokenizer done in: " << dur << "ms\n";
+    if (!r) std::cout << "Failed to tokenize. Error:\n" << r.error << std::endl;
+
 
     return 0;
 }

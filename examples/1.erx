@@ -24,7 +24,7 @@ int main() {
 //    printnl("Hello, world!");
 
     return -0;
-};
+}
 
 #define test1
 

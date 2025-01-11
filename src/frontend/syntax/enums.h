@@ -35,7 +35,7 @@ namespace eraxc::syntax {
         POSITIVE, NEGATIVE, ADDRESSOF, INDIRECTION, INCREMENT, DECREMENT,
 
         //call operator
-//        CALL,
+        CALL,
         NONE
     };
 
@@ -64,7 +64,7 @@ namespace eraxc::syntax {
         NAMESPACE
     };
 
-    static inline std::unordered_map<std::string, Keyword> keywords{
+    static const inline std::unordered_map<std::string, Keyword> keywords{
             {"i8",        i8},
             {"i16",       i16},
             {"i32",       i32},
@@ -120,7 +120,7 @@ namespace eraxc::syntax {
             {"continue",  CONTINUE}
     };
 
-    const inline std::unordered_map<std::string, operator_type> operators{
+    static const inline std::unordered_map<std::string, operator_type> operators{
             {"==",  EQUAL},
             {"!=",  NOT_EQUAL},
             {"=",   ASSIGN},

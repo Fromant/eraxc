@@ -108,9 +108,9 @@ namespace eraxc::syntax {
     struct syntax_analyzer {
         scope global_scope{nullptr};
 
-        const std::string &get_identifier(size_t id);
 
-        const std::string &get_typename(size_t id);
+        const std::string &get_typename(size_t id) const;
+        const std::string &get_identifier(size_t id) const;
 
         error::errable<std::vector<AST::node>> analyze(const std::vector<lexic::Token> &ts);
 
@@ -124,7 +124,7 @@ namespace eraxc::syntax {
         parse_func_body(const std::vector<lexic::Token> &ts, size_t &i, scope &scope);
 
         error::errable<AST::func_node *>
-        parse_func(const std::vector<lexic::Token> &ts, size_t &i, scope &scope);
+        parse_func(const std::vector<lexic::Token> &ts, size_t &i, scope &scope) const;
 
         static error::errable<void>
         parse_function_definition(const std::vector<lexic::Token> &ts, size_t &i, scope &global_scope);

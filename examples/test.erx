@@ -1,0 +1,9 @@
+
+std::vector<list> shit(123);
+
+struct list {
+    int data;
+    list* next;
+}
+
+

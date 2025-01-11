@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <unordered_map>
 #include "../../util/error.h"
 
 namespace eraxc::lexic {
