@@ -7,6 +7,7 @@
 #include "../frontend/lexic/preprocessor_tokenizer.h"
 #include "../frontend/syntax/enums.h"
 #include "../util/error.h"
+#include "scope.h"
 
 typedef unsigned long long u64;
 
@@ -56,42 +57,23 @@ namespace eraxc::IL {
 
     /// Handler of Intermediate Language. Computes all the types and may optimise a bit
     struct IL_handler {
-        std::unordered_map<std::string, IL_decl> global_vars{};
+        scope global_scope{nullptr};
         std::unordered_map<u64, IL_func> global_funcs{};
 
         std::vector<IL_node> global_init{};
 
-        std::unordered_map<std::string, u64> typenames = {
-            //signed
-            {"char", 0}, {"i16", 0},
-            {"short", 1}, {"i16", 1},
-            {"int", 2}, {"i32", 2},
-            {"long", 3}, {"i64", 3},
-            {"i128", 4},
-            {"i256", 5},
-            //unsigned
-            {"byte", 6}, {"u8", 6},
-            {"u16", 7},
-            {"u32", 8},
-            {"u64", 9},
-            {"u128", 10},
-            {"u256", 11},
-            //bool
-            {"bool", 12}, {"boolean", 12},
-        };
+        error::errable<std::vector<IL_node>> translate_expr(const std::vector<token> &tokens,
+                                                            int &i, const scope &scope);
 
-        error::errable<std::vector<IL_node>> translate_expr(const std::vector<token>& tokens, int& i,
-           const std::unordered_map<std::string, IL_decl>& scope);
+        error::errable<std::vector<IL_node>> translate_statements(const std::vector<token> &tokens,
+                                                                  int &i, scope &scope);
 
-        error::errable<std::vector<IL_node>> translate_statements(
-            const std::vector<token>& tokens, int& i,
-            std::unordered_map<std::string, IL_decl>& local_vars);
+        error::errable<std::vector<IL_node>> parse_declaration(const std::vector<token> &tokens,
+                                                               int &i, scope &scope);
 
-        error::errable<std::vector<IL_node>> parse_declaration(const std::vector<token>& tokens, int& i,
-                                                  std::unordered_map<std::string, IL_decl>& scope);
+        error::errable<void> translate(const std::vector<token> &tokens);
 
-        error::errable<void> translate(const std::vector<token>& tokens);
-        error::errable<void> translate_function(const std::vector<token>& tokens, int& i);
+        error::errable<void> translate_function(const std::vector<token> &tokens, int &i);
     };
 }
 
