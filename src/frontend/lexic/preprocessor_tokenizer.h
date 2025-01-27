@@ -12,16 +12,16 @@
 namespace eraxc {
     struct token {
         static inline std::string special_symbols{
-            ';', '\'', '\"', '=', '+', '<', '>',
-            '%', '/', '*', '!', '&', '|', '^', '(', ')',
-            '{', '}', '[', ']', '-', '?', ':', '.', ',', '~'
+                ';', '\'', '\"', '=', '+', '<', '>',
+                '%', '/', '*', '!', '&', '|', '^', '(', ')',
+                '{', '}', '[', ']', '-', '?', ':', '.', ',', '~'
         };
 
         static inline std::vector<std::string> operators{
-            "==", "=", ">", "<", ">=", "<=", "+", "-", "*", "/", "%",
-            "&&", "||", "&", "|", "^", "~", ">>", "<<",
-            "+=", "-=", "*=", "/=", "%=",
-            "&=", "^=", "|=", "~=", ">>=", "<<="
+                "==", "=", ">", "<", ">=", "<=", "+", "-", "*", "/", "%",
+                "&&", "||", "&", "|", "^", "~", ">>", "<<",
+                "+=", "-=", "*=", "/=", "%=",
+                "&=", "^=", "|=", "~=", ">>=", "<<="
         };
         static inline std::string operator_chars{"<=>&|^%*/~+-"};
 
@@ -77,7 +77,9 @@ namespace eraxc {
                         if (l == "#endif") break;
                         tr << l << ' ';
                     } while (!ss.eof());
-                    if (l != "#endif") return {{"expected #endif before EOF"}, {}};
+                    if (l != "#endif")
+                        return {{"expected #endif before EOF"},
+                                {}};
                     return tokenize(tr);
                 }
                 std::string l;
@@ -85,7 +87,9 @@ namespace eraxc {
                     ss >> l;
                     if (l == "#endif") break;
                 } while (!ss.eof());
-                if (l != "#endif") return {{"expected #endif before EOF: "}, {}};
+                if (l != "#endif")
+                    return {{"expected #endif before EOF: "},
+                            {}};
                 return {"", {}};
             }
             if (macro == "ifndef") {
@@ -100,7 +104,9 @@ namespace eraxc {
                         if (l == "#endif") break;
                         tr << l << ' ';
                     } while (!ss.eof());
-                    if (l != "#endif") return {{"expected #endif before EOF: "}, {}};
+                    if (l != "#endif")
+                        return {{"expected #endif before EOF: "},
+                                {}};
                     return tokenize(tr);
                 }
                 std::string l;
@@ -108,10 +114,13 @@ namespace eraxc {
                     ss >> l;
                     if (l == "#endif") break;
                 } while (!ss.eof());
-                if (l != "#endif") return {{"expected #endif before EOF: "}, {}};
+                if (l != "#endif")
+                    return {{"expected #endif before EOF: "},
+                            {}};
                 return {"", {}};
             }
-            return {{"No such macro: " + macro}, {}};
+            return {{"No such macro: " + macro},
+                    {}};
         }
 
         static void add_token(std::vector<token> &tr, std::stringstream &tmp, token::type &t) {
@@ -216,7 +225,7 @@ namespace eraxc {
         }
 
 
-        error::errable<std::vector<token> > tokenize_file(const std::string &filename) {
+        error::errable<std::vector<token>> tokenize_file(const std::string &filename) {
             std::ifstream f{filename};
             std::vector<token> tr{};
             if (!f) return {"Cannot open file: " + filename, tr};

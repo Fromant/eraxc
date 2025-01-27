@@ -21,7 +21,7 @@ bool test_all() {
         std::cout << "util/ArrayTree.h passed all tests!\n";
     }
 
-    if (tests::test_preprocessor() != 0) {
+    if (tests::test_preprocessor_tokenizer() != 0) {
         std::cout << "Test in preprocessor is failed...\n";
         return false;
     } else {

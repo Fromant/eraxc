@@ -1,7 +1,7 @@
 #ifndef ERAXC_ASM_TRANSLATOR_H
 #define ERAXC_ASM_TRANSLATOR_H
 
-#include "../frontend/syntax/syntax_analyzer.h"
+#include "../legacy/syntax_analyzer.h"
 
 namespace eraxc::backend {
 

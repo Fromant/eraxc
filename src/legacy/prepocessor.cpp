@@ -1,5 +1,5 @@
 #include "preprocessor.h"
-#include "../../util/error.h"
+#include "../util/error.h"
 
 namespace eraxc {
     std::string preprocess_lines(std::stringstream &tp, const std::string &filename);

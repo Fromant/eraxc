@@ -4,52 +4,46 @@
 #include <vector>
 #include <set>
 
-#include "../frontend/syntax/AST.h"
+#include "../frontend/lexic/preprocessor_tokenizer.h"
+#include "../frontend/syntax/enums.h"
+#include "../util/error.h"
 
 typedef unsigned long long u64;
 
 namespace eraxc::IL {
-
     struct IL_node {
-        enum type {
-            ADD, MOV, SUB, MUL, DIV, IMUL, NOT, OR, AND, XOR,
-            NONE
+        enum Operator : int {
+            ASSIGN, //=MOV
+            ADD, SUB, MUL, DIV,
+            NOT, NEG,
+            OR, AND, XOR,
+            JUMP, CALL, RET,
+            //TODO compare nodes
         };
+
         u64 op1 = -1;
         u64 op2 = -1;
-        type type = NONE;
-        bool isOp2Instant = false;
+        Operator op = ASSIGN;
         bool isOp1Instant = false;
+        bool isOp2Instant = false;
 
+        IL_node(u64 op1, u64 op2, syntax::operator_type op, bool isOp1Instant, bool isOp2Instant) {
+            this->op1 = op1;
+            this->op2 = op2;
+            this->isOp1Instant = isOp1Instant;
+            this->isOp2Instant = isOp2Instant;
+
+            if (op == syntax::ADD) this->op = ADD;
+            else if (op == syntax::SUBTRACT) this->op = SUB;
+            else if (op == syntax::DIVIDE) this->op = DIV;
+            else if (op == syntax::MULTIPLY) this->op = MUL;
+        }
     };
 
-    std::vector<IL_node> translate(const syntax::AST::statement_node &statement);
-
-    std::vector<IL_node> translate(const syntax::AST::expr_node &expr);
-
     struct IL_decl {
-        enum type : unsigned char {
-            b8, b16, b32, b64, //length in bits
-            NONE
-        };
         u64 id;
-        type type;
-
-        IL_decl(u64 id, u64 type) {
-            this->id = id;
-            this->type = get_type(type);
-        }
-
-        explicit IL_decl(const syntax::AST::decl_node &decl) {
-            this->id = decl.id;
-            this->type = get_type(decl.type);
-        }
-
-        static enum type get_type(u64 type);
-
-        bool operator<(const IL_decl &other) const {
-            return id < other.id;
-        }
+        u64 type;
+        bool is_function;
     };
 
 
@@ -57,52 +51,48 @@ namespace eraxc::IL {
         IL_decl declaration;
         std::vector<IL_decl> args;
         std::vector<IL_node> body;
-
-        bool operator<(const IL_func &other) const {
-            return declaration.id < other.declaration.id;
-        }
-
-        IL_func(u64 id, u64 type, const std::vector<syntax::AST::decl_node> &args,
-                const std::vector<syntax::AST::statement_node> &body) : declaration(id, type) {
-
-            for (const auto &arg: args) {
-                this->args.emplace_back(arg);
-            }
-
-            for (const auto &stat: body) {
-                auto ti = translate(stat);
-                this->body.insert(this->body.cend(), ti.cbegin(), ti.cend());
-            }
-        }
     };
 
 
     /// Handler of Intermediate Language. Computes all the types and may optimise a bit
     struct IL_handler {
+        std::unordered_map<std::string, IL_decl> global_vars{};
+        std::unordered_map<u64, IL_func> global_funcs{};
 
-        std::set<IL_decl> global_vars{};
-        std::set<IL_func> funcs{};
         std::vector<IL_node> global_init{};
 
-        explicit IL_handler(const std::vector<syntax::AST::node> &nodes) {
-            for (auto &a: nodes) {
-                if (a.type == syntax::AST::node::DECLARATION) {
-                    global_vars.emplace(a.d.decl.id, a.d.decl.type);
-                    if (a.d.decl.assign_to.op != syntax::NONE) {
-                        const auto &ti = translate(a.d.decl.assign_to);
-                        global_init.insert(global_init.cend(), ti.cbegin(), ti.cend());
-                    }
-                } else if (a.type == syntax::AST::node::FUNCTION) {
-                    funcs.emplace(a.d.func->id, a.d.func->return_typename, a.d.func->args, a.d.func->body);
-                } else {
-                    std::cerr << "Bad syntax tree provided, no such node supported: " << a.type << std::endl;
-                    exit(-12);
-                }
-            }
-        }
+        std::unordered_map<std::string, u64> typenames = {
+            //signed
+            {"char", 0}, {"i16", 0},
+            {"short", 1}, {"i16", 1},
+            {"int", 2}, {"i32", 2},
+            {"long", 3}, {"i64", 3},
+            {"i128", 4},
+            {"i256", 5},
+            //unsigned
+            {"byte", 6}, {"u8", 6},
+            {"u16", 7},
+            {"u32", 8},
+            {"u64", 9},
+            {"u128", 10},
+            {"u256", 11},
+            //bool
+            {"bool", 12}, {"boolean", 12},
+        };
+
+        error::errable<std::vector<IL_node>> translate_expr(const std::vector<token>& tokens, int& i,
+           const std::unordered_map<std::string, IL_decl>& scope);
+
+        error::errable<std::vector<IL_node>> translate_statements(
+            const std::vector<token>& tokens, int& i,
+            std::unordered_map<std::string, IL_decl>& local_vars);
+
+        error::errable<std::vector<IL_node>> parse_declaration(const std::vector<token>& tokens, int& i,
+                                                  std::unordered_map<std::string, IL_decl>& scope);
+
+        error::errable<void> translate(const std::vector<token>& tokens);
+        error::errable<void> translate_function(const std::vector<token>& tokens, int& i);
     };
-
-
 }
 
 #endif

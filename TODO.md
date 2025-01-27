@@ -5,24 +5,23 @@
 
 # Preprocessor:
 
-- [ ] preprocessor fix extensive whitespaces + tests
+- [x] Fix tests and write new ones
 - [ ] preprocessor #if macro + tests
 - [ ] preprocessor #else macro + tests
-- [ ] all defined words in preprocessor should be changed ; preprocess needs rework
-
-# Lexer:
+- [ ] all defined words in preprocessor should be changed
 
 # Syntax:
 
-- [x] parentheses support `~(~a)[]`
-- [x] postfix operators `a++;` `(a++)++;`
+- [ ] parentheses support `~(~a)[]`
+- [ ] postfix operators `a++;` `(a++)++;`
+- [ ] operator precedence
 - [ ] Check if file contains int main()
 - [ ] extern keyword
-- [ ] operator precedence
 - [ ] actually call functions
 - [ ] some temp built-in call function or `asm()` directive for printf
+- [ ] tests
 
 # Backend:
 
-- [ ] Add middle-end IL for optimisation reasons
-- [ ] asm translation linux support or somewhat
+- [ ] middle-end IL for optimisation reasons
+- [ ] asm translation linux support or something

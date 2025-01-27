@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include "../../util/error.h"
+#include "../util/error.h"
 
 namespace eraxc::lexic {
 

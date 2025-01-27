@@ -7,9 +7,9 @@
 #include <utility>
 #include <iostream>
 
-#include "../lexic/lexic.h"
-#include "enums.h"
-#include "AST.h"
+#include "lexic.h"
+#include "../frontend/syntax/enums.h"
+#include "../frontend/syntax/AST.h"
 
 
 namespace eraxc::syntax {

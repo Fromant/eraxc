@@ -26,26 +26,26 @@ namespace eraxc::backend {
                 while (it->right != nullptr) {
                     //one-by-one very slow initialization
                     if (it->op == syntax::ASSIGN) {
-                        if (it->isInstant) init_globals << "mov rax, " << it->data.data << '\n';
-                        else init_globals << "mov rax, [rel u64_" << it->data.data << "]\n";
+                        if (it->isInstant) init_globals << "mov rax, " << it->data.d << '\n';
+                        else init_globals << "mov rax, [rel u64_" << it->data.d << "]\n";
                     } else if (it->op == syntax::ADD) {
-                        if (it->isInstant) init_globals << "add rax, " << it->data.data << '\n';
-                        else init_globals << "add rax, [rel u64_" << it->data.data << "]\n";
+                        if (it->isInstant) init_globals << "add rax, " << it->data.d << '\n';
+                        else init_globals << "add rax, [rel u64_" << it->data.d << "]\n";
                     } else if (it->op == syntax::MULTIPLY) {
-                        if (it->isInstant) init_globals << "imul rax, " << it->data.data << '\n';
-                        else init_globals << "imul rax, [rel u64_" << it->data.data << "]\n";
+                        if (it->isInstant) init_globals << "imul rax, " << it->data.d << '\n';
+                        else init_globals << "imul rax, [rel u64_" << it->data.d << "]\n";
                     }
                     it = it->right;
                 }
                 if (it->op == syntax::ASSIGN) {
-                    if (it->isInstant) init_globals << "mov rax, " << it->data.data << '\n';
-                    else init_globals << "mov rax, [rel u64_" << it->data.data << "]\n";
+                    if (it->isInstant) init_globals << "mov rax, " << it->data.d << '\n';
+                    else init_globals << "mov rax, [rel u64_" << it->data.d << "]\n";
                 } else if (it->op == syntax::ADD) {
-                    if (it->isInstant) init_globals << "add rax, " << it->data.data << '\n';
-                    else init_globals << "add rax, [rel u64_" << it->data.data << "]\n";
+                    if (it->isInstant) init_globals << "add rax, " << it->data.d << '\n';
+                    else init_globals << "add rax, [rel u64_" << it->data.d << "]\n";
                 } else if (it->op == syntax::MULTIPLY) {
-                    if (it->isInstant) init_globals << "imul rax, " << it->data.data << '\n';
-                    else init_globals << "imul rax, [rel u64_" << it->data.data << "]\n";
+                    if (it->isInstant) init_globals << "imul rax, " << it->data.d << '\n';
+                    else init_globals << "imul rax, [rel u64_" << it->data.d << "]\n";
                 }
 
                 //save value
