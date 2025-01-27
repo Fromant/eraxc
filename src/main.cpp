@@ -15,7 +15,7 @@ using namespace eraxc;
 int main() {
     //TODO fix tests
     #ifdef DEBUG
-    std::cout << "DEBUGtest\n";
+    std::cout << "DEBUG build. Running tests...\n";
 //    if (!test_all()) return -1;
     #endif
 
@@ -36,7 +36,7 @@ int main() {
 
     t1 = std::chrono::high_resolution_clock::now();
     IL::IL_handler a{};
-    a.translate(r.value);
+    auto IL_nodes = a.translate(r.value);
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     std::cout << "IL Handler done in: " << dur << "ms\n";

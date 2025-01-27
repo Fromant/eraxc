@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "enums.h"
+#include "../frontend/syntax/enums.h"
 
 namespace eraxc::syntax::AST {
 
