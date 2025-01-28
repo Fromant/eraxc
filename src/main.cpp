@@ -25,7 +25,7 @@ int main() {
 
     auto t1 = std::chrono::high_resolution_clock::now();
     tokenizer tokenizer;
-    auto r = tokenizer.tokenize_file("../examples/1.erx");
+    auto r = tokenizer.tokenize_file("../examples/0.erx");
     auto t2 = std::chrono::high_resolution_clock::now();
     double dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     std::cout << "preprocessor_tokenizer done in: " << dur << "ms\n";

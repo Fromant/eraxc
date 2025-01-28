@@ -19,6 +19,7 @@ namespace eraxc {
         struct identifier {
             size_t type;
             size_t id;
+            bool isfunc;
         };
 
         scope *father_scope = nullptr;
@@ -90,10 +91,10 @@ namespace eraxc {
         /// Function for getting identifier id in scope
         /// \param id string of identifier
         /// \return identifier id
-        identifier get_id(const std::string &id) {
+        identifier get_id(const std::string &id) const {
             auto it = this;
             while(it != nullptr) {
-                if(it->identifiers.contains(id)) return it->identifiers[id];
+                if(it->identifiers.contains(id)) return it->identifiers.at(id);
                 it = it->father_scope;
             }
             return {size_t(-1), size_t(-1)};
@@ -102,9 +103,9 @@ namespace eraxc {
         /// Function to add identifier into scope
         /// \param id identifier to add
         /// \return the index of identifier
-        size_t add_id(const std::string &id, size_t type) {
+        size_t add_id(const std::string &id, size_t type, bool isfunc) {
             size_t tr = identifiers.size() + id_offset;
-            identifiers[id] = {type,tr};
+            identifiers[id] = {type,tr, isfunc};
             return tr;
         }
 

@@ -156,6 +156,13 @@ namespace eraxc::syntax {
             {"<<=", BITWISE_LSHIFT_ASSIGN}
     };
 
+    const inline std::set<operator_type> assign_operators {
+        ASSIGN,
+        ADD_ASSIGN, SUBTRACT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN, MOD_ASSIGN,
+        BITWISE_AND_ASSIGN, BITWISE_XOR_ASSIGN, BITWISE_OR_ASSIGN, BITWISE_NOT_ASSIGN,
+        BITWISE_LSHIFT_ASSIGN, BITWISE_RSHIFT_ASSIGN
+    };
+
     const inline std::unordered_map<std::string, operator_type> unary_operators{
             {"+",  POSITIVE},
             {"-",  NEGATIVE},
@@ -171,8 +178,6 @@ namespace eraxc::syntax {
             {"++", INCREMENT},
             {"--", DECREMENT},
     };
-
-    const std::string &find_op(eraxc::syntax::operator_type t);
 }
 
 #endif //ERAXC_ENUMS_H

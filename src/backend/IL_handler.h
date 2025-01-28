@@ -19,7 +19,6 @@ namespace eraxc::IL {
             NOT, NEG,
             OR, AND, XOR,
             JUMP, CALL, RET,
-            //TODO compare nodes
         };
 
         u64 op1 = -1;
@@ -62,8 +61,8 @@ namespace eraxc::IL {
 
         std::vector<IL_node> global_init{};
 
-        error::errable<std::vector<IL_node>> translate_expr(const std::vector<token> &tokens,
-                                                            int &i, const scope &scope);
+        static error::errable<std::vector<IL_node>> translate_assignment(const std::vector<token> &tokens,
+                                                                  int &i, const scope &scope);
 
         error::errable<std::vector<IL_node>> translate_statements(const std::vector<token> &tokens,
                                                                   int &i, scope &scope);
