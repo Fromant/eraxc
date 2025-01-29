@@ -20,6 +20,8 @@ namespace eraxc::IL {
             OR, AND, XOR,
             JUMP, CALL, RET,
         };
+        u64 assignee_type = -1;
+        u64 assignee = -1;
 
         u64 op1 = -1;
         u64 op2 = -1;
@@ -27,16 +29,21 @@ namespace eraxc::IL {
         bool isOp1Instant = false;
         bool isOp2Instant = false;
 
-        IL_node(u64 op1, u64 op2, syntax::operator_type op, bool isOp1Instant, bool isOp2Instant) {
+        IL_node(u64 assignee_type, u64 assignee,
+                u64 op1, bool isOp1Instant,
+                u64 op2, bool isOp2Instant,
+                syntax::operator_type op) {
+            this->assignee_type = assignee_type;
+            this->assignee = assignee;
             this->op1 = op1;
             this->op2 = op2;
             this->isOp1Instant = isOp1Instant;
             this->isOp2Instant = isOp2Instant;
 
-            if (op == syntax::ADD) this->op = ADD;
-            else if (op == syntax::SUBTRACT) this->op = SUB;
-            else if (op == syntax::DIVIDE) this->op = DIV;
-            else if (op == syntax::MULTIPLY) this->op = MUL;
+            if(op == syntax::ADD) this->op = ADD;
+            else if(op == syntax::SUBTRACT) this->op = SUB;
+            else if(op == syntax::DIVIDE) this->op = DIV;
+            else if(op == syntax::MULTIPLY) this->op = MUL;
         }
     };
 
@@ -62,13 +69,13 @@ namespace eraxc::IL {
         std::vector<IL_node> global_init{};
 
         static error::errable<std::vector<IL_node>> translate_assignment(const std::vector<token> &tokens,
-                                                                  int &i, const scope &scope);
+                                                                         int &i, scope &scope, bool is_assigned);
 
-        error::errable<std::vector<IL_node>> translate_statements(const std::vector<token> &tokens,
-                                                                  int &i, scope &scope);
+        static error::errable<std::vector<IL_node>> translate_statements(const std::vector<token> &tokens,
+                                                                         int &i, scope &scope);
 
-        error::errable<std::vector<IL_node>> parse_declaration(const std::vector<token> &tokens,
-                                                               int &i, scope &scope);
+        static error::errable<std::vector<IL_node>> parse_declaration(const std::vector<token> &tokens,
+                                                                      int &i, scope &scope);
 
         error::errable<void> translate(const std::vector<token> &tokens);
 

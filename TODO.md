@@ -5,7 +5,7 @@
 
 # Preprocessor:
 
-- [x] Fix tests and write new ones
+- [ ] Fix tests and write new ones
 - [ ] preprocessor #if macro + tests
 - [ ] preprocessor #else macro + tests
 - [ ] all defined words in preprocessor should be changed
@@ -15,6 +15,7 @@
 - [ ] parentheses support `~(~a)[]`
 - [ ] postfix operators `a++;` `(a++)++;`
 - [ ] operator precedence
+- [ ] Types check & conversion
 - [ ] Check if file contains int main()
 - [ ] extern keyword
 - [ ] actually call functions
@@ -23,5 +24,4 @@
 
 # Backend:
 
-- [ ] middle-end IL for optimisation reasons
 - [ ] asm translation linux support or something

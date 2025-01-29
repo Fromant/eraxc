@@ -69,7 +69,7 @@ namespace eraxc {
                 std::string def{};
                 ss >> def;
                 if (defined.contains(def)) {
-                    //scroll until endif
+                    //scroll until #endif
                     std::stringstream tr{};
                     std::string l;
                     do {
@@ -78,8 +78,7 @@ namespace eraxc {
                         tr << l << ' ';
                     } while (!ss.eof());
                     if (l != "#endif")
-                        return {{"expected #endif before EOF"},
-                                {}};
+                        return {"expected #endif before EOF", {}};
                     return tokenize(tr);
                 }
                 std::string l;
@@ -88,8 +87,7 @@ namespace eraxc {
                     if (l == "#endif") break;
                 } while (!ss.eof());
                 if (l != "#endif")
-                    return {{"expected #endif before EOF: "},
-                            {}};
+                    return {"expected #endif before EOF: ", {}};
                 return {"", {}};
             }
             if (macro == "ifndef") {
@@ -105,8 +103,7 @@ namespace eraxc {
                         tr << l << ' ';
                     } while (!ss.eof());
                     if (l != "#endif")
-                        return {{"expected #endif before EOF: "},
-                                {}};
+                        return {"expected #endif before EOF: ", {}};
                     return tokenize(tr);
                 }
                 std::string l;
@@ -115,8 +112,7 @@ namespace eraxc {
                     if (l == "#endif") break;
                 } while (!ss.eof());
                 if (l != "#endif")
-                    return {{"expected #endif before EOF: "},
-                            {}};
+                    return {"expected #endif before EOF: ", {}};
                 return {"", {}};
             }
             return {{"No such macro: " + macro},
@@ -202,7 +198,7 @@ namespace eraxc {
                         }
                         tmp << c;
                     }
-                    if (f.eof()) return {R"(expected end of string instant (""") befoer EOF)", tokens};
+                    if (f.eof()) return {R"(expected end of string instant (""") before EOF)", tokens};
                     continue;
                 } else if (token::operator_chars.find(c) != std::string::npos) {
                     //is an operator
@@ -227,8 +223,7 @@ namespace eraxc {
 
         error::errable<std::vector<token>> tokenize_file(const std::string &filename) {
             std::ifstream f{filename};
-            std::vector<token> tr{};
-            if (!f) return {"Cannot open file: " + filename, tr};
+            if (!f) return {"Cannot open file: " + filename, {}};
             std::stringstream ss;
             ss << f.rdbuf();
             return tokenize(ss);

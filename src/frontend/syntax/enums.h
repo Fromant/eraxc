@@ -6,8 +6,6 @@
 
 namespace eraxc::syntax {
 
-    inline constexpr std::string NOT_FOUND{"NOT_FOUND"};
-
     enum operator_type : unsigned char {
         //arithmetic
         ADD,  //+

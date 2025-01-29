@@ -16,15 +16,15 @@ namespace eraxc {
 
     struct scope {
 
-        struct identifier {
-            size_t type;
-            size_t id;
+        struct declaration {
+            u64 type;
+            u64 id;
             bool isfunc;
         };
 
         scope *father_scope = nullptr;
 
-        u64 id_offset = 0;
+        u64 next_id = 0;
 
         explicit scope(scope *const father) {
             if(father == nullptr) {
@@ -51,7 +51,7 @@ namespace eraxc {
                         {"short", syntax::i16},
                         {"void",  syntax::VOID}
                 };
-            } else id_offset = father->identifiers.size() + father->id_offset;
+            } else next_id = father->next_id;
             father_scope = father;
         }
 
@@ -70,7 +70,7 @@ namespace eraxc {
             return identifiers.contains(id);
         }
 
-        bool contains_id(const std::string &id) {
+        bool contains_id(const std::string &id) const {
             auto it = this;
             while(it != nullptr) {
                 if(it->identifiers.contains(id)) return true;
@@ -88,10 +88,10 @@ namespace eraxc {
             return -1;
         }
 
-        /// Function for getting identifier id in scope
-        /// \param id string of identifier
-        /// \return identifier id
-        identifier get_id(const std::string &id) const {
+        /// Function for getting declaration id in scope
+        /// \param id string of declaration
+        /// \return declaration id
+        declaration get_declaration(const std::string &id) const {
             auto it = this;
             while(it != nullptr) {
                 if(it->identifiers.contains(id)) return it->identifiers.at(id);
@@ -100,16 +100,21 @@ namespace eraxc {
             return {size_t(-1), size_t(-1)};
         }
 
-        /// Function to add identifier into scope
-        /// \param id identifier to add
-        /// \return the index of identifier
+        /// Function to add declaration into scope
+        /// \param id declaration to add
+        /// \return the index of declaration
         size_t add_id(const std::string &id, size_t type, bool isfunc) {
-            size_t tr = identifiers.size() + id_offset;
-            identifiers[id] = {type,tr, isfunc};
+            size_t tr = next_id;
+            identifiers[id] = {type, next_id, isfunc};
+            next_id++;
             return tr;
         }
 
-        std::unordered_map<std::string, identifier> identifiers{};
+        declaration& operator[](const std::string &id) {
+            return identifiers[id];
+        }
+
+        std::unordered_map<std::string, declaration> identifiers{};
         std::unordered_map<std::string, size_t> typenames{};
     };
 }
