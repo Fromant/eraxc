@@ -44,6 +44,16 @@ namespace eraxc {
 
         type t;
         std::string data;
+
+        token() {
+            t = NONE;
+            data = std::string{};
+        }
+
+        token(type t, const std::string &data) {
+            this->t=t;
+            this->data=data;
+        }
     };
 
     struct tokenizer {
