@@ -82,6 +82,7 @@ namespace eraxc::syntax {
             {"char",      CHAR},
             {"bool",      BOOL},
             {"short",     SHORT},
+            {"byte",      BYTE},
 
             {"auto",      AUTO},
             {"void",      VOID},
@@ -154,11 +155,18 @@ namespace eraxc::syntax {
             {"<<=", BITWISE_LSHIFT_ASSIGN}
     };
 
-    const inline std::set<operator_type> assign_operators {
-        ASSIGN,
-        ADD_ASSIGN, SUBTRACT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN, MOD_ASSIGN,
-        BITWISE_AND_ASSIGN, BITWISE_XOR_ASSIGN, BITWISE_OR_ASSIGN, BITWISE_NOT_ASSIGN,
-        BITWISE_LSHIFT_ASSIGN, BITWISE_RSHIFT_ASSIGN
+    const inline std::set<operator_type> assign_operators{
+            ASSIGN,
+            ADD_ASSIGN, SUBTRACT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN, MOD_ASSIGN,
+            BITWISE_AND_ASSIGN, BITWISE_XOR_ASSIGN, BITWISE_OR_ASSIGN, BITWISE_NOT_ASSIGN,
+            BITWISE_LSHIFT_ASSIGN, BITWISE_RSHIFT_ASSIGN
+    };
+
+    const inline std::unordered_map<operator_type, int> operator_priorities{
+            {ADD,      1},
+            {SUBTRACT, 1},
+            {MULTIPLY, 2},
+            {DIVIDE,   2}
     };
 
     const inline std::unordered_map<std::string, operator_type> unary_operators{
