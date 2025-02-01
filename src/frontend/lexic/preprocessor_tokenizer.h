@@ -11,19 +11,13 @@
 
 namespace eraxc {
     struct token {
-        static inline std::string special_symbols{
+        static inline std::set<char> special_symbols{
                 ';', '\'', '\"', '=', '+', '<', '>',
                 '%', '/', '*', '!', '&', '|', '^', '(', ')',
                 '{', '}', '[', ']', '-', '?', ':', '.', ',', '~'
         };
 
-        static inline std::vector<std::string> operators{
-                "==", "=", ">", "<", ">=", "<=", "+", "-", "*", "/", "%",
-                "&&", "||", "&", "|", "^", "~", ">>", "<<",
-                "+=", "-=", "*=", "/=", "%=",
-                "&=", "^=", "|=", "~=", ">>=", "<<="
-        };
-        static inline std::string operator_chars{"<=>&|^%*/~+-"};
+        static inline std::set<char> operator_chars{'<', '=', '>', '&', '|', '^', '%', '*', '/', '~', '+', '-'};
 
         enum type {
             SEMICOLON,
@@ -51,8 +45,8 @@ namespace eraxc {
         }
 
         token(type t, const std::string &data) {
-            this->t=t;
-            this->data=data;
+            this->t = t;
+            this->data = data;
         }
     };
 
@@ -210,12 +204,12 @@ namespace eraxc {
                     }
                     if (f.eof()) return {R"(expected end of string instant (""") before EOF)", tokens};
                     continue;
-                } else if (token::operator_chars.find(c) != std::string::npos) {
+                } else if (token::operator_chars.contains(c)) {
                     //is an operator
                     add_token(tokens, tmp, t);
                     tmp << c;
-                    while (token::operator_chars.find(f.peek()) != std::string::npos && !f.eof()) {
-                        tmp << f.get();
+                    while (token::operator_chars.contains(char(f.peek())) && !f.eof()) {
+                        tmp << char(f.get());
                     }
                     t = token::OPERATOR;
                     add_token(tokens, tmp, t);
