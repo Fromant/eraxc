@@ -5,10 +5,10 @@ int a = 0;
 //IL: i32 $1 = 0;
 
 int b = 1 + 1;
-//IL: i32 $2=1; i32 $3=$2+1;
+//IL: i32 $3=1+1; i32 $2=$3;
 
 int c = b;
-//IL: i32 $4=$3 //recognize v1
+//IL: i32 $4=$2 //recognize v1
 
 
 int test_IL(int param1, int param2) {

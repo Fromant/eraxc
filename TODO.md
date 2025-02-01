@@ -10,11 +10,13 @@
 - [ ] preprocessor #else macro + tests
 - [ ] all defined words in preprocessor should be changed
 
-# Syntax:
+# IL:
 
 - [ ] parentheses support `~(~a)[]`
 - [ ] postfix operators `a++;` `(a++)++;`
-- [ ] operator precedence
+- [ ] prefix operators
+- [ ] excessive ids generated
+- [ ] test operator precedence
 - [ ] Types check & conversion
 - [ ] Check if file contains int main()
 - [ ] extern keyword

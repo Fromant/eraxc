@@ -9,9 +9,16 @@
 #include "../util/error.h"
 #include "scope.h"
 
-typedef unsigned long long u64;
-
 namespace eraxc::IL {
+
+    struct IL_operand {
+        u64 id = -1;
+        u64 type = -1;
+        bool is_function = false;
+        bool is_instant = false;
+    };
+
+
     struct IL_node {
         enum Operator : int {
             ASSIGN, //=MOV
@@ -23,40 +30,30 @@ namespace eraxc::IL {
         u64 assignee_type = -1;
         u64 assignee = -1;
 
-        u64 op1 = -1;
-        u64 op2 = -1;
+        IL_operand operand1;
+        IL_operand operand2;
+
         Operator op = ASSIGN;
-        bool isOp1Instant = false;
-        bool isOp2Instant = false;
 
         IL_node(u64 assignee_type, u64 assignee,
-                u64 op1, bool isOp1Instant,
-                u64 op2, bool isOp2Instant,
+                IL_operand operand1, IL_operand operand2,
                 syntax::operator_type op) {
             this->assignee_type = assignee_type;
             this->assignee = assignee;
-            this->op1 = op1;
-            this->op2 = op2;
-            this->isOp1Instant = isOp1Instant;
-            this->isOp2Instant = isOp2Instant;
 
-            if(op == syntax::ADD) this->op = ADD;
-            else if(op == syntax::SUBTRACT) this->op = SUB;
-            else if(op == syntax::DIVIDE) this->op = DIV;
-            else if(op == syntax::MULTIPLY) this->op = MUL;
+            this->operand1 = operand1;
+            this->operand2 = operand2;
+
+            if (op == syntax::ADD) this->op = ADD;
+            else if (op == syntax::SUBTRACT) this->op = SUB;
+            else if (op == syntax::DIVIDE) this->op = DIV;
+            else if (op == syntax::MULTIPLY) this->op = MUL;
         }
     };
 
-    struct IL_decl {
-        u64 id;
-        u64 type;
-        bool is_function;
-    };
-
-
     struct IL_func {
-        IL_decl declaration;
-        std::vector<IL_decl> args;
+        IL_operand declaration;
+        std::vector<IL_operand> args;
         std::vector<IL_node> body;
     };
 
@@ -69,7 +66,7 @@ namespace eraxc::IL {
         std::vector<IL_node> global_init{};
 
         static error::errable<std::vector<IL_node>> translate_assignment(const std::vector<token> &tokens,
-                                                                         int &i, scope &scope, bool is_assigned);
+                                                                         int &i, scope &scope);
 
         static error::errable<std::vector<IL_node>> translate_statements(const std::vector<token> &tokens,
                                                                          int &i, scope &scope);
