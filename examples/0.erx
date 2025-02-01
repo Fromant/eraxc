@@ -17,3 +17,7 @@ int test_IL(int param1, int param2) {
     a=321;
     sum=a;
 }
+
+int main() {
+    int test11=11;
+}

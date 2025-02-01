@@ -220,13 +220,15 @@ namespace eraxc::IL {
             } else
                 return {"Expected function variable list or end of function declaration instead of " + tokens[i].data};
             if (tokens[i + 2].t == token::R_BRACKET) {
-                i += 3;
+                i+=2;
                 break;
             }
             if (tokens[i + 2].t != token::COMMA)
                 return {"Expected comma ',' or right bracket instead of " + tokens[i + 2].data};
             i += 3;
         }
+
+        i++;
 
         //parse funciton body
         if (tokens[i].t != token::L_F_BRACKET)
@@ -258,6 +260,10 @@ namespace eraxc::IL {
                 i++;
             }
         }
+        if (!global_scope.contains_id("main") ||
+            !global_scope.get_declaration("main").isfunc ||
+            global_scope.get_declaration("main").type != syntax::i32)
+            return {"Cannot find main function declaration: int main() {...}"};
         return {""};
     }
 }
