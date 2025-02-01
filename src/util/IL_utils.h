@@ -28,6 +28,14 @@ namespace eraxc::IL {
                           << operand_to_string(node.operand1) << '-'
                           << operand_to_string(node.operand2) << std::endl;
 
+            } else if(node.op == IL_node::MUL) {
+                std::cout << node.assignee_type << ' ' << '$' << node.assignee << '='
+                          << operand_to_string(node.operand1) << '*'
+                          << operand_to_string(node.operand2) << std::endl;
+            } else if(node.op == IL_node::DIV) {
+                std::cout << node.assignee_type << ' ' << '$' << node.assignee << '='
+                          << operand_to_string(node.operand1) << '/'
+                          << operand_to_string(node.operand2) << std::endl;
             }
         }
     }

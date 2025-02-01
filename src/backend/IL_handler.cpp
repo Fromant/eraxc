@@ -61,7 +61,8 @@ namespace eraxc::IL {
                 return {"Unsupported operator: " + tokens[i].data, {}};
 
             //while top stack operator priority >= current operator priority
-            while (!operators.empty() && syntax::operator_priorities.at(operators.top()) >= syntax::operator_priorities.at(op)) {
+            while (!operators.empty() &&
+                   syntax::operator_priorities.at(operators.top()) > syntax::operator_priorities.at(op)) {
                 //add IL_node to output from top operands and operator
                 syntax::operator_type to_add = operators.top();
                 operators.pop();
@@ -109,22 +110,36 @@ namespace eraxc::IL {
     }
 
     error::errable<std::vector<IL_node>> IL_handler::translate_assignment(const std::vector<token> &tokens,
-                                                                          int &i, scope &scope) {
+                                                                          int &i, scope &scope, bool is_assigned) {
         if (tokens[i].t != token::IDENTIFIER)
             return {"Expected declaration at the start of assignment instead of " + tokens[i].data, {}};
         if (!scope.contains_id(tokens[i].data)) return {"Unknown declaration " + tokens[i].data, {}};
         scope::declaration &assignee = scope[tokens[i].data];
 
         syntax::operator_type assignment_type = syntax::operators.at(tokens[i + 1].data);
-        i+=2;
+        i += 2;
         auto expr = translate_expr(tokens, i, scope);
         if (!expr) return {expr.error, expr.value.second};
 
-        std::vector<IL_node> tr = std::move(expr.value.second);
-        tr.emplace_back(assignee.type, assignee.id,
-                        expr.value.first, IL_operand{}, assignment_type);
 
-        return {"", tr};
+        if (assignment_type != syntax::ASSIGN) {
+            //TODO add += -= etc
+
+            expr.value.second.emplace_back(assignee.type, assignee.id,
+                                           expr.value.first, IL_operand{}, assignment_type);
+        } else {
+            if (is_assigned) {
+                //reg new id if there's a new version of variable
+                assignee.id = scope.next_id++;
+                expr.value.second.emplace_back(assignee.type, assignee.id,
+                                               expr.value.first, IL_operand{}, syntax::ASSIGN);
+            } else if (expr.value.second.empty()) {
+                expr.value.second.emplace_back(assignee.type, assignee.id,
+                                               expr.value.first, IL_operand{}, syntax::ASSIGN);
+            } else assignee.id = expr.value.first.id;
+        }
+
+        return {"", expr.value.second};
     }
 
     error::errable<std::vector<IL_node>> IL_handler::parse_declaration(const std::vector<token> &tokens,
@@ -144,7 +159,7 @@ namespace eraxc::IL {
         if (tokens[i + 2].t != token::OPERATOR || tokens[i + 2].data != "=")
             return {"Expected operator= or ';' at the end of declaration", {}};
         i++; //now tokens[i] is a name of variable
-        return translate_assignment(tokens, i, scope);
+        return translate_assignment(tokens, i, scope, false);
     }
 
     //translates all statements till '}'
@@ -164,7 +179,7 @@ namespace eraxc::IL {
                     tr.insert(tr.cend(), init.value.cbegin(), init.value.cend());
                 } else if (tokens[i + 1].t == token::OPERATOR) {
                     //assignment
-                    auto assignment = translate_assignment(tokens, i, scope);
+                    auto assignment = translate_assignment(tokens, i, scope, true);
                     if (!assignment) return {assignment.error, tr};
                     tr.insert(tr.cend(), assignment.value.cbegin(), assignment.value.cend());
                 } else if (tokens[i + 1].t == token::L_BRACKET) {

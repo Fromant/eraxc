@@ -4,14 +4,16 @@ int ad;
 int a = 0;
 //IL: i32 $1 = 0;
 
-int b = 1 + 1;
-//IL: i32 $3=1+1; i32 $2=$3;
+int b = 1 + 1 + 1 * 8;
+//IL: i32 $3=1+1; i32 $5=$4+1; i32 $6=$5
 
 int c = b;
-//IL: i32 $4=$2 //recognize v1
+//IL: i32 $5=$4 //recognize v1
 
 
 int test_IL(int param1, int param2) {
     int a = param1+123;
     int sum = param1+param2;
+    a=321;
+    sum=a;
 }
