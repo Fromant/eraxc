@@ -4,13 +4,13 @@ int ad;
 int a = 0;
 //IL: i32 $1 = 0;
 
-int b = 1 + 1 + 1 * 8;
+int b = 1 + 1 + 1 * 8 + 12 + 13;
 //IL: i32 $2=8*1; i32 $3=$2+1; i32 $4=$3+1
 
 int c = b;
 //IL: i32 $5=$4
 
-int d = b = 2; //$6=2
+int d = 2; //$6=2
 //now both d and b are $6
 
 int e = b; //$7=$6

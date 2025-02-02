@@ -6,6 +6,8 @@
 
 #include "util/IL_utils.h"
 
+#include "backend/asm_translators/asm_x86.h"
+
 #ifdef DEBUG
 //#define TEST
 //#include "../tests/test_all.h"
@@ -51,6 +53,17 @@ int main(int argc, char *argv[]) {
     total_time += dur;
     std::cout << "IL Handler done in: " << dur << "ms\n";
 
+    t1 = std::chrono::high_resolution_clock::now();
+    asm_translator<X64> asmt{};
+    auto asmtr = asmt.translate(a, "test1231.asm");
+    t2 = std::chrono::high_resolution_clock::now();
+    if (!asmtr) {
+        std::cerr << "Failed to translate IL code to asm. Error:\n" << asmtr.error << std::endl;
+        exit(-1);
+    }
+    dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
+    total_time += dur;
+    std::cout << "ASM translator done in: " << dur << "ms\n";
 
     std::cout << "\nCompilation completed successfully in " << total_time << "ms\n\nGlobal init:\n";
 

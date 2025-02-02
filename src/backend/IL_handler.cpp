@@ -3,20 +3,21 @@
 #include <stack>
 
 namespace eraxc::IL {
-
-    error::errable<IL_operand> translate_operand(const token &t, const scope &scope) {
+    error::errable<IL_operand> translate_operand(const token& t, const scope& scope) {
         if (t.t == token::IDENTIFIER) {
             if (!scope.contains_id(t.data))
                 return {"No such identifier in this scope: " + t.data, {}};
             scope::declaration decl = scope.get_declaration(t.data);
             return {"", {decl.id, decl.type, false, decl.isfunc}};
-        } else if (t.t == token::INSTANT) {
+        }
+        if (t.t == token::INSTANT) {
             return {"", {std::stoull(t.data), syntax::u64, false, true}};
-        } else return {"Expected identifier or instant instead of " + t.data, {}};
+        }
+        return {"Expected identifier or instant instead of " + t.data, {}};
     }
 
-    error::errable<std::vector<IL_node>> IL_handler::translate_expr(const std::vector<token> &tokens,
-                                                                    int &i, scope &scope) {
+    error::errable<std::vector<IL_node>> IL_handler::translate_expr(const std::vector<token>& tokens,
+                                                                    int& i, scope& scope) {
         std::vector<IL_node> tr{};
 
         std::stack<IL_operand> operands{};
@@ -40,11 +41,12 @@ namespace eraxc::IL {
                 //create new id with old type
                 u64 result_id = scope.next_id++;
                 assign_to.value.emplace_back(assign_to.value.back().assignee_type, result_id,
-                                IL_operand{assignee_it->second.id, assignee_it->second.type,
-                                           false, false},
-                                IL_operand{assign_to.value.back().assignee, assign_to.value.back().assignee_type,
-                                           false, false},
-                                syntax::assign_to_common_op.at(assign_type));
+                                             IL_operand{assignee_it->second.id, assignee_it->second.type,
+                                                 false, false},
+                                             IL_operand{assign_to.value.back().assignee,
+                                                 assign_to.value.back().assignee_type,
+                                                 false, false},
+                                             syntax::assign_to_common_op.at(assign_type));
                 assignee_it->second.id = result_id;
             }
             return assign_to;
@@ -64,12 +66,13 @@ namespace eraxc::IL {
 
             //check op
             syntax::operator_type op = syntax::operators.at(tokens[i].data);
+            if (syntax::assign_operators.contains(op)) return {"Cannot assign here", {}};
             if (!syntax::operator_priorities.contains(op))
                 return {"Unsupported operator: " + tokens[i].data, {}};
 
             //while top stack operator priority > current operator priority
             while (!operators.empty() &&
-                   syntax::operator_priorities.at(operators.top()) < syntax::operator_priorities.at(op)) {
+                syntax::operator_priorities.at(operators.top()) < syntax::operator_priorities.at(op)) {
                 //add IL_node to output from top operands and operator
                 syntax::operator_type to_add = operators.top();
                 operators.pop();
@@ -119,8 +122,8 @@ namespace eraxc::IL {
         return {"", tr};
     }
 
-    error::errable<std::vector<IL_node>> IL_handler::parse_declaration(const std::vector<token> &tokens,
-                                                                       int &i, scope &scope) {
+    error::errable<std::vector<IL_node>> IL_handler::parse_declaration(const std::vector<token>& tokens,
+                                                                       int& i, scope& scope) {
         if (!scope.contains_type(tokens[i].data)) return {"No such typename " + tokens[i].data, {}};
         const u64 type = scope.get_type_id(tokens[i].data);
 
@@ -142,8 +145,8 @@ namespace eraxc::IL {
     }
 
     //translates all statements till '}'
-    error::errable<std::vector<IL_node>> IL_handler::translate_statements(const std::vector<token> &tokens,
-                                                                          int &i, scope &scope) {
+    error::errable<std::vector<IL_node>> IL_handler::translate_statements(const std::vector<token>& tokens,
+                                                                          int& i, scope& scope) {
         std::vector<IL_node> tr;
 
         while (tokens[i].t != token::NONE && tokens[i].t != token::R_F_BRACKET) {
@@ -152,11 +155,9 @@ namespace eraxc::IL {
                     i++;
                     auto r = translate_expr(tokens, i, scope);
                     if (!r) return {r.error, tr};
-                    tr.insert(tr.end(),r.value.begin(), --r.value.end());
+                    tr.insert(tr.end(), r.value.begin(), --r.value.end());
                     tr.emplace_back(r.value.back().assignee_type, r.value.back().assignee,
-                                    r.value.back().operand1, IL_operand{},IL_node::RET);
-//                    tr.emplace_back(r.value.first.type, r.value.first.id,
-//                                    r.value.first, IL_operand{}, IL_node::RET);
+                                    r.value.back().operand1, IL_operand{}, IL_node::RET);
                 } else if (tokens[i + 1].t == token::IDENTIFIER) {
                     //decl
                     auto init = parse_declaration(tokens, i, scope);
@@ -177,7 +178,7 @@ namespace eraxc::IL {
         return {"", tr};
     }
 
-    error::errable<void> IL_handler::translate_function(const std::vector<token> &tokens, int &i) {
+    error::errable<void> IL_handler::translate_function(const std::vector<token>& tokens, int& i) {
         if (!global_scope.contains_type(tokens[i].data)) return {"No such typename " + tokens[i].data};
         const u64 return_type = global_scope.get_type_id(tokens[i].data);
 
@@ -212,10 +213,8 @@ namespace eraxc::IL {
                 return {"Expected comma ',' or right bracket instead of " + tokens[i + 2].data};
             i += 3;
         }
-
         i++;
-
-        //parse funciton body
+        //parse function body
         if (tokens[i].t != token::L_F_BRACKET)
             return {"Expected function body '{' instead of " + tokens[i].data};
         i++;
@@ -228,7 +227,7 @@ namespace eraxc::IL {
     }
 
 
-    error::errable<void> IL_handler::translate(const std::vector<token> &tokens) {
+    error::errable<void> IL_handler::translate(const std::vector<token>& tokens) {
         int i = 0;
         while (i < tokens.size()) {
             if (tokens[i].t == token::IDENTIFIER) {}

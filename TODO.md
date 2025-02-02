@@ -15,6 +15,7 @@
 - [ ] parentheses support `~(~a)[]`
 - [ ] postfix operators `a++;` `(a++)++;`
 - [ ] prefix operators
+- [ ] Fix globals - think of them like ram space not stack var
 - [ ] Types check & conversion
 - [ ] extern keyword
 - [ ] actually call functions

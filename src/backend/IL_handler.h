@@ -79,9 +79,6 @@ namespace eraxc::IL {
 
         std::vector<IL_node> global_init{};
 
-//        static error::errable<std::vector<IL_node>> translate_assignment(const std::vector<token> &tokens,
-//                                                                         int &i, scope &scope, bool is_assigned);
-
         static error::errable<std::vector<IL_node>> translate_expr(const std::vector<token> &tokens,
                                                                    int &i, scope &scope);
 
