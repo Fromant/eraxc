@@ -6,8 +6,6 @@
 
 namespace eraxc::syntax {
 
-    inline constexpr std::string NOT_FOUND{"NOT_FOUND"};
-
     enum operator_type : unsigned char {
         //arithmetic
         ADD,  //+
@@ -84,6 +82,7 @@ namespace eraxc::syntax {
             {"char",      CHAR},
             {"bool",      BOOL},
             {"short",     SHORT},
+            {"byte",      BYTE},
 
             {"auto",      AUTO},
             {"void",      VOID},
@@ -156,6 +155,64 @@ namespace eraxc::syntax {
             {"<<=", BITWISE_LSHIFT_ASSIGN}
     };
 
+    const inline std::set<operator_type> assign_operators{
+            ASSIGN,
+            ADD_ASSIGN, SUBTRACT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN, MOD_ASSIGN,
+            BITWISE_AND_ASSIGN, BITWISE_XOR_ASSIGN, BITWISE_OR_ASSIGN, BITWISE_NOT_ASSIGN,
+            BITWISE_LSHIFT_ASSIGN, BITWISE_RSHIFT_ASSIGN
+    };
+
+    const static inline std::unordered_map<operator_type, operator_type> assign_to_common_op{
+            {ADD_ASSIGN,            ADD},
+            {SUBTRACT_ASSIGN,       SUBTRACT},
+            {MULT_ASSIGN,           MULTIPLY},
+            {DIV_ASSIGN,            DIVIDE},
+            {MOD_ASSIGN,            MODULO},
+            {BITWISE_AND_ASSIGN,    BITWISE_AND},
+            {BITWISE_XOR_ASSIGN,    BITWISE_XOR},
+            {BITWISE_OR_ASSIGN,     BITWISE_OR},
+            {BITWISE_NOT_ASSIGN,    BITWISE_NOT},
+            {BITWISE_LSHIFT_ASSIGN, BITWISE_LSHIFT},
+            {BITWISE_RSHIFT_ASSIGN, BITWISE_RSHIFT}
+    };
+
+    //less = more priority
+    const static inline std::unordered_map<operator_type, int> operator_priorities{
+            {MULTIPLY,       5},
+            {DIVIDE,         5},
+            {MODULO,         5},
+
+            {ADD,            6},
+            {SUBTRACT,       6},
+
+            {BITWISE_RSHIFT, 7},
+            {BITWISE_LSHIFT, 7},
+
+            {LESS,           9},
+            {LESS_EQ,        9},
+            {GREATER,        9},
+            {GREATER_EQ,     9},
+
+            {EQUAL,          10},
+            {NOT_EQUAL,      10},
+
+            {BITWISE_AND,    11},
+            {BITWISE_XOR,    12},
+            {BITWISE_OR,     13},
+
+            {ASSIGN,         16},
+            {ADD_ASSIGN, 16},
+            {SUBTRACT_ASSIGN, 16},
+            {MULT_ASSIGN, 16},
+            {DIV_ASSIGN, 16},
+            {MOD_ASSIGN, 16},
+            {BITWISE_LSHIFT_ASSIGN, 16},
+            {BITWISE_RSHIFT_ASSIGN, 16},
+            {BITWISE_AND_ASSIGN, 16},
+            {BITWISE_OR_ASSIGN, 16},
+            {BITWISE_XOR_ASSIGN, 16},
+    };
+
     const inline std::unordered_map<std::string, operator_type> unary_operators{
             {"+",  POSITIVE},
             {"-",  NEGATIVE},
@@ -171,8 +228,6 @@ namespace eraxc::syntax {
             {"++", INCREMENT},
             {"--", DECREMENT},
     };
-
-    const std::string &find_op(eraxc::syntax::operator_type t);
 }
 
 #endif //ERAXC_ENUMS_H

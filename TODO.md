@@ -5,17 +5,17 @@
 
 # Preprocessor:
 
-- [x] Fix tests and write new ones
+- [ ] Fix tests and write new ones
 - [ ] preprocessor #if macro + tests
 - [ ] preprocessor #else macro + tests
 - [ ] all defined words in preprocessor should be changed
 
-# Syntax:
+# IL:
 
 - [ ] parentheses support `~(~a)[]`
 - [ ] postfix operators `a++;` `(a++)++;`
-- [ ] operator precedence
-- [ ] Check if file contains int main()
+- [ ] prefix operators
+- [ ] Types check & conversion
 - [ ] extern keyword
 - [ ] actually call functions
 - [ ] some temp built-in call function or `asm()` directive for printf
@@ -23,5 +23,4 @@
 
 # Backend:
 
-- [ ] middle-end IL for optimisation reasons
 - [ ] asm translation linux support or something

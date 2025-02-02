@@ -7,10 +7,22 @@
 #include "../frontend/lexic/preprocessor_tokenizer.h"
 #include "../frontend/syntax/enums.h"
 #include "../util/error.h"
-
-typedef unsigned long long u64;
+#include "scope.h"
 
 namespace eraxc::IL {
+
+    struct IL_operand {
+        u64 id = -1;
+        u64 type = -1;
+        bool is_function = false;
+        bool is_instant = false;
+
+        static IL_operand operand(const scope::declaration &decl) {
+            return {decl.id, decl.type, decl.isfunc, false};
+        }
+    };
+
+
     struct IL_node {
         enum Operator : int {
             ASSIGN, //=MOV
@@ -18,80 +30,70 @@ namespace eraxc::IL {
             NOT, NEG,
             OR, AND, XOR,
             JUMP, CALL, RET,
-            //TODO compare nodes
         };
+        u64 assignee_type = -1;
+        u64 assignee = -1;
 
-        u64 op1 = -1;
-        u64 op2 = -1;
+        IL_operand operand1;
+        IL_operand operand2;
+
         Operator op = ASSIGN;
-        bool isOp1Instant = false;
-        bool isOp2Instant = false;
 
-        IL_node(u64 op1, u64 op2, syntax::operator_type op, bool isOp1Instant, bool isOp2Instant) {
-            this->op1 = op1;
-            this->op2 = op2;
-            this->isOp1Instant = isOp1Instant;
-            this->isOp2Instant = isOp2Instant;
+        IL_node(u64 assignee_type, u64 assignee, IL_operand operand1, IL_operand operand2, Operator op) {
+            this->assignee_type = assignee_type;
+            this->assignee = assignee;
+            this->operand1 = operand1;
+            this->operand2 = operand2;
+            this->op = op;
+        }
 
-            if (op == syntax::ADD) this->op = ADD;
-            else if (op == syntax::SUBTRACT) this->op = SUB;
-            else if (op == syntax::DIVIDE) this->op = DIV;
-            else if (op == syntax::MULTIPLY) this->op = MUL;
+        IL_node(u64 assignee_type, u64 assignee, IL_operand operand1, IL_operand operand2, syntax::operator_type op) {
+            this->assignee_type = assignee_type;
+            this->assignee = assignee;
+            this->operand1 = operand1;
+            this->operand2 = operand2;
+            this->op = to_IL_operator(op);
+        }
+
+        static Operator to_IL_operator(syntax::operator_type op) {
+            if (op == syntax::ADD) return ADD;
+            else if (op == syntax::SUBTRACT) return SUB;
+            else if (op == syntax::DIVIDE) return DIV;
+            else if (op == syntax::MULTIPLY) return MUL;
+            else if (op == syntax::ASSIGN) return ASSIGN;
+            return Operator(-1);
         }
     };
 
-    struct IL_decl {
-        u64 id;
-        u64 type;
-        bool is_function;
-    };
-
-
     struct IL_func {
-        IL_decl declaration;
-        std::vector<IL_decl> args;
+        IL_operand declaration;
+        std::vector<IL_operand> args;
         std::vector<IL_node> body;
     };
 
 
     /// Handler of Intermediate Language. Computes all the types and may optimise a bit
     struct IL_handler {
-        std::unordered_map<std::string, IL_decl> global_vars{};
+        scope global_scope{nullptr};
         std::unordered_map<u64, IL_func> global_funcs{};
 
         std::vector<IL_node> global_init{};
 
-        std::unordered_map<std::string, u64> typenames = {
-            //signed
-            {"char", 0}, {"i16", 0},
-            {"short", 1}, {"i16", 1},
-            {"int", 2}, {"i32", 2},
-            {"long", 3}, {"i64", 3},
-            {"i128", 4},
-            {"i256", 5},
-            //unsigned
-            {"byte", 6}, {"u8", 6},
-            {"u16", 7},
-            {"u32", 8},
-            {"u64", 9},
-            {"u128", 10},
-            {"u256", 11},
-            //bool
-            {"bool", 12}, {"boolean", 12},
-        };
+//        static error::errable<std::vector<IL_node>> translate_assignment(const std::vector<token> &tokens,
+//                                                                         int &i, scope &scope, bool is_assigned);
 
-        error::errable<std::vector<IL_node>> translate_expr(const std::vector<token>& tokens, int& i,
-           const std::unordered_map<std::string, IL_decl>& scope);
+        static error::errable<std::vector<IL_node>> translate_expr(const std::vector<token> &tokens,
+                                                                   int &i, scope &scope);
 
-        error::errable<std::vector<IL_node>> translate_statements(
-            const std::vector<token>& tokens, int& i,
-            std::unordered_map<std::string, IL_decl>& local_vars);
+        static error::errable<std::vector<IL_node>> translate_statements(const std::vector<token> &tokens,
+                                                                         int &i, scope &scope);
 
-        error::errable<std::vector<IL_node>> parse_declaration(const std::vector<token>& tokens, int& i,
-                                                  std::unordered_map<std::string, IL_decl>& scope);
+        static error::errable<std::vector<IL_node>> parse_declaration(const std::vector<token> &tokens,
+                                                                      int &i, scope &scope);
 
-        error::errable<void> translate(const std::vector<token>& tokens);
-        error::errable<void> translate_function(const std::vector<token>& tokens, int& i);
+        error::errable<void> translate(const std::vector<token> &tokens);
+
+        error::errable<void> translate_function(const std::vector<token> &tokens, int &i);
     };
 }
 

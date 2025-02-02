@@ -4,7 +4,7 @@
 
 namespace eraxc::backend {
 
-
+/*
     std::string asm_translator::translate_NASM(const std::vector<syntax::AST::node> &tree,
                                                const std::string &o_filename) {
         std::stringstream init_globals{};
@@ -79,4 +79,5 @@ namespace eraxc::backend {
         of.close();
         return {""};
     }
+    */
 }
