@@ -16,6 +16,10 @@ namespace eraxc::IL {
         u64 type = -1;
         bool is_function = false;
         bool is_instant = false;
+
+        static IL_operand operand(const scope::declaration &decl) {
+            return {decl.id, decl.type, decl.isfunc, false};
+        }
     };
 
 
@@ -35,19 +39,29 @@ namespace eraxc::IL {
 
         Operator op = ASSIGN;
 
-        IL_node(u64 assignee_type, u64 assignee,
-                IL_operand operand1, IL_operand operand2,
-                syntax::operator_type op) {
+        IL_node(u64 assignee_type, u64 assignee, IL_operand operand1, IL_operand operand2, Operator op) {
             this->assignee_type = assignee_type;
             this->assignee = assignee;
-
             this->operand1 = operand1;
             this->operand2 = operand2;
+            this->op = op;
+        }
 
-            if (op == syntax::ADD) this->op = ADD;
-            else if (op == syntax::SUBTRACT) this->op = SUB;
-            else if (op == syntax::DIVIDE) this->op = DIV;
-            else if (op == syntax::MULTIPLY) this->op = MUL;
+        IL_node(u64 assignee_type, u64 assignee, IL_operand operand1, IL_operand operand2, syntax::operator_type op) {
+            this->assignee_type = assignee_type;
+            this->assignee = assignee;
+            this->operand1 = operand1;
+            this->operand2 = operand2;
+            this->op = to_IL_operator(op);
+        }
+
+        static Operator to_IL_operator(syntax::operator_type op) {
+            if (op == syntax::ADD) return ADD;
+            else if (op == syntax::SUBTRACT) return SUB;
+            else if (op == syntax::DIVIDE) return DIV;
+            else if (op == syntax::MULTIPLY) return MUL;
+            else if (op == syntax::ASSIGN) return ASSIGN;
+            return Operator(-1);
         }
     };
 
@@ -65,8 +79,11 @@ namespace eraxc::IL {
 
         std::vector<IL_node> global_init{};
 
-        static error::errable<std::vector<IL_node>> translate_assignment(const std::vector<token> &tokens,
-                                                                         int &i, scope &scope, bool is_assigned);
+//        static error::errable<std::vector<IL_node>> translate_assignment(const std::vector<token> &tokens,
+//                                                                         int &i, scope &scope, bool is_assigned);
+
+        static error::errable<std::vector<IL_node>> translate_expr(const std::vector<token> &tokens,
+                                                                   int &i, scope &scope);
 
         static error::errable<std::vector<IL_node>> translate_statements(const std::vector<token> &tokens,
                                                                          int &i, scope &scope);

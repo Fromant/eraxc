@@ -4,45 +4,53 @@
 
 namespace eraxc::IL {
 
-
-    error::errable<IL_operand> translate_var(const token &t, const scope &scope) {
-        IL_operand tr{};
-
-        if (t.t != token::IDENTIFIER && t.t != token::INSTANT)
-            return {"Expected identifier or instant instead of " + t.data, {}};
-
+    error::errable<IL_operand> translate_operand(const token &t, const scope &scope) {
         if (t.t == token::IDENTIFIER) {
             if (!scope.contains_id(t.data))
                 return {"No such identifier in this scope: " + t.data, {}};
             scope::declaration decl = scope.get_declaration(t.data);
-            tr.id = decl.id;
-            tr.type = decl.type;
-            tr.is_instant = false;
-            tr.is_function = decl.isfunc;
-        } else {
-            //instant 100%
-            tr.is_instant = true;
-            tr.is_function = false;
-            tr.type = syntax::u64;
-            tr.id = std::stoull(t.data);
-        }
-
-        return {"", tr};
+            return {"", {decl.id, decl.type, false, decl.isfunc}};
+        } else if (t.t == token::INSTANT) {
+            return {"", {std::stoull(t.data), syntax::u64, false, true}};
+        } else return {"Expected identifier or instant instead of " + t.data, {}};
     }
 
-    error::errable<std::pair<IL_operand, std::vector<IL_node>>> translate_expr(const std::vector<token> &tokens,
-                                                                               int &i, scope &scope) {
+    error::errable<std::vector<IL_node>> IL_handler::translate_expr(const std::vector<token> &tokens,
+                                                                    int &i, scope &scope) {
         std::vector<IL_node> tr{};
 
         std::stack<IL_operand> operands{};
         std::stack<syntax::operator_type> operators{};
 
-        auto operand0 = translate_var(tokens[i], scope);
+        auto operand0 = translate_operand(tokens[i], scope);
         if (!operand0) return {operand0.error, {}};
+        operands.push(operand0.value);
+
+        if (tokens[i + 1].t == token::OPERATOR &&
+            syntax::assign_operators.contains(syntax::operators.at(tokens[i + 1].data))) {
+            //assign op
+            syntax::operator_type assign_type = syntax::operators.at(tokens[i + 1].data);
+            auto assignee_it = scope.identifiers.find(tokens[i].data);
+            i += 2;
+            auto assign_to = translate_expr(tokens, i, scope);
+            if (!assign_to) return assign_to;
+            if (assign_type == syntax::ASSIGN) {
+                assignee_it->second.id = assign_to.value.back().assignee;
+            } else {
+                //create new id with old type
+                u64 result_id = scope.next_id++;
+                assign_to.value.emplace_back(assign_to.value.back().assignee_type, result_id,
+                                IL_operand{assignee_it->second.id, assignee_it->second.type,
+                                           false, false},
+                                IL_operand{assign_to.value.back().assignee, assign_to.value.back().assignee_type,
+                                           false, false},
+                                syntax::assign_to_common_op.at(assign_type));
+                assignee_it->second.id = result_id;
+            }
+            return assign_to;
+        }
 
         i++;
-
-        operands.push(operand0.value);
 
         while (tokens[i].t != token::SEMICOLON) {
             if (tokens[i].t == token::NONE)
@@ -51,18 +59,17 @@ namespace eraxc::IL {
             // operator then token
             if (tokens[i].t != token::OPERATOR) return {"Expected operator instead of " + tokens[i].data, {}};
 
-            auto next_operand = translate_var(tokens[i + 1], scope);
+            auto next_operand = translate_operand(tokens[i + 1], scope);
             if (!next_operand) return {next_operand.error, {}};
-            operands.push(next_operand.value);
 
             //check op
             syntax::operator_type op = syntax::operators.at(tokens[i].data);
             if (!syntax::operator_priorities.contains(op))
                 return {"Unsupported operator: " + tokens[i].data, {}};
 
-            //while top stack operator priority >= current operator priority
+            //while top stack operator priority > current operator priority
             while (!operators.empty() &&
-                   syntax::operator_priorities.at(operators.top()) > syntax::operator_priorities.at(op)) {
+                   syntax::operator_priorities.at(operators.top()) < syntax::operator_priorities.at(op)) {
                 //add IL_node to output from top operands and operator
                 syntax::operator_type to_add = operators.top();
                 operators.pop();
@@ -74,7 +81,7 @@ namespace eraxc::IL {
 
                 // temporary: resulting type is always evaluated as top operands stack element type
                 u64 result_type = operand1.type;
-                u64 result_id = scope.add_id("%temp" + std::to_string(i), result_type, false);
+                u64 result_id = scope.next_id++;
 
                 tr.emplace_back(result_type, result_id, operand1, operand2, to_add);
 
@@ -83,6 +90,7 @@ namespace eraxc::IL {
             }
             //push new operator
             operators.push(op);
+            operands.push(next_operand.value);
             i += 2;
         }
 
@@ -96,50 +104,19 @@ namespace eraxc::IL {
             IL_operand operand2 = operands.top();
             operands.pop();
 
-            // temporary: resulting type is always evaluated as top operands stack element type
+            // temporary: resulting type is always evaluated as left element type
             u64 result_type = operand1.type;
-            u64 result_id = scope.add_id("%temp" + std::to_string(i), result_type, false);
-
+            u64 result_id = scope.next_id++;
             tr.emplace_back(result_type, result_id, operand1, operand2, to_add);
 
-            //result is a new operand
             operands.push(IL_operand{result_id, result_type, false, false});
         }
-
-        return {"", {operands.top(), tr}};
-    }
-
-    error::errable<std::vector<IL_node>> IL_handler::translate_assignment(const std::vector<token> &tokens,
-                                                                          int &i, scope &scope, bool is_assigned) {
-        if (tokens[i].t != token::IDENTIFIER)
-            return {"Expected declaration at the start of assignment instead of " + tokens[i].data, {}};
-        if (!scope.contains_id(tokens[i].data)) return {"Unknown declaration " + tokens[i].data, {}};
-        scope::declaration &assignee = scope[tokens[i].data];
-
-        syntax::operator_type assignment_type = syntax::operators.at(tokens[i + 1].data);
-        i += 2;
-        auto expr = translate_expr(tokens, i, scope);
-        if (!expr) return {expr.error, expr.value.second};
-
-
-        if (assignment_type != syntax::ASSIGN) {
-            //TODO add += -= etc
-
-            expr.value.second.emplace_back(assignee.type, assignee.id,
-                                           expr.value.first, IL_operand{}, assignment_type);
-        } else {
-            if (is_assigned) {
-                //reg new id if there's a new version of variable
-                assignee.id = scope.next_id++;
-                expr.value.second.emplace_back(assignee.type, assignee.id,
-                                               expr.value.first, IL_operand{}, syntax::ASSIGN);
-            } else if (expr.value.second.empty()) {
-                expr.value.second.emplace_back(assignee.type, assignee.id,
-                                               expr.value.first, IL_operand{}, syntax::ASSIGN);
-            } else assignee.id = expr.value.first.id;
+        if (tr.empty()) {
+            tr.emplace_back(operands.top().type, scope.next_id++,
+                            operands.top(), operands.top(), syntax::ASSIGN);
         }
 
-        return {"", expr.value.second};
+        return {"", tr};
     }
 
     error::errable<std::vector<IL_node>> IL_handler::parse_declaration(const std::vector<token> &tokens,
@@ -159,7 +136,9 @@ namespace eraxc::IL {
         if (tokens[i + 2].t != token::OPERATOR || tokens[i + 2].data != "=")
             return {"Expected operator= or ';' at the end of declaration", {}};
         i++; //now tokens[i] is a name of variable
-        return translate_assignment(tokens, i, scope, false);
+
+        scope.next_id--;
+        return translate_expr(tokens, i, scope);
     }
 
     //translates all statements till '}'
@@ -170,20 +149,23 @@ namespace eraxc::IL {
         while (tokens[i].t != token::NONE && tokens[i].t != token::R_F_BRACKET) {
             if (tokens[i].t == token::IDENTIFIER) {
                 if (tokens[i].data == "return") {
-                    //TODO return statement
-                    return {"", tr};
+                    i++;
+                    auto r = translate_expr(tokens, i, scope);
+                    if (!r) return {r.error, tr};
+//                    tr.emplace_back(r.value.first.type, r.value.first.id,
+//                                    r.value.first, IL_operand{}, IL_node::RET);
                 } else if (tokens[i + 1].t == token::IDENTIFIER) {
                     //decl
                     auto init = parse_declaration(tokens, i, scope);
                     if (!init) return {init.error, tr};
                     tr.insert(tr.cend(), init.value.cbegin(), init.value.cend());
                 } else if (tokens[i + 1].t == token::OPERATOR) {
-                    //assignment
-                    auto assignment = translate_assignment(tokens, i, scope, true);
-                    if (!assignment) return {assignment.error, tr};
-                    tr.insert(tr.cend(), assignment.value.cbegin(), assignment.value.cend());
+                    //expr
+                    auto expr = translate_expr(tokens, i, scope);
+                    if (!expr) return {expr.error, tr};
+                    tr.insert(tr.cend(), expr.value.cbegin(), expr.value.cend());
                 } else if (tokens[i + 1].t == token::L_BRACKET) {
-                    //if, for, while, switch(?)
+                    //if, for, while, switch(?), function call
                 }
             }
             i++;
@@ -220,7 +202,7 @@ namespace eraxc::IL {
             } else
                 return {"Expected function variable list or end of function declaration instead of " + tokens[i].data};
             if (tokens[i + 2].t == token::R_BRACKET) {
-                i+=2;
+                i += 2;
                 break;
             }
             if (tokens[i + 2].t != token::COMMA)
