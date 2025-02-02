@@ -152,6 +152,9 @@ namespace eraxc::IL {
                     i++;
                     auto r = translate_expr(tokens, i, scope);
                     if (!r) return {r.error, tr};
+                    tr.insert(tr.end(),r.value.begin(), --r.value.end());
+                    tr.emplace_back(r.value.back().assignee_type, r.value.back().assignee,
+                                    r.value.back().operand1, IL_operand{},IL_node::RET);
 //                    tr.emplace_back(r.value.first.type, r.value.first.id,
 //                                    r.value.first, IL_operand{}, IL_node::RET);
                 } else if (tokens[i + 1].t == token::IDENTIFIER) {
