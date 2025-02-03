@@ -12,9 +12,9 @@
 namespace eraxc {
     struct token {
         static inline std::set<char> special_symbols{
-                ';', '\'', '\"', '=', '+', '<', '>',
-                '%', '/', '*', '!', '&', '|', '^', '(', ')',
-                '{', '}', '[', ']', '-', '?', ':', '.', ',', '~'
+            ';', '\'', '\"', '=', '+', '<', '>',
+            '%', '/', '*', '!', '&', '|', '^', '(', ')',
+            '{', '}', '[', ']', '-', '?', ':', '.', ',', '~'
         };
 
         static inline std::set<char> operator_chars{'<', '=', '>', '&', '|', '^', '%', '*', '/', '~', '+', '-'};
@@ -44,7 +44,7 @@ namespace eraxc {
             data = std::string{};
         }
 
-        token(type t, const std::string &data) {
+        token(type t, const std::string& data) {
             this->t = t;
             this->data = data;
         }
@@ -53,7 +53,7 @@ namespace eraxc {
     struct tokenizer {
         std::unordered_map<std::string, std::string> defined;
 
-        error::errable<std::vector<token> > process_macro(std::stringstream &ss) {
+        error::errable<std::vector<token>> process_macro(std::stringstream& ss) {
             std::string macro;
             ss >> macro;
             if (macro == "define") {
@@ -120,16 +120,16 @@ namespace eraxc {
                 return {"", {}};
             }
             return {{"No such macro: " + macro},
-                    {}};
+                {}};
         }
 
-        static void add_token(std::vector<token> &tr, std::stringstream &tmp, token::type &t) {
+        static void add_token(std::vector<token>& tr, std::stringstream& tmp, token::type& t) {
             if (t != token::NONE) tr.emplace_back(t, tmp.str());
             tmp.str(std::string{});
             t = token::NONE;
         }
 
-        error::errable<std::vector<token> > tokenize(std::stringstream &f) {
+        error::errable<std::vector<token>> tokenize(std::stringstream& f) {
             std::vector<token> tokens;
 
             bool last_slash = false;
@@ -138,6 +138,7 @@ namespace eraxc {
             token::type t = token::NONE;
             while (!f.eof()) {
                 f.get(c);
+                if (f.eof()) break;
                 if (c == ' ' || c == '\n' || c == '\t') {
                     add_token(tokens, tmp, t);
                     continue;
@@ -172,25 +173,37 @@ namespace eraxc {
                 if (c == '[') {
                     add_token(tokens, tmp, t);
                     tokens.emplace_back(token::L_SQ_BRACKET, "[");
-                } else if (c == ']') {
+                    continue;
+                }
+                if (c == ']') {
                     add_token(tokens, tmp, t);
                     tokens.emplace_back(token::R_SQ_BRACKET, "]");
-                } else if (c == '{') {
+                    continue;
+                }
+                if (c == '{') {
                     add_token(tokens, tmp, t);
                     tokens.emplace_back(token::L_F_BRACKET, "{");
-                } else if (c == '}') {
+                    continue;
+                }
+                if (c == '}') {
                     add_token(tokens, tmp, t);
                     tokens.emplace_back(token::R_F_BRACKET, "}");
-                } else if (c == ';') {
+                    continue;
+                }
+                if (c == ';') {
                     add_token(tokens, tmp, t);
                     tokens.emplace_back(token::SEMICOLON, ";");
-                } else if (c == '.') {
+                    continue;
+                }
+                if (c == '.') {
                     add_token(tokens, tmp, t);
                     tokens.emplace_back(token::DOT, ".");
-                } else if (c == ',') {
+                    continue;
+                } if (c == ',') {
                     add_token(tokens, tmp, t);
                     tokens.emplace_back(token::COMMA, ",");
-                } else if (c == '"') {
+                    continue;
+                } if (c == '"') {
                     add_token(tokens, tmp, t);
                     while (!f.eof()) {
                         f.get(c);
@@ -204,7 +217,8 @@ namespace eraxc {
                     }
                     if (f.eof()) return {R"(expected end of string instant (""") before EOF)", tokens};
                     continue;
-                } else if (token::operator_chars.contains(c)) {
+                }
+                if (token::operator_chars.contains(c)) {
                     //is an operator
                     add_token(tokens, tmp, t);
                     tmp << c;
@@ -214,7 +228,8 @@ namespace eraxc {
                     t = token::OPERATOR;
                     add_token(tokens, tmp, t);
                     continue;
-                } else if (std::isdigit(c) && t != token::IDENTIFIER) {
+                }
+                if (std::isdigit(c) && t != token::IDENTIFIER) {
                     t = token::INSTANT;
                 } else if (std::isprint(c) && t == token::NONE) t = token::IDENTIFIER;
                 tmp << c;
@@ -225,7 +240,7 @@ namespace eraxc {
         }
 
 
-        error::errable<std::vector<token>> tokenize_file(const std::string &filename) {
+        error::errable<std::vector<token>> tokenize_file(const std::string& filename) {
             std::ifstream f{filename};
             if (!f) return {"Cannot open file: " + filename, {}};
             std::stringstream ss;

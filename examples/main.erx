@@ -1,0 +1,6 @@
+
+
+int main() {
+    int test=123;
+    return test;
+}
