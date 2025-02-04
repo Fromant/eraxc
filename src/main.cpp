@@ -42,7 +42,7 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
 
     t1 = std::chrono::high_resolution_clock::now();
     asm_translator<X64> asmt{};
-    auto asmtr = asmt.translate(a, "test1231.asm");
+    auto asmtr = asmt.translate(a, "eraxc.asm");
     t2 = std::chrono::high_resolution_clock::now();
     if (!asmtr) {
         return {"Failed to translate to IL code. Error:\n"+asmtr.error};
@@ -57,6 +57,10 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
 
     std::cout << "\n\nAll funcs:\n";
     eraxc::IL::print_IL_funcs(a.global_funcs);
+
+    //autorun compilation to .exe
+    system("nasm -f win64 eraxc.asm -o eraxc.obj");
+    system("gcc eraxc.obj -o a.exe");
 
     return {""};
 }
