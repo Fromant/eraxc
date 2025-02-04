@@ -74,7 +74,7 @@ namespace eraxc {
             case R15:
                 return "R15";
             default:
-                return "ILLEGAL TYPE";
+                return "ILLREG";
             }
         }
 
@@ -97,6 +97,8 @@ namespace eraxc {
             }
         }
 
+        static constexpr x86_reg pass_ABI[] = {RCX, RDX, R8, R9};
+
         struct memory_state {
             //DO not use rbp and rsp for now
             std::set<x86_reg> free_regs{RAX, RBX, RCX, RDX, RDI, RSI, R8, R9, R10, R11, R12, R13, R14, R15};
@@ -107,6 +109,7 @@ namespace eraxc {
 
             //also represents rsp change from start of stack allocating
             u64 used_stack_space = 0;
+            int args_in_registers_count = 0;
 
             //For mapping used vars to stack
             std::unordered_map<u64, u64> stack_offsets{};
@@ -115,17 +118,20 @@ namespace eraxc {
                 if (stack_offsets.contains(var)) {
                     u64 offset = used_stack_space - stack_offsets.at(var);
                     if (offset == 0) return {"", "[rsp]"};
-                    else return {"", "QWORD[rsp+" + std::to_string(offset) + ']'};
-                } else if (used_regs.contains(var)) {
+                    return {"", "QWORD[rsp+" + std::to_string(offset) + ']'};
+                }
+                if (used_regs.contains(var)) {
                     return {"", reg_name(used_regs[var])};
-                } else return {"Variable " + std::to_string(var) + " is not allocated", ""};
+                }
+                return {"Variable " + std::to_string(var) + " is not allocated", ""};
             }
 
             error::errable<std::string> allocate_stack_space(int size, u64 var) {
-                //TODO production remove
+                #ifdef DEBUG //some unuseful check. Delete later
                 if (stack_offsets.contains(var) || used_regs.contains(var)) {
                     return {"Variable $" + std::to_string(var) + " is already allocated\n", ""};
                 }
+                #endif
                 stack_offsets[var] = used_stack_space;
                 used_stack_space += size;
                 return {"", "sub rsp, " + std::to_string(size) + '\n'};
@@ -135,21 +141,32 @@ namespace eraxc {
                 return used_regs.contains(var) || stack_offsets.contains(var);
             }
 
-            //TODO deallocation and more staff
         };
 
         memory_state mem{};
 
         error::errable<void> print_IL_node_asm(const IL::IL_node& node, std::ostream& os) {
-
             if (node.op == IL::IL_node::RET) {
                 auto ret_val = get_operand(node.operand1);
                 if (!ret_val) return {ret_val.error};
                 os << "mov rax, " << ret_val.value << '\n';
                 return {""};
             }
+            if (node.op == IL::IL_node::PASS_ARG) {
+                //pass arguments
+                auto op1 = get_operand(node.operand1);
+                if (!op1) return {op1.error};
+                os << "mov " << reg_name(pass_ABI[mem.args_in_registers_count++]) << ", " << op1.value << '\n';
+            }
+            if (node.op == IL::IL_node::JUMP) {
+                //handle jump differently
+            }
+            if (node.op == IL::IL_node::CALL) {
+                os << "call $f_" << node.operand1.id << '\n';
+                return {""};
+            }
 
-            //allocate assignee
+            //other instruction needs to allocate assignee (on stack for now)
 
             auto assignee = mem.allocate_stack_space(size(node.assignee_type), node.assignee);
             if (!assignee) return {"Failed to allocate stack space"};
@@ -165,14 +182,16 @@ namespace eraxc {
                 } else {
                     auto op1 = mem.get_var(node.operand1.id);
                     if (!op1) return {op1.error};
-                    os << "mov " << assignee.value << ", " << op1.value << '\n';
+                    //if move operand is located on stack, spill him to rax and then do move
+                    if (mem.stack_offsets.contains(node.operand1.id)) {
+                        os << "mov rax, " << op1.value << '\n';
+                        os << "mov " << assignee.value << ", rax\n";
+                    } else {
+                        //move operand contained in register
+                        os << "mov " << assignee.value << ", " << op1.value << '\n';
+                    }
                 }
                 return {""};
-            }
-
-            if (node.op == IL::IL_node::CALL) {
-                //TODO pass arguments
-                os << "call $f_" << node.operand1.id << '\n';
             }
 
             auto op1 = get_operand(node.operand1);
@@ -188,10 +207,20 @@ namespace eraxc {
             } else if (node.op == IL::IL_node::SUB) {
                 os << "sub rax, " << op2.value << '\n';
             } else if (node.op == IL::IL_node::MUL) {
-                //TODO if instant do imul rax, rax, imm ? it still works somehow
                 os << "imul rax, " << op2.value << '\n';
             } else if (node.op == IL::IL_node::DIV) {
-                os << "idiv rax, " << op2.value << '\n';
+                //For now use idiv (that's slow)
+                os << "xor rdx, rdx ;Divide operation\n"; //Dividend top half
+                os << "mov rbx, " << op2.value << '\n'; //Divisor
+                os << "idiv rbx\n"; // Do divide. Modulo is now in rdx.
+                os << "mov " << assignee.value << ", rdx\n";
+            } else if (node.op == IL::IL_node::MODULO) {
+                //For now use idiv (that's slow)
+                os << "xor rdx, rdx ;Modulo operation\n"; //Dividend top half
+                os << "mov rbx, " << op2.value << '\n'; //Divisor
+                os << "idiv rbx\n"; // Do divide. Modulo is now in rdx
+                os << "mov " << assignee.value << ", rdx\n";
+                return {""};
             } else if (node.op == IL::IL_node::NOT) {
                 os << "not rax, " << op2.value << '\n';
             } else if (node.op == IL::IL_node::NEG) {
@@ -202,9 +231,10 @@ namespace eraxc {
                 os << "or rax, " << op2.value << '\n';
             } else if (node.op == IL::IL_node::XOR) {
                 os << "xor rax, " << op2.value << '\n';
-            } else if (node.op == IL::IL_node::MODULO) {
-                //TODO there's no mod instruction
-                // os << "mod rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::LSHIFT) {
+                os << "shl rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::RSHIFT) {
+                os << "shr rax, " << op2.value << '\n';
             }
 
             //save result to assignee
