@@ -213,7 +213,6 @@ namespace eraxc {
                 os << "xor rdx, rdx ;Divide operation\n"; //Dividend top half
                 os << "mov rbx, " << op2.value << '\n'; //Divisor
                 os << "idiv rbx\n"; // Do divide. Modulo is now in rdx.
-                os << "mov " << assignee.value << ", rdx\n";
             } else if (node.op == IL::IL_node::MODULO) {
                 //For now use idiv (that's slow)
                 os << "xor rdx, rdx ;Modulo operation\n"; //Dividend top half
