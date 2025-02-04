@@ -30,5 +30,5 @@ int test_IL(int param1, int param2) {
 int main() {
     int test11=11;
 
-    return 0;
+    return 11111111111;
 }

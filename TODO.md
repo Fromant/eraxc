@@ -15,15 +15,18 @@
 - [ ] parentheses support `~(~a)[]`
 - [ ] postfix operators `a++;` `(a++)++;`
 - [ ] prefix operators
+- [ ] branching
+- [ ] actually call functions
 - [ ] Redo typenames
 - [ ] Fix globals - think of them like ram space not stack var
 - [ ] Types check & conversion
 - [ ] extern keyword
-- [ ] actually call functions
 - [ ] some temp built-in call function or `asm()` directive for printf
 - [ ] tests
 
 # Backend:
 
 - [ ] asm translation x86-64 split for linux and windows
-- [ ] better codegen
+- [ ] codegen registers alloc
+- [ ] calls (save rbp across calls btw)
+- [ ] A monstrous amount of tests

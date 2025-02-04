@@ -113,7 +113,7 @@ namespace eraxc {
 
             error::errable<std::string> get_var(u64 var) {
                 if (stack_offsets.contains(var)) {
-                    u64 offset = used_stack_space + stack_offsets.at(var);
+                    u64 offset = used_stack_space - stack_offsets.at(var);
                     if (offset == 0) return {"", "[rsp]"};
                     else return {"", "QWORD[rsp+" + std::to_string(offset) + ']'};
                 } else if (used_regs.contains(var)) {
@@ -141,8 +141,11 @@ namespace eraxc {
         memory_state mem{};
 
         error::errable<void> print_IL_node_asm(const IL::IL_node& node, std::ostream& os) {
+
             if (node.op == IL::IL_node::RET) {
-                //do nothing
+                auto ret_val = get_operand(node.operand1);
+                if (!ret_val) return {ret_val.error};
+                os << "mov rax, " << ret_val.value << '\n';
                 return {""};
             }
 
@@ -159,18 +162,60 @@ namespace eraxc {
             if (node.op == IL::IL_node::ASSIGN) {
                 if (node.operand1.is_instant) {
                     os << "mov " << assignee.value << ", " << node.operand1.id << '\n';
+                } else {
+                    auto op1 = mem.get_var(node.operand1.id);
+                    if (!op1) return {op1.error};
+                    os << "mov " << assignee.value << ", " << op1.value << '\n';
                 }
-            } else if (node.op == IL::IL_node::ADD) {
-                // os << "addq "<< op1err.value << ", " << op2err.value << '\n';
-            } else if (node.op == IL::IL_node::SUB) {
-                // os << "subq "<< op1err.value << ", " << op2err.value << '\n';
-            } else if (node.op == IL::IL_node::MUL) {
-                // os << "mulq "<< op1err.value << ", " << op2err.value << '\n';
-            } else if (node.op == IL::IL_node::DIV) {
-                // os << "divq "<< op1err.value << ", " << op2err.value << '\n';
+                return {""};
             }
 
+            if (node.op == IL::IL_node::CALL) {
+                //TODO pass arguments
+                os << "call $f_" << node.operand1.id << '\n';
+            }
+
+            auto op1 = get_operand(node.operand1);
+            auto op2 = get_operand(node.operand2);
+            if (!op1) return {op1.error};
+            if (!op2) return {op2.error};
+
+            //mov op1 to rax
+            os << "mov rax, " << op1.value << '\n';
+
+            if (node.op == IL::IL_node::ADD) {
+                os << "add rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::SUB) {
+                os << "sub rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::MUL) {
+                //TODO if instant do imul rax, rax, imm ? it still works somehow
+                os << "imul rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::DIV) {
+                os << "idiv rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::NOT) {
+                os << "not rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::NEG) {
+                os << "neg rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::AND) {
+                os << "and rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::OR) {
+                os << "or rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::XOR) {
+                os << "xor rax, " << op2.value << '\n';
+            } else if (node.op == IL::IL_node::MODULO) {
+                //TODO there's no mod instruction
+                // os << "mod rax, " << op2.value << '\n';
+            }
+
+            //save result to assignee
+            os << "mov " << assignee.value << ", rax\n";
+
             return {""};
+        }
+
+        error::errable<std::string> get_operand(const IL::IL_operand& op) {
+            if (op.is_instant) { return {"", std::to_string(op.id)}; }
+            return mem.get_var(op.id);
         }
 
         error::errable<void> translate(const IL::IL_handler& IL_handler, const std::string& o_filename) {
@@ -203,10 +248,6 @@ namespace eraxc {
                 auto r = print_IL_node_asm(il_node, file);
                 if (!r) return r;
             }
-            //move ret value in rax
-            auto ret_val = mem.get_var((il.end() - 2)->assignee);
-            if (!ret_val) return {ret_val.error};
-            file << "mov rax, " << ret_val.value << '\n';
 
             //now return rsp to where it's been before allocations
             file << "add rsp, 0x" << std::hex << mem.used_stack_space + 0x28 << std::dec << '\n';
