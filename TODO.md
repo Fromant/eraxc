@@ -25,4 +25,5 @@
 
 # Backend:
 
-- [ ] asm translation linux support or something
+- [ ] asm translation x86-64 split for linux and windows
+- [ ] better codegen

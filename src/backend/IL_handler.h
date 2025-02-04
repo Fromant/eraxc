@@ -2,7 +2,6 @@
 #define ERAXC_IL_HANDLER_H
 
 #include <vector>
-#include <set>
 
 #include "../frontend/lexic/preprocessor_tokenizer.h"
 #include "../frontend/syntax/enums.h"

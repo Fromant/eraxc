@@ -230,8 +230,7 @@ namespace eraxc::IL {
     error::errable<void> IL_handler::translate(const std::vector<token>& tokens) {
         int i = 0;
         while (i < tokens.size()) {
-            if (tokens[i].t == token::IDENTIFIER) {}
-            if (tokens[i + 1].t == token::IDENTIFIER) {
+            if (tokens[i + 1].t == token::IDENTIFIER && tokens[i].t == token::IDENTIFIER) {
                 // if(tokens[i].data == "namespace") {//namespaces support}
                 if (tokens[i + 2].t == token::L_BRACKET) {
                     auto r = translate_function(tokens, i);
@@ -242,7 +241,7 @@ namespace eraxc::IL {
                     global_init.insert(global_init.cend(), r.value.cbegin(), r.value.cend());
                 }
                 i++;
-            }
+            } else return {"Invalid syntax encountered"};
         }
         if (!global_scope.contains_id("main") ||
             !global_scope.get_declaration("main").isfunc ||
