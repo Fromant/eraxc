@@ -15,29 +15,18 @@
 
 using namespace eraxc;
 
-int main(int argc, char *argv[]) {
-    //TODO fix tests
-    #ifdef DEBUG
-    std::cout << "DEBUG build. Running tests...\n";
-//    if (!test_all()) return -1;
-    #endif
-
+error::errable<void> compilation_pipeline(const std::string& filename) {
     double total_time = 0;
-
-    const std::string f1{"../examples/1.erx"};
-    const std::string f2{"../examples/2.erx"};
-    const std::string f3{"../examples/long-long.erx"};
 
     auto t1 = std::chrono::high_resolution_clock::now();
     tokenizer tokenizer;
-    auto r = tokenizer.tokenize_file("../examples/0.erx");
+    auto r = tokenizer.tokenize_file(filename);
     auto t2 = std::chrono::high_resolution_clock::now();
     double dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     total_time += dur;
     std::cout << "preprocessor_tokenizer done in: " << dur << "ms\n";
     if (!r) {
-        std::cerr << "Failed to tokenize. Error:\n" << r.error << std::endl;
-        exit(-1);
+        return {"Failed to tokenize file " + filename +". Error:\n"+r.error};
     }
 
     t1 = std::chrono::high_resolution_clock::now();
@@ -45,9 +34,7 @@ int main(int argc, char *argv[]) {
     auto IL_err = a.translate(r.value);
     t2 = std::chrono::high_resolution_clock::now();
     if (!IL_err) {
-        //error encountered
-        std::cerr << "Failed to translate code to IL. Error:\n" << IL_err.error << std::endl;
-        exit(-1);
+        return {"Failed to translate to IL code. Error:\n"+IL_err.error};
     }
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     total_time += dur;
@@ -58,8 +45,7 @@ int main(int argc, char *argv[]) {
     auto asmtr = asmt.translate(a, "test1231.asm");
     t2 = std::chrono::high_resolution_clock::now();
     if (!asmtr) {
-        std::cerr << "Failed to translate IL code to asm. Error:\n" << asmtr.error << std::endl;
-        exit(-1);
+        return {"Failed to translate to IL code. Error:\n"+asmtr.error};
     }
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     total_time += dur;
@@ -71,6 +57,22 @@ int main(int argc, char *argv[]) {
 
     std::cout << "\n\nAll funcs:\n";
     eraxc::IL::print_IL_funcs(a.global_funcs);
+
+    return {""};
+}
+
+int main(int argc, char *argv[]) {
+    //TODO fix tests
+    #ifdef DEBUG
+    std::cout << "DEBUG build. Running tests...\n";
+//    if (!test_all()) return -1;
+    #endif
+
+    auto err = compilation_pipeline("../examples/main.erx");
+    if (!err) {
+        std::cerr << err.error << std::endl;
+        exit(-1);
+    }
 
     return 0;
 }
