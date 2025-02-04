@@ -26,9 +26,10 @@ namespace eraxc::IL {
             ASSIGN, //=MOV
             ADD, SUB, MUL, DIV, MODULO,
             NOT, NEG,
-            OR, AND, XOR,
+            AND, OR, XOR,
             LSHIFT, RSHIFT,
             JUMP, CALL, RET,
+            PASS_ARG, //for passing arguments into functions
         };
 
         u64 assignee_type = -1;

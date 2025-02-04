@@ -124,94 +124,75 @@ namespace eraxc {
                 {}};
         }
 
-        static void add_token(std::vector<token>& tr, std::stringstream& tmp, token::type& t) {
+        static void add_token(std::vector<token>& tr, std::stringstream& tmp, token::type t) {
             if (t != token::NONE) tr.emplace_back(t, tmp.str());
             tmp.str(std::string{});
-            t = token::NONE;
         }
 
         error::errable<std::vector<token>> tokenize(std::stringstream& f) {
             std::vector<token> tokens;
 
-            bool last_slash = false;
             char c;
             std::stringstream tmp{};
-            token::type t = token::NONE;
             while (!f.eof()) {
                 f.get(c);
                 if (f.eof()) break;
                 if (c == ' ' || c == '\n' || c == '\t') {
-                    add_token(tokens, tmp, t);
                     continue;
                 }
-                if (c == '/') {
-                    add_token(tokens, tmp, t);
-                    if (last_slash) {
-                        //we're in comment, skip line
-                        do { f.get(c); } while (c != '\n');
-                        last_slash = false;
-                    } else last_slash = true;
+                if (c == '/' && f.peek() == '/') {
+                    //we're in comment, skip line
+                    do { f.get(c); } while (c != '\n');
                     continue;
                 }
-                if (last_slash) tmp << '/';
                 if (c == '#') {
-                    add_token(tokens, tmp, t);
                     auto r = process_macro(f);
                     if (!r) return {r.error, tokens};
                     tokens.insert(tokens.end(), r.value.cbegin(), r.value.cend());
                     continue;
                 }
                 if (c == '(') {
-                    add_token(tokens, tmp, t);
                     tokens.emplace_back(token::L_BRACKET, "(");
                     continue;
                 }
                 if (c == ')') {
-                    add_token(tokens, tmp, t);
                     tokens.emplace_back(token::R_BRACKET, ")");
                     continue;
                 }
                 if (c == '[') {
-                    add_token(tokens, tmp, t);
                     tokens.emplace_back(token::L_SQ_BRACKET, "[");
                     continue;
                 }
                 if (c == ']') {
-                    add_token(tokens, tmp, t);
                     tokens.emplace_back(token::R_SQ_BRACKET, "]");
                     continue;
                 }
                 if (c == '{') {
-                    add_token(tokens, tmp, t);
                     tokens.emplace_back(token::L_F_BRACKET, "{");
                     continue;
                 }
                 if (c == '}') {
-                    add_token(tokens, tmp, t);
                     tokens.emplace_back(token::R_F_BRACKET, "}");
                     continue;
                 }
                 if (c == ';') {
-                    add_token(tokens, tmp, t);
                     tokens.emplace_back(token::SEMICOLON, ";");
                     continue;
                 }
                 if (c == '.') {
-                    add_token(tokens, tmp, t);
                     tokens.emplace_back(token::DOT, ".");
                     continue;
-                } if (c == ',') {
-                    add_token(tokens, tmp, t);
+                }
+                if (c == ',') {
                     tokens.emplace_back(token::COMMA, ",");
                     continue;
-                } if (c == '"') {
-                    add_token(tokens, tmp, t);
+                }
+                if (c == '"') {
                     while (!f.eof()) {
                         f.get(c);
                         if (c == '\n')break;
                         if (c == '"') {
-                            t = token::STRING_INSTANT;
-                            add_token(tokens, tmp, t);
+                            add_token(tokens, tmp, token::STRING_INSTANT);
                             break;
                         }
                         tmp << c;
@@ -221,18 +202,29 @@ namespace eraxc {
                 }
                 if (token::operator_chars.contains(c)) {
                     //is an operator
-                    add_token(tokens, tmp, t);
                     tmp << c;
                     while (token::operator_chars.contains(char(f.peek())) && !f.eof()) {
                         tmp << char(f.get());
                     }
-                    t = token::OPERATOR;
-                    add_token(tokens, tmp, t);
+                    add_token(tokens, tmp, token::OPERATOR);
                     continue;
                 }
-                if (std::isdigit(c) && t != token::IDENTIFIER) {
-                    t = token::INSTANT;
-                } else if (std::isprint(c) && t == token::NONE) t = token::IDENTIFIER;
+                if (std::isdigit(c)) {
+                    tmp << c;
+                    while (std::isdigit(f.peek()) && !f.eof()) {
+                        tmp << char(f.get());
+                    }
+                    add_token(tokens, tmp, token::INSTANT);
+                    continue;
+                }
+                if (std::isalpha(c)) {
+                    tmp << c;
+                    while (std::isalpha(f.peek()) && !f.eof()) {
+                        tmp << char(f.get());
+                    }
+                    add_token(tokens, tmp, token::IDENTIFIER);
+                    continue;
+                }
                 tmp << c;
             }
 

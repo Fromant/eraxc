@@ -56,10 +56,11 @@ namespace eraxc::IL {
 
         while (tokens[i].t != token::SEMICOLON) {
             if (tokens[i].t == token::NONE)
-                return {"Expected semicolon at the end of expression instead of " + tokens[i].data, {}};
+                return {"Expected semicolon at the end of expression instead of EOF", {}};
 
             // operator then token
-            if (tokens[i].t != token::OPERATOR) return {"Expected operator instead of " + tokens[i].data, {}};
+            if (tokens[i].t != token::OPERATOR)
+                return {"Expected operator instead of " + tokens[i].data, {}};
 
             auto next_operand = translate_operand(tokens[i + 1], scope);
             if (!next_operand) return {next_operand.error, {}};
@@ -77,9 +78,10 @@ namespace eraxc::IL {
                 syntax::operator_type to_add = operators.top();
                 operators.pop();
 
-                IL_operand operand1 = operands.top();
-                operands.pop();
+                //operands are on stack in backwards order so flip em
                 IL_operand operand2 = operands.top();
+                operands.pop();
+                IL_operand operand1 = operands.top();
                 operands.pop();
 
                 // temporary: resulting type is always evaluated as top operands stack element type
@@ -102,9 +104,10 @@ namespace eraxc::IL {
             syntax::operator_type to_add = operators.top();
             operators.pop();
 
-            IL_operand operand1 = operands.top();
-            operands.pop();
+            //operands are on stack in backwards order so flip em
             IL_operand operand2 = operands.top();
+            operands.pop();
+            IL_operand operand1 = operands.top();
             operands.pop();
 
             // temporary: resulting type is always evaluated as left element type
@@ -241,7 +244,8 @@ namespace eraxc::IL {
                     global_init.insert(global_init.cend(), r.value.cbegin(), r.value.cend());
                 }
                 i++;
-            } else return {"Invalid syntax encountered"};
+            } else
+                return {"Invalid syntax encountered"};
         }
         if (!global_scope.contains_id("main") ||
             !global_scope.get_declaration("main").isfunc ||

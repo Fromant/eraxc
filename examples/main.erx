@@ -2,6 +2,6 @@
 
 int main() {
     int a=13;
-    int test=a*256;
+    int test=256/a;
     return test;
 }
