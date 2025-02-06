@@ -15,13 +15,21 @@
 - [ ] parentheses support `~(~a)[]`
 - [ ] postfix operators `a++;` `(a++)++;`
 - [ ] prefix operators
+- [ ] Optimize IL. 3 address instructions seems way too much
+- [ ] branching
+- [ ] actually call functions
+- [ ] Redo typenames
 - [ ] Fix globals - think of them like ram space not stack var
 - [ ] Types check & conversion
 - [ ] extern keyword
-- [ ] actually call functions
 - [ ] some temp built-in call function or `asm()` directive for printf
 - [ ] tests
 
 # Backend:
 
-- [ ] asm translation linux support or something
+- [ ] change sub rsp, size to sub rsp, %16==0 for optimization (maybe even further)
+- [ ] asm translation x86-64 split for linux and windows
+- [ ] codegen registers alloc
+- [ ] Decide on instruction and operands based on types
+- [ ] calls (save rbp across calls btw)
+- [ ] A monstrous amount of tests

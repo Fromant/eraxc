@@ -1,0 +1,7 @@
+
+
+int main() {
+    int a=13;
+    int test=256/a;
+    return test;
+}
