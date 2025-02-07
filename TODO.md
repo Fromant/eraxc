@@ -12,7 +12,7 @@
 
 # IL:
 
-- [ ] parentheses support `~(~a)[]`
+- [x] parentheses support `~(~a)[]`
 - [ ] postfix operators `a++;` `(a++)++;`
 - [ ] prefix operators
 - [ ] Optimize IL. 3 address instructions seems way too much

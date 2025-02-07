@@ -2,6 +2,7 @@
 
 int main() {
     int a=13;
-    int test=256/a;
+    int test=(1+2)*256/(a+1);
+    int tes=(23+34);
     return test;
 }

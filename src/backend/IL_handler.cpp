@@ -17,15 +17,30 @@ namespace eraxc::IL {
     }
 
     error::errable<std::vector<IL_node>> IL_handler::translate_expr(const std::vector<token>& tokens,
-                                                                    int& i, scope& scope) {
+                                                                    int& i, scope& scope,
+                                                                    token::type end = token::SEMICOLON) {
         std::vector<IL_node> tr{};
 
         std::stack<IL_operand> operands{};
         std::stack<syntax::operator_type> operators{};
 
-        auto operand0 = translate_operand(tokens[i], scope);
-        if (!operand0) return {operand0.error, {}};
-        operands.push(operand0.value);
+        IL_operand operand0;
+
+        if (tokens[i].t == token::L_BRACKET) {
+            //parenthesis
+            i++;
+            auto par = translate_expr(tokens, i, scope, token::R_BRACKET);
+            if (!par) return par;
+            tr.insert(tr.end(), par.value.begin(), par.value.end());
+            if (tokens[i].t == end) return {"", tr};
+            operand0 = {par.value.back().assignee, par.value.back().assignee_type, false, false};
+        } else {
+            auto operand0r = translate_operand(tokens[i], scope);
+            if (!operand0r) return {operand0r.error, {}};
+            operand0=operand0r.value;
+        }
+
+        operands.push(operand0);
 
         if (tokens[i + 1].t == token::OPERATOR &&
             syntax::assign_operators.contains(syntax::operators.at(tokens[i + 1].data))) {
@@ -54,16 +69,13 @@ namespace eraxc::IL {
 
         i++;
 
-        while (tokens[i].t != token::SEMICOLON) {
+        while (tokens[i].t != end) {
             if (tokens[i].t == token::NONE)
                 return {"Expected semicolon at the end of expression instead of EOF", {}};
 
             // operator then token
             if (tokens[i].t != token::OPERATOR)
                 return {"Expected operator instead of " + tokens[i].data, {}};
-
-            auto next_operand = translate_operand(tokens[i + 1], scope);
-            if (!next_operand) return {next_operand.error, {}};
 
             //check op
             syntax::operator_type op = syntax::operators.at(tokens[i].data);
@@ -93,9 +105,26 @@ namespace eraxc::IL {
                 //result is a new operand
                 operands.push(IL_operand{result_id, result_type, false, false});
             }
+
+            if (tokens[i + 1].t == token::L_BRACKET) {
+                //parenthesis
+                i += 2;
+                auto par = translate_expr(tokens, i, scope, token::R_BRACKET);
+                if (!par) return par;
+                tr.insert(tr.end(), par.value.begin(), par.value.end());
+                i++;
+                IL_operand next = {par.value.back().assignee, par.value.back().assignee_type, false, false};
+                operators.push(op);
+                operands.push(next);
+                continue;
+            }
+            auto next_operand = translate_operand(tokens[i + 1], scope);
+            if (!next_operand) return {next_operand.error, {}};
+
             //push new operator
             operators.push(op);
             operands.push(next_operand.value);
+
             i += 2;
         }
 
