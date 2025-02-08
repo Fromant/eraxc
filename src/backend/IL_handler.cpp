@@ -24,29 +24,17 @@ namespace eraxc::IL {
         std::stack<IL_operand> operands{};
         std::stack<syntax::operator_type> operators{};
 
-        IL_operand operand0;
+        //for postfix ops
+        std::vector<std::pair<IL_node::Operator, std::pair<IL_operand, std::string>>> post_add{};
 
-        if (tokens[i].t == token::L_BRACKET) {
-            //parenthesis
-            i++;
-            auto par = translate_expr(tokens, i, scope, token::R_BRACKET);
-            if (!par) return par;
-            tr.insert(tr.end(), par.value.begin(), par.value.end());
-            if (tokens[i].t == end) return {"", tr};
-            operand0 = {par.value.back().assignee, par.value.back().assignee_type, false, false};
-        } else {
-            auto operand0r = translate_operand(tokens[i], scope);
-            if (!operand0r) return {operand0r.error, {}};
-            operand0=operand0r.value;
-        }
-
-        operands.push(operand0);
-
-        if (tokens[i + 1].t == token::OPERATOR &&
+        if (tokens[i].t == token::IDENTIFIER && tokens[i + 1].t == token::OPERATOR &&
             syntax::assign_operators.contains(syntax::operators.at(tokens[i + 1].data))) {
-            //assign op
+            //assign
             syntax::operator_type assign_type = syntax::operators.at(tokens[i + 1].data);
             auto assignee_it = scope.identifiers.find(tokens[i].data);
+            if (assignee_it == scope.identifiers.end())
+                return {"Cannot find identifier to assign: " + tokens[i].data,
+                    {}};
             i += 2;
             auto assign_to = translate_expr(tokens, i, scope);
             if (!assign_to) return assign_to;
@@ -67,23 +55,92 @@ namespace eraxc::IL {
             return assign_to;
         }
 
-        i++;
+        while (tokens[i].t == token::IDENTIFIER || tokens[i].t == token::L_BRACKET ||
+            tokens[i].t == token::OPERATOR || tokens[i].t == token::INSTANT) {
+            IL_node::Operator prefix = IL_node::CALL;
 
-        while (tokens[i].t != end) {
-            if (tokens[i].t == token::NONE)
-                return {"Expected semicolon at the end of expression instead of EOF", {}};
+            if (tokens[i].t == token::OPERATOR && syntax::unary_operators.contains(tokens[i].data)) {
+                syntax::operator_type prefix_op = syntax::unary_operators.at(tokens[i].data);
+                if (prefix_op == syntax::POSITIVE) {
+                    //unary plus, nothing needs to be done
+                    //CALL means nothing here
+                    prefix = IL_node::CALL;
+                } else if (prefix_op == syntax::NEGATIVE) {
+                    prefix = IL_node::SUB;
+                } else if (prefix_op == syntax::NOT || prefix_op == syntax::BITWISE_NOT) {
+                    prefix = IL_node::NEG;
+                } else if (prefix_op == syntax::INCREMENT) {
+                    prefix = IL_node::ADD;
+                } else if (prefix_op == syntax::DECREMENT) {
+                    prefix = IL_node::SUB;
+                } else return {"Unsupported operator: " + tokens[i].data, {}};
+                i++;
+            }
 
-            // operator then token
+            IL_operand operand;
+
+            std::string s_operand = "";
+
+            if (tokens[i].t == token::L_BRACKET) {
+                //recursive parse
+                i++;
+                auto parentheses = translate_expr(tokens, i, scope, token::R_BRACKET);
+                if (!parentheses) return parentheses;
+                tr.insert(tr.end(), parentheses.value.begin(), parentheses.value.end());
+                operand = {parentheses.value.back().assignee, parentheses.value.back().assignee_type, false, false};
+            } else if (tokens[i].t == token::IDENTIFIER || tokens[i].t == token::INSTANT) {
+                if (tokens[i].t == token::IDENTIFIER) s_operand = tokens[i].data;
+                auto operand_err = translate_operand(tokens[i], scope);
+                if (!operand_err) return {operand_err.error, {}};
+                operand = operand_err.value;
+            } else return {"Expected operand instead of: " + tokens[i].data, {}};
+
+
+            if (prefix != IL_node::CALL) {
+                u64 new_id = scope.next_id++;
+                tr.emplace_back(operand.type, new_id, operand, IL_operand{1, syntax::u64, false, false},
+                                prefix);
+                if (!s_operand.empty()) scope[s_operand].id = new_id;
+                operand.id = new_id;
+            }
+            i++;
+            if (tokens[i].t == end) {
+                operands.push(operand);
+                break;
+            }
+
             if (tokens[i].t != token::OPERATOR)
-                return {"Expected operator instead of " + tokens[i].data, {}};
+                return {"Expected end of expr or operator instead of " + tokens[i].data, {}};
 
-            //check op
+            if (syntax::postfix_operators.contains(tokens[i].data)) {
+                //postfix
+                syntax::operator_type postfix_op = syntax::postfix_operators.at(tokens[i].data);
+                IL_node::Operator to_add;
+                if (postfix_op == syntax::INCREMENT) {
+                    //increment
+                    to_add = IL_node::ADD;
+                } else if (postfix_op == syntax::DECREMENT) {
+                    //dec
+                    to_add = IL_node::SUB;
+                } else return {"Unsupported postfix operator: " + tokens[i].data, {}};
+
+                if (tokens[i - 1].t != token::IDENTIFIER)
+                    return {"Cannot apply postfix operator to non identifier: " + tokens[i - 1].data, {}};
+                post_add.emplace_back(to_add, std::pair{operand, tokens[i - 1].data});
+                i++;
+                if (tokens[i].t == end) {
+                    operands.push(operand);
+                    break;
+                }
+            }
+            if (tokens[i].t != token::OPERATOR || !syntax::operators.contains(tokens[i].data))
+                return {"Expected end of expression or operator instead of " + tokens[i].data, {}};
+
             syntax::operator_type op = syntax::operators.at(tokens[i].data);
-            if (syntax::assign_operators.contains(op)) return {"Cannot assign here", {}};
-            if (!syntax::operator_priorities.contains(op))
-                return {"Unsupported operator: " + tokens[i].data, {}};
 
-            //while top stack operator priority > current operator priority
+            if (syntax::assign_operators.contains(op))
+                return {"Cannot assign there", {}};
+
             while (!operators.empty() &&
                 syntax::operator_priorities.at(operators.top()) < syntax::operator_priorities.at(op)) {
                 //add IL_node to output from top operands and operator
@@ -106,26 +163,9 @@ namespace eraxc::IL {
                 operands.push(IL_operand{result_id, result_type, false, false});
             }
 
-            if (tokens[i + 1].t == token::L_BRACKET) {
-                //parenthesis
-                i += 2;
-                auto par = translate_expr(tokens, i, scope, token::R_BRACKET);
-                if (!par) return par;
-                tr.insert(tr.end(), par.value.begin(), par.value.end());
-                i++;
-                IL_operand next = {par.value.back().assignee, par.value.back().assignee_type, false, false};
-                operators.push(op);
-                operands.push(next);
-                continue;
-            }
-            auto next_operand = translate_operand(tokens[i + 1], scope);
-            if (!next_operand) return {next_operand.error, {}};
-
-            //push new operator
+            operands.push(operand);
             operators.push(op);
-            operands.push(next_operand.value);
-
-            i += 2;
+            i++;
         }
 
         //push all left operands to result
@@ -149,6 +189,14 @@ namespace eraxc::IL {
         if (tr.empty()) {
             tr.emplace_back(operands.top().type, scope.next_id++,
                             operands.top(), operands.top(), syntax::ASSIGN);
+        }
+
+        for (auto ta : post_add) {
+            u64 new_identifier = scope.next_id++;
+            tr.emplace_back(ta.second.first.type, new_identifier, ta.second.first,
+                            IL_operand{1, syntax::u64, false, true},
+                            ta.first);
+            scope[ta.second.second].id = new_identifier;
         }
 
         return {"", tr};

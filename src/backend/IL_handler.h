@@ -40,7 +40,7 @@ namespace eraxc::IL {
 
         Operator op = ASSIGN;
 
-        IL_node(u64 assignee_type, u64 assignee, IL_operand operand1, IL_operand operand2, Operator op) {
+        IL_node(u64 assignee_type, u64 assignee, const IL_operand& operand1, const IL_operand& operand2, Operator op) {
             this->assignee_type = assignee_type;
             this->assignee = assignee;
             this->operand1 = operand1;
@@ -48,7 +48,7 @@ namespace eraxc::IL {
             this->op = op;
         }
 
-        IL_node(u64 assignee_type, u64 assignee, IL_operand operand1, IL_operand operand2, syntax::operator_type op) {
+        IL_node(u64 assignee_type, u64 assignee, const IL_operand& operand1, const IL_operand& operand2, syntax::operator_type op) {
             this->assignee_type = assignee_type;
             this->assignee = assignee;
             this->operand1 = operand1;

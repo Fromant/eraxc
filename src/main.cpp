@@ -40,23 +40,24 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
     total_time += dur;
     std::cout << "IL Handler done in: " << dur << "ms\n";
 
+    std::cout << "\n\nGlobal init:\n";
+    print_IL_nodes(a.global_init);
+
+    std::cout << "\n\nAll funcs:\n";
+    print_IL_funcs(a.global_funcs);
+
     t1 = std::chrono::high_resolution_clock::now();
     asm_translator<X64> asmt{};
     auto asmtr = asmt.translate(a, "eraxc.asm");
     t2 = std::chrono::high_resolution_clock::now();
     if (!asmtr) {
-        return {"Failed to translate to IL code. Error:\n"+asmtr.error};
+        return {"Failed to translate to assembler. Error:\n"+asmtr.error};
     }
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     total_time += dur;
     std::cout << "ASM translator done in: " << dur << "ms\n";
 
-    std::cout << "\nCompilation completed successfully in " << total_time << "ms\n\nGlobal init:\n";
-
-    eraxc::IL::print_IL_nodes(a.global_init);
-
-    std::cout << "\n\nAll funcs:\n";
-    eraxc::IL::print_IL_funcs(a.global_funcs);
+    std::cout << "\nCompilation completed successfully in " << total_time << "ms\n";
 
     //autorun compilation to .exe
     system("nasm -f win64 eraxc.asm -o eraxc.obj");

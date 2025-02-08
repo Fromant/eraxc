@@ -13,11 +13,13 @@
 # IL:
 
 - [x] parentheses support `~(~a)[]`
-- [ ] postfix operators `a++;` `(a++)++;`
-- [ ] prefix operators
+- [x] postfix operators `a++;` `(a++)++;`
+- [x] prefix operators `++a`
 - [ ] Optimize IL. 3 address instructions seems way too much
 - [ ] branching
-- [ ] actually call functions
+- [ ] loops
+- [ ] goto
+- [ ] call
 - [ ] Redo typenames
 - [ ] Fix globals - think of them like ram space not stack var
 - [ ] Types check & conversion
