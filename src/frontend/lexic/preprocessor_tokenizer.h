@@ -49,6 +49,10 @@ namespace eraxc {
             this->t = t;
             this->data = data;
         }
+
+        bool operator==(const token& other) const {
+            return t == other.t && data == other.data;
+        }
     };
 
     struct tokenizer {
@@ -124,6 +128,10 @@ namespace eraxc {
                 {}};
         }
 
+        static bool is_identifier_char(char c) {
+            return c=='_' || c=='-' || std::isalpha(c) || std::isdigit(c);
+        }
+
         static void add_token(std::vector<token>& tr, std::stringstream& tmp, token::type t) {
             if (t != token::NONE) tr.emplace_back(t, tmp.str());
             tmp.str(std::string{});
@@ -142,7 +150,7 @@ namespace eraxc {
                 }
                 if (c == '/' && f.peek() == '/') {
                     //we're in comment, skip line
-                    do { f.get(c); } while (c != '\n');
+                    do { f.get(c); } while (c != '\n' && !f.eof());
                     continue;
                 }
                 if (c == '#') {
@@ -217,9 +225,9 @@ namespace eraxc {
                     add_token(tokens, tmp, token::INSTANT);
                     continue;
                 }
-                if (std::isalpha(c)) {
+                if (std::isalpha(c) || c=='_') {
                     tmp << c;
-                    while (std::isalpha(f.peek()) && !f.eof()) {
+                    while (is_identifier_char(f.peek()) && !f.eof()) {
                         tmp << char(f.get());
                     }
                     add_token(tokens, tmp, token::IDENTIFIER);
