@@ -16,22 +16,51 @@ namespace eraxc::IL {
         return {"Expected identifier or instant instead of " + t.data, {}};
     }
 
+    error::errable<IL_node::Operator> translate_prefix_operation(const std::vector<token>& tokens, int& i) {
+        if (tokens[i].t == token::OPERATOR && syntax::unary_operators.contains(tokens[i].data)) {
+            syntax::operator_type prefix_op = syntax::unary_operators.at(tokens[i].data);
+            if (prefix_op == syntax::POSITIVE) {
+                //unary plus, nothing needs to be done
+                //CALL means nothing here
+                return {"", IL_node::CALL};
+            }
+            if (prefix_op == syntax::NEGATIVE) {
+                return {"", IL_node::SUB};
+            }
+            if (prefix_op == syntax::NOT || prefix_op == syntax::BITWISE_NOT) {
+                return {"", IL_node::NEG};
+            }
+            if (prefix_op == syntax::INCREMENT) {
+                return {"", IL_node::ADD};
+            }
+            if (prefix_op == syntax::DECREMENT) {
+                return {"", IL_node::SUB};
+            }
+            i++;
+            return {"Unsupported operator: " + tokens[i].data, IL_node::CALL};
+        }
+        return {"", IL_node::CALL};
+    }
+
     error::errable<std::vector<IL_node>> IL_handler::translate_expr(const std::vector<token>& tokens,
-                                                                    int& i, scope& scope) {
+                                                                    int& i, scope& scope,
+                                                                    std::set<token::type> end = {token::SEMICOLON}) {
         std::vector<IL_node> tr{};
 
         std::stack<IL_operand> operands{};
         std::stack<syntax::operator_type> operators{};
 
-        auto operand0 = translate_operand(tokens[i], scope);
-        if (!operand0) return {operand0.error, {}};
-        operands.push(operand0.value);
+        //for postfix ops
+        std::vector<std::pair<IL_node::Operator, std::pair<IL_operand, size_t>>> post_add{};
 
-        if (tokens[i + 1].t == token::OPERATOR &&
+        if (tokens[i].t == token::IDENTIFIER && tokens[i + 1].t == token::OPERATOR &&
             syntax::assign_operators.contains(syntax::operators.at(tokens[i + 1].data))) {
-            //assign op
+            //assign
             syntax::operator_type assign_type = syntax::operators.at(tokens[i + 1].data);
             auto assignee_it = scope.identifiers.find(tokens[i].data);
+            if (assignee_it == scope.identifiers.end())
+                return {"Cannot find identifier to assign: " + tokens[i].data,
+                    {}};
             i += 2;
             auto assign_to = translate_expr(tokens, i, scope);
             if (!assign_to) return assign_to;
@@ -52,26 +81,119 @@ namespace eraxc::IL {
             return assign_to;
         }
 
-        i++;
+        while (tokens[i].t == token::IDENTIFIER || tokens[i].t == token::L_BRACKET ||
+            tokens[i].t == token::OPERATOR || tokens[i].t == token::INSTANT) {
+            auto prefix = translate_prefix_operation(tokens, i);
+            if (!prefix) return {prefix.error, {}};
 
-        while (tokens[i].t != token::SEMICOLON) {
-            if (tokens[i].t == token::NONE)
-                return {"Expected semicolon at the end of expression instead of EOF", {}};
+            IL_operand operand;
 
-            // operator then token
+            std::string s_operand = "";
+
+            if (tokens[i].t == token::L_BRACKET) {
+                //recursive parse
+                i++;
+                auto parentheses = translate_expr(tokens, i, scope, {token::R_BRACKET});
+                if (!parentheses) return parentheses;
+                tr.insert(tr.end(), parentheses.value.begin(), parentheses.value.end());
+                operand = {parentheses.value.back().assignee, parentheses.value.back().assignee_type, false, false};
+            } else if (tokens[i].t == token::INSTANT) {
+                operand = IL_operand{std::stoull(tokens[i].data), syntax::u64, false, true};
+            } else if (tokens[i].t == token::IDENTIFIER) {
+                if (tokens[i + 1].t == token::L_BRACKET) {
+                    //function!
+                    if (!scope.contains_id(tokens[i].data))
+                        return {"Unknown identifier or function: " + tokens[i].data, {}};
+                    auto decl = scope.get_declaration(tokens[i].data);
+                    if (!decl.isfunc) return {tokens[i].data + " is not a function", {}};
+                    u64 call_result_id = scope.next_id++;
+                    i += 2;
+                    u64 args_passed = 0;
+                    while (tokens[i].t != token::R_BRACKET) {
+                        auto arg = translate_expr(tokens, i, scope, {token::R_BRACKET, token::COMMA});
+                        if (!arg) return arg;
+                        u64 arg_type = arg.value.back().assignee_type;
+                        u64 arg_id = arg.value.back().assignee;
+
+                        //check arg type
+                        if (global_funcs[decl.id].args[args_passed].type != arg_type) {
+                            return {
+                                "Cannot pass arg of type " + std::to_string(arg_type) + " instead of " +
+                                std::to_string(global_funcs[decl.id].args[args_passed].type),
+                                {}};
+                        }
+
+                        args_passed++;
+                        tr.insert(tr.end(), arg.value.begin(), arg.value.end());
+                        tr.emplace_back(-1, -1,
+                                        IL_operand{arg_id, arg_type, false, false},
+                                        IL_operand{args_passed, (u64)-1, false, false},
+                                        IL_node::PASS_ARG);
+                    }
+                    if (args_passed < global_funcs[decl.id].args.size()) {
+                        return {"Not enough arguments for function: $" + std::to_string(decl.id), {}};
+                    }
+                    tr.emplace_back(decl.type, call_result_id,
+                                    IL_operand{decl.id, decl.type, true, false},
+                                    IL_operand{}, IL_node::CALL);
+
+                    operand = {call_result_id, decl.type, false, false};
+                } else {
+                    s_operand = tokens[i].data;
+                    auto operand_err = translate_operand(tokens[i], scope);
+                    if (!operand_err) return {operand_err.error, {}};
+                    operand = operand_err.value;
+                }
+            } else return {"Expected operand instead of: " + tokens[i].data, {}};
+
+
+            if (prefix.value != IL_node::CALL) {
+                u64 new_id = scope.next_id++;
+                tr.emplace_back(operand.type, new_id,
+                                operand,
+                                IL_operand{1, syntax::u64, false, false},
+                                prefix.value);
+                if (!s_operand.empty()) scope[s_operand].id = new_id;
+                operand.id = new_id;
+            }
+            i++;
+            if (end.contains(tokens[i].t)) {
+                operands.push(operand);
+                break;
+            }
+
             if (tokens[i].t != token::OPERATOR)
-                return {"Expected operator instead of " + tokens[i].data, {}};
+                return {"Expected end of expr or operator instead of " + tokens[i].data, {}};
 
-            auto next_operand = translate_operand(tokens[i + 1], scope);
-            if (!next_operand) return {next_operand.error, {}};
+            if (syntax::postfix_operators.contains(tokens[i].data)) {
+                //postfix
+                syntax::operator_type postfix_op = syntax::postfix_operators.at(tokens[i].data);
+                IL_node::Operator to_add;
+                if (postfix_op == syntax::INCREMENT) {
+                    //increment
+                    to_add = IL_node::ADD;
+                } else if (postfix_op == syntax::DECREMENT) {
+                    //dec
+                    to_add = IL_node::SUB;
+                } else return {"Unsupported postfix operator: " + tokens[i].data, {}};
 
-            //check op
+                if (tokens[i - 1].t != token::IDENTIFIER)
+                    return {"Cannot apply postfix operator to non identifier: " + tokens[i - 1].data, {}};
+                post_add.emplace_back(to_add, std::pair{operand, i - 1});
+                i++;
+                if (end.contains(tokens[i].t)) {
+                    operands.push(operand);
+                    break;
+                }
+            }
+            if (tokens[i].t != token::OPERATOR || !syntax::operators.contains(tokens[i].data))
+                return {"Expected end of expression or operator instead of " + tokens[i].data, {}};
+
             syntax::operator_type op = syntax::operators.at(tokens[i].data);
-            if (syntax::assign_operators.contains(op)) return {"Cannot assign here", {}};
-            if (!syntax::operator_priorities.contains(op))
-                return {"Unsupported operator: " + tokens[i].data, {}};
 
-            //while top stack operator priority > current operator priority
+            if (syntax::assign_operators.contains(op))
+                return {"Cannot assign there", {}};
+
             while (!operators.empty() &&
                 syntax::operator_priorities.at(operators.top()) < syntax::operator_priorities.at(op)) {
                 //add IL_node to output from top operands and operator
@@ -93,10 +215,10 @@ namespace eraxc::IL {
                 //result is a new operand
                 operands.push(IL_operand{result_id, result_type, false, false});
             }
-            //push new operator
+
+            operands.push(operand);
             operators.push(op);
-            operands.push(next_operand.value);
-            i += 2;
+            i++;
         }
 
         //push all left operands to result
@@ -120,6 +242,14 @@ namespace eraxc::IL {
         if (tr.empty()) {
             tr.emplace_back(operands.top().type, scope.next_id++,
                             operands.top(), operands.top(), syntax::ASSIGN);
+        }
+
+        for (auto ta : post_add) {
+            u64 new_identifier = scope.next_id++;
+            tr.emplace_back(ta.second.first.type, new_identifier, ta.second.first,
+                            IL_operand{1, syntax::u64, false, true},
+                            ta.first);
+            scope[tokens[ta.second.second].data].id = new_identifier;
         }
 
         return {"", tr};
@@ -153,28 +283,34 @@ namespace eraxc::IL {
         std::vector<IL_node> tr;
 
         while (tokens[i].t != token::NONE && tokens[i].t != token::R_F_BRACKET) {
-            if (tokens[i].t == token::IDENTIFIER) {
-                if (tokens[i].data == "return") {
-                    i++;
-                    auto r = translate_expr(tokens, i, scope);
-                    if (!r) return {r.error, tr};
-                    tr.insert(tr.end(), r.value.begin(), --r.value.end());
-                    tr.emplace_back(r.value.back().assignee_type, r.value.back().assignee,
-                                    r.value.back().operand1, IL_operand{}, IL_node::RET);
-                } else if (tokens[i + 1].t == token::IDENTIFIER) {
-                    //decl
-                    auto init = parse_declaration(tokens, i, scope);
-                    if (!init) return {init.error, tr};
-                    tr.insert(tr.cend(), init.value.cbegin(), init.value.cend());
-                } else if (tokens[i + 1].t == token::OPERATOR) {
-                    //expr
-                    auto expr = translate_expr(tokens, i, scope);
-                    if (!expr) return {expr.error, tr};
-                    tr.insert(tr.cend(), expr.value.cbegin(), expr.value.cend());
-                } else if (tokens[i + 1].t == token::L_BRACKET) {
-                    //if, for, while, switch(?), function call
-                }
-            }
+            if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "return") {
+                //return statement;
+                i++;
+                auto r = translate_expr(tokens, i, scope);
+                if (!r) return {r.error, tr};
+                tr.insert(tr.end(), r.value.begin(), --r.value.end());
+                tr.emplace_back(r.value.back().assignee_type, r.value.back().assignee,
+                                r.value.back().operand1, IL_operand{}, IL_node::RET);
+            } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "if") {
+                //if statement
+            } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "while") {
+                //while statement
+            } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "for") {
+                //for statement
+            } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "do") {
+                //do {} ... statement
+            } else if (tokens[i].t == token::IDENTIFIER && tokens[i + 1].t == token::IDENTIFIER) {
+                //declaration
+                auto init = parse_declaration(tokens, i, scope);
+                if (!init) return {init.error, tr};
+                tr.insert(tr.cend(), init.value.cbegin(), init.value.cend());
+            } else if (tokens[i].t == token::L_BRACKET || tokens[i].t == token::OPERATOR
+                || tokens[i].t == token::IDENTIFIER) {
+                //expr
+                auto expr = translate_expr(tokens, i, scope);
+                if (!expr) return {expr.error, tr};
+                tr.insert(tr.cend(), expr.value.cbegin(), expr.value.cend());
+            } else return {"Unknown syntax at " + tokens[i].data, {}};
             i++;
         }
         if (tokens[i].t != token::R_F_BRACKET) return {"Expected end of function body '}' before the EOF", tr};

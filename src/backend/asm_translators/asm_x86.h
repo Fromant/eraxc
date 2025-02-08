@@ -39,43 +39,62 @@ namespace eraxc {
             return {"ILLEGAL TYPE"};
         }
 
-        static std::string reg_name(x86_reg reg) {
+        static std::string reg_name(x86_reg reg, u64 type_size) {
+            std::string r;
+            if (type_size == 8) { r = "r"; } else if (type_size == 4) { r = "d"; } else return {"SIGREG_SIZE"};
             switch (reg) {
             case RAX:
-                return "RAX";
+                r += "ax";
+                break;
             case RBX:
-                return "RBX";
+                r += "bx";
+                break;
             case RCX:
-                return "RCX";
+                r += "cx";
+                break;
             case RDX:
-                return "RDX";
+                r += "dx";
+                break;
             case RBP:
-                return "RBP";
+                r += "bp";
+                break;
             case RSP:
-                return "RSP";
+                r += "sp";
+                break;
             case RSI:
-                return "RSI";
+                r += "si";
+                break;
             case RDI:
-                return "RDI";
+                r += "di";
+                break;
             case R8:
-                return "R8";
+                r += "8";
+                break;
             case R9:
-                return "R9";
+                r += "9";
+                break;
             case R10:
-                return "R10";
+                r += "10";
+                break;
             case R11:
-                return "R11";
+                r += "11";
+                break;
             case R12:
-                return "R12";
+                r += "12";
+                break;
             case R13:
-                return "R13";
+                r += "13";
+                break;
             case R14:
-                return "R14";
+                r += "14";
+                break;
             case R15:
-                return "R15";
+                r += "15";
+                break;
             default:
                 return "ILLREG";
             }
+            return r;
         }
 
         static u64 size(u64 type) {
@@ -114,14 +133,20 @@ namespace eraxc {
             //For mapping used vars to stack
             std::unordered_map<u64, u64> stack_offsets{};
 
-            error::errable<std::string> get_var(u64 var) {
+            error::errable<std::string> get_var(u64 var, u64 type_size) {
                 if (stack_offsets.contains(var)) {
                     u64 offset = used_stack_space - stack_offsets.at(var);
-                    if (offset == 0) return {"", "[rsp]"};
-                    return {"", "QWORD[rsp+" + std::to_string(offset) + ']'};
+                    if (offset == 0) {
+                        if (type_size == 8) return {"", "QWORD[rsp]"};
+                        if (type_size == 4) return {"", "DWORD[rsp]"};
+                        return {"Unsupported size", {}};
+                    }
+                    if (type_size == 8) return {"", "QWORD[rsp+" + std::to_string(offset) + ']'};
+                    if (type_size == 4) return {"", "DWORD[rsp+" + std::to_string(offset) + ']'};
+                    return {"Unsupported size", {}};
                 }
                 if (used_regs.contains(var)) {
-                    return {"", reg_name(used_regs[var])};
+                    return {"", reg_name(used_regs[var], type_size)};
                 }
                 return {"Variable " + std::to_string(var) + " is not allocated", ""};
             }
@@ -141,6 +166,12 @@ namespace eraxc {
                 return used_regs.contains(var) || stack_offsets.contains(var);
             }
 
+            void reset() {
+                used_stack_space = 0;
+                used_regs.clear();
+                args_in_registers_count = 0;
+                stack_offsets.clear();
+            }
         };
 
         memory_state mem{};
@@ -156,22 +187,22 @@ namespace eraxc {
                 //pass arguments
                 auto op1 = get_operand(node.operand1);
                 if (!op1) return {op1.error};
-                os << "mov " << reg_name(pass_ABI[mem.args_in_registers_count++]) << ", " << op1.value << '\n';
+                os << "mov " << reg_name(pass_ABI[mem.args_in_registers_count++], size(node.operand1.type))
+                    << ", " << op1.value << '\n';
+                return {""};
             }
             if (node.op == IL::IL_node::JUMP) {
                 //handle jump differently
-            }
-            if (node.op == IL::IL_node::CALL) {
-                os << "call $f_" << node.operand1.id << '\n';
                 return {""};
             }
+
 
             //other instruction needs to allocate assignee (on stack for now)
 
             auto assignee = mem.allocate_stack_space(size(node.assignee_type), node.assignee);
             if (!assignee) return {"Failed to allocate stack space"};
             os << assignee.value;
-            assignee = mem.get_var(node.assignee);
+            assignee = mem.get_var(node.assignee, size(node.assignee_type));
             if (!assignee) return {"Failed to get stack space"};
 
             //choose instruction better. Check if instant.
@@ -180,7 +211,7 @@ namespace eraxc {
                 if (node.operand1.is_instant) {
                     os << "mov " << assignee.value << ", " << node.operand1.id << '\n';
                 } else {
-                    auto op1 = mem.get_var(node.operand1.id);
+                    auto op1 = mem.get_var(node.operand1.id, size(node.operand1.type));
                     if (!op1) return {op1.error};
                     //if move operand is located on stack, spill him to rax and then do move
                     if (mem.stack_offsets.contains(node.operand1.id)) {
@@ -191,6 +222,12 @@ namespace eraxc {
                         os << "mov " << assignee.value << ", " << op1.value << '\n';
                     }
                 }
+                return {""};
+            }
+            if (node.op == IL::IL_node::CALL) {
+                os << "call $f_" << node.operand1.id << '\n';
+                os << "mov " << assignee.value << ", rax\n";
+                mem.args_in_registers_count = 0;
                 return {""};
             }
 
@@ -244,7 +281,7 @@ namespace eraxc {
 
         error::errable<std::string> get_operand(const IL::IL_operand& op) {
             if (op.is_instant) { return {"", std::to_string(op.id)}; }
-            return mem.get_var(op.id);
+            return mem.get_var(op.id, size(op.type));
         }
 
         error::errable<void> translate(const IL::IL_handler& IL_handler, const std::string& o_filename) {
@@ -272,14 +309,15 @@ namespace eraxc {
                 !IL_handler.global_funcs.at(main_it->second.id).args.empty()) {
                 return {"Failed to find main function"};
             }
-            const std::vector<IL::IL_node>& il = IL_handler.global_funcs.at(main_it->second.id).body;
-            for (const auto& il_node : il) {
+            const std::vector<IL::IL_node>& main_body = IL_handler.global_funcs.at(main_it->second.id).body;
+            for (const auto& il_node : main_body) {
                 auto r = print_IL_node_asm(il_node, file);
                 if (!r) return r;
             }
 
             //now return rsp to where it's been before allocations
             file << "add rsp, 0x" << std::hex << mem.used_stack_space + 0x28 << std::dec << '\n';
+            mem.reset();
 
             file << "ret;\n"
                 "init_global_scope:\n"
@@ -292,6 +330,29 @@ namespace eraxc {
             file << "add rsp, 0x08\n"
                 "ret\n";
 
+
+            //now print all functions
+
+            for (auto it = IL_handler.global_funcs.begin(); it != IL_handler.global_funcs.end(); ++it) {
+                if (it->first == main_it->second.id) continue;
+                //label to call
+                file << "$f_" << it->first << ":\n";
+                //function prolog
+                //resolve args
+                for (int i = 0; i < it->second.args.size(); ++i) {
+                    mem.used_regs.emplace(it->second.args[i].id, pass_ABI[mem.args_in_registers_count++]);
+                }
+                mem.args_in_registers_count = 0;
+                file << "sub rsp,0x08\n";
+                //function body
+                for (const auto& il_node : it->second.body) {
+                    auto r = print_IL_node_asm(il_node, file);
+                    if (!r) return r;
+                }
+                //function epilog
+                file << "add rsp, 0x" << std::hex << mem.used_stack_space + 0x08 << std::dec << "\nret\n";
+                mem.reset();
+            }
             return {""};
         }
     };

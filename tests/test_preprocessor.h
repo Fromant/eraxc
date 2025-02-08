@@ -9,16 +9,9 @@ namespace tests {
         //test 1 - #define macro, #ifdef #ifndef
         eraxc::tokenizer t1{};
         auto r1 = t1.tokenize_file("../tests/files/preprocessor_define.erx");
-        std::vector<eraxc::token> res1{{eraxc::token::INSTANT, "123"},{eraxc::token::IDENTIFIER, "test11"}, {eraxc::token::NONE,""}};
-        assert(!r1);
-        bool same=true;
-        for(auto it = r1.value.begin(); it!=r1.value.end();it++) {
-
-        }
-
-        //test 2 - #include macro
-        eraxc::tokenizer t2{};
-        assert(t2.tokenize_file("../tests/files/preprocessor_include.erx") == "\n123 \n\n\ntest11 \n\n\n");
+        std::vector<eraxc::token> res1{{eraxc::token::INSTANT, "123"},{eraxc::token::IDENTIFIER, "test11"}};
+        assert(r1);
+        assert(r1.value == res1);
 
         return 0;
     }

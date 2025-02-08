@@ -199,7 +199,17 @@ namespace eraxc::syntax {
         {"|=", BITWISE_OR_ASSIGN},
         {"~=", BITWISE_NOT_ASSIGN},
         {">>=", BITWISE_RSHIFT_ASSIGN},
-        {"<<=", BITWISE_LSHIFT_ASSIGN}
+        {"<<=", BITWISE_LSHIFT_ASSIGN},
+
+        //prefix and postfix operators
+        {"++", INCREMENT},
+        {"--", DECREMENT},
+        {"+", POSITIVE},
+        {"-", NEGATIVE},
+        {"*", INDIRECTION},
+        {"&", ADDRESSOF},
+        {"!", NOT},
+        {"~", BITWISE_NOT},
     };
 
     const inline std::set<operator_type> assign_operators{
@@ -248,17 +258,17 @@ namespace eraxc::syntax {
         {BITWISE_XOR, 12},
         {BITWISE_OR, 13},
 
-        // {ASSIGN, 16},
-        // {ADD_ASSIGN, 16},
-        // {SUBTRACT_ASSIGN, 16},
-        // {MULT_ASSIGN, 16},
-        // {DIV_ASSIGN, 16},
-        // {MOD_ASSIGN, 16},
-        // {BITWISE_LSHIFT_ASSIGN, 16},
-        // {BITWISE_RSHIFT_ASSIGN, 16},
-        // {BITWISE_AND_ASSIGN, 16},
-        // {BITWISE_OR_ASSIGN, 16},
-        // {BITWISE_XOR_ASSIGN, 16},
+        {ASSIGN, 16},
+        {ADD_ASSIGN, 16},
+        {SUBTRACT_ASSIGN, 16},
+        {MULT_ASSIGN, 16},
+        {DIV_ASSIGN, 16},
+        {MOD_ASSIGN, 16},
+        {BITWISE_LSHIFT_ASSIGN, 16},
+        {BITWISE_RSHIFT_ASSIGN, 16},
+        {BITWISE_AND_ASSIGN, 16},
+        {BITWISE_OR_ASSIGN, 16},
+        {BITWISE_XOR_ASSIGN, 16},
     };
 
     const inline std::unordered_map<std::string, operator_type> unary_operators{
