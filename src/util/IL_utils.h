@@ -37,41 +37,42 @@ namespace eraxc::IL {
             } else if (node.op == IL_node::RET) {
                 std::cout << "RET " << operand_to_string(node.operand1) << std::endl;
             } else if (node.op == IL_node::MODULO) {
-                std::cout << node.assignee << " $" << node.assignee << '='
+                std::cout << node.assignee_type << " $" << node.assignee << '='
                     << operand_to_string(node.operand1) << '%'
                     << operand_to_string(node.operand2) << std::endl;
             } else if (node.op == IL_node::NOT) {
-                std::cout << node.assignee << " $" << node.assignee << "= ~"
+                std::cout << node.assignee_type << " $" << node.assignee << "= ~"
                     << operand_to_string(node.operand1) << std::endl;
             } else if (node.op == IL_node::NEG) {
-                std::cout << node.assignee << " $" << node.assignee << "= -"
+                std::cout << node.assignee_type << " $" << node.assignee << "= -"
                     << operand_to_string(node.operand1) << std::endl;
             } else if (node.op == IL_node::AND) {
-                std::cout << node.assignee << " $" << node.assignee << '='
+                std::cout << node.assignee_type << " $" << node.assignee << '='
                     << operand_to_string(node.operand1) << '&'
                     << operand_to_string(node.operand2) << std::endl;
             } else if (node.op == IL_node::OR) {
-                std::cout << node.assignee << " $" << node.assignee << '='
+                std::cout << node.assignee_type << " $" << node.assignee << '='
                     << operand_to_string(node.operand1) << '|'
                     << operand_to_string(node.operand2) << std::endl;
             } else if (node.op == IL_node::XOR) {
-                std::cout << node.assignee << " $" << node.assignee << '='
+                std::cout << node.assignee_type << " $" << node.assignee << '='
                     << operand_to_string(node.operand1) << '^'
                     << operand_to_string(node.operand2) << std::endl;
             } else if (node.op == IL_node::LSHIFT) {
-                std::cout << node.assignee << " $" << node.assignee << '='
+                std::cout << node.assignee_type << " $" << node.assignee << '='
                     << operand_to_string(node.operand1) << "<<"
                     << operand_to_string(node.operand2) << std::endl;
             } else if (node.op == IL_node::RSHIFT) {
-                std::cout << node.assignee << " $" << node.assignee << '='
+                std::cout << node.assignee_type << " $" << node.assignee << '='
                     << operand_to_string(node.operand1) << ">>"
                     << operand_to_string(node.operand2) << std::endl;
             } else if (node.op == IL_node::JUMP) {
                 std::cout << "JUMP $f_" << node.operand1.id << std::endl;
             } else if (node.op == IL_node::CALL) {
-                std::cout << "CALL $f_" << node.operand1.id << std::endl;
+                std::cout << node.assignee_type << " $" << node.assignee <<
+                    " = CALL $f_" << node.operand1.id << std::endl;
             } else if (node.op == IL_node::PASS_ARG) {
-                std::cout << "PASS " << node.operand1.type << operand_to_string(node.operand1) << std::endl;
+                std::cout << "PASS " << node.operand1.type << " $" << operand_to_string(node.operand1) << std::endl;
             }
         }
     }
