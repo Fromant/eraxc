@@ -91,7 +91,7 @@ namespace eraxc::IL {
         std::vector<IL_node> global_init{};
 
         error::errable<std::vector<IL_node>> translate_expr(const std::vector<token>& tokens,
-                                                            int& i, scope& scope, std::set<token::type> end);
+                                                            int& i, scope& scope, const std::set<token::type>& end);
 
         error::errable<std::vector<IL_node>> translate_statements(const std::vector<token>& tokens,
                                                                   int& i, scope& scope);

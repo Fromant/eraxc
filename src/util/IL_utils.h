@@ -72,7 +72,7 @@ namespace eraxc::IL {
                 std::cout << node.assignee_type << " $" << node.assignee <<
                     " = CALL $f_" << node.operand1.id << std::endl;
             } else if (node.op == IL_node::PASS_ARG) {
-                std::cout << "PASS " << node.operand1.type << " $" << operand_to_string(node.operand1) << std::endl;
+                std::cout << "PASS " << node.operand1.type << " " << operand_to_string(node.operand1) << std::endl;
             }
         }
     }

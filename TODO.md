@@ -28,6 +28,8 @@
 - [ ] extern keyword
 - [ ] some temp built-in call function or `asm()` directive for printf
 - [ ] tests
+- [ ] Optimizations
+- [ ] Optimisations tests
 
 # Backend:
 
@@ -37,3 +39,5 @@
 - [x] Decide on instruction and operands based on types
 - [x] calls (save rbp across calls btw)
 - [ ] A monstrous amount of tests
+- [ ] Write SSA form in comments for easier debug or smth (should be an option)
+- [ ] Platform-driven optimisations
