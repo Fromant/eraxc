@@ -12,11 +12,11 @@ namespace eraxc::IL {
     struct IL_operand {
         u64 id = -1;
         u64 type = -1;
-        bool is_function = false;
+        // bool is_function = false;
         bool is_instant = false;
 
         static IL_operand operand(const scope::declaration& decl) {
-            return {decl.id, decl.type, decl.isfunc, false};
+            return {decl.id, decl.type, false};
         }
     };
 
