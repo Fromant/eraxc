@@ -14,9 +14,9 @@
 bool test_all() {
     #ifdef TEST
 
-
-    if (tests::test_preprocessor_tokenizer() != 0) {
-        std::cout << "Test in preprocessor is failed...\n";
+    auto f = tests::test_preprocessor_tokenizer();
+    if (f != 0) {
+        std::cout << "Preprocessor failed " << f << "/" << ALL_TESTS_PREPROCESSOR << " tests\n";
         return false;
     } else {
         std::cout << "Preprocessor passed all tests!\n";
