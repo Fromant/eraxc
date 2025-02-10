@@ -18,10 +18,12 @@ namespace eraxc {
             '{', '}', '[', ']', '-', '?', ':', '.', ',', '~'
         };
 
-        static inline std::set<char> operator_chars{'<', '=', '>', '&', '|', '^', '%', '*', '/', '~', '+', '-'};
+        static inline std::set<char> operator_chars{'<', '=', '>', '&', '|', '^', '%', '*', '/', '~', '+', '-', '!',
+            '?'};
 
         enum type {
             SEMICOLON,
+            COLON,
             COMMA,
             DOT,
             OPERATOR,
@@ -62,16 +64,27 @@ namespace eraxc {
             std::string macro;
             ss >> macro;
             if (macro == "define") {
-                std::string m;
-                std::getline(ss, m);
-                size_t last = m.find_last_of(' ');
-                std::string define = m.substr(0, last);
-                std::string to_def = m.substr(last + 1, m.size() - last);
-                if (define.empty()) {
-                    define = to_def;
-                    to_def = "";
+                char c;
+                ss.get(c); //load first identifier letter
+                ss.get(c); //load first identifier letter
+                std::string def;
+                if (c != '_' && !std::isalpha(c)) return {"#define expected identifier as first argument", {}};
+                do {
+                    def += c;
+                    ss.get(c);
+                } while (is_identifier_char(c) && !ss.eof());
+                if (c == '\n') {
+                    defined[def] = "";
+                    return {"", {}};
                 }
-                defined[define] = to_def;
+                if (c != ' ') return {"Expected end of line or space at the end of identifier", {}};
+                std::string to_def;
+                ss.get(c);
+                do {
+                    to_def += c;
+                    ss.get(c);
+                } while (!ss.eof() && c != '\n');
+                defined[def] = to_def;
                 return {"", {}};
             }
             if (macro == "ifdef") {
@@ -129,7 +142,7 @@ namespace eraxc {
         }
 
         static bool is_identifier_char(char c) {
-            return c=='_' || c=='-' || std::isalpha(c) || std::isdigit(c);
+            return c == '_' || c == '-' || std::isalpha(c) || std::isdigit(c);
         }
 
         static void add_token(std::vector<token>& tr, std::stringstream& tmp, token::type t) {
@@ -187,6 +200,10 @@ namespace eraxc {
                     tokens.emplace_back(token::SEMICOLON, ";");
                     continue;
                 }
+                if (c == ':') {
+                    tokens.emplace_back(token::COLON, ":");
+                    continue;
+                }
                 if (c == '.') {
                     tokens.emplace_back(token::DOT, ".");
                     continue;
@@ -225,11 +242,13 @@ namespace eraxc {
                     add_token(tokens, tmp, token::INSTANT);
                     continue;
                 }
-                if (std::isalpha(c) || c=='_') {
+                if (std::isalpha(c) || c == '_') {
                     tmp << c;
                     while (is_identifier_char(f.peek()) && !f.eof()) {
                         tmp << char(f.get());
                     }
+                    if (defined.contains(tmp.str()) && !defined.at(tmp.str()).empty())
+                        tmp.str(defined.at(tmp.str()));
                     add_token(tokens, tmp, token::IDENTIFIER);
                     continue;
                 }

@@ -66,7 +66,6 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
 }
 
 int main(int argc, char *argv[]) {
-    //TODO fix tests
     #ifdef DEBUG
     std::cout << "DEBUG build. Running tests...\n";
     if (!test_all()) return -1;
