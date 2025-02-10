@@ -15,7 +15,7 @@
 - enum
 - struct
 - this
-- access (public, private, protected
+- access declaration (public, private, protected)
 - union
 - namespace
 
@@ -28,7 +28,7 @@
 - memory (new, delete)
 - defer
 - sizeof
-- **asm**
+- **asm** or IL()
 - alignas
 - cycles (for, while, do, break, continue)
 - return
