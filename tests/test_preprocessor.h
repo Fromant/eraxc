@@ -62,6 +62,8 @@ namespace tests {
         std::stringstream ss2(str2);
         auto r3 = t1.tokenize(ss2);
 
+        std::vector<eraxc::token::type> res3 {eraxc::token::type::SEMICOLON,
+
         std::vector<eraxc::token::type> res3{
             eraxc::token::type::SEMICOLON,
             eraxc::token::type::OPERATOR,
@@ -99,6 +101,112 @@ namespace tests {
                     passed_tests++;
                 }
             }
+        }
+
+        //test 4 - general tokenizer test
+        auto r4 = t1.tokenize_file("../tests/files/tokenizer.erx");
+        std::vector<eraxc::token> res4 {
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "int"},
+            {eraxc::token::IDENTIFIER, "fib"},
+            {eraxc::token::L_BRACKET, "("},
+            {eraxc::token::IDENTIFIER, "int"},
+            {eraxc::token::IDENTIFIER, "number"},
+            {eraxc::token::R_BRACKET, ")"},
+            {eraxc::token::L_F_BRACKET, "{"},
+            {eraxc::token::IDENTIFIER, "if"},
+            {eraxc::token::L_BRACKET, "("},
+            {eraxc::token::IDENTIFIER, "number"},
+            {eraxc::token::OPERATOR, "<="},
+            {eraxc::token::INSTANT, "0"},
+            {eraxc::token::R_BRACKET, ")"},
+            {eraxc::token::L_F_BRACKET, "{"},
+            {eraxc::token::IDENTIFIER, "fprintf"},
+            {eraxc::token::L_BRACKET, "("},
+            {eraxc::token::IDENTIFIER, "stderr"},
+            {eraxc::token::COMMA, ","},
+            {eraxc::token::STRING_INSTANT, "Illegal Argument Is Passed!\n"},
+            {eraxc::token::R_BRACKET, ")"},
+            {eraxc::token::SEMICOLON, ";"},
+            {eraxc::token::IDENTIFIER, "exit"},
+            {eraxc::token::L_BRACKET, "("},
+            {eraxc::token::IDENTIFIER, "EXIT_FAILURE"},
+            {eraxc::token::R_BRACKET, ")"},
+            {eraxc::token::SEMICOLON, ";"},
+            {eraxc::token::R_F_BRACKET, "}"},
+            {eraxc::token::IDENTIFIER, "if"},
+            {eraxc::token::L_BRACKET, "("},
+            {eraxc::token::IDENTIFIER, "number"},
+            {eraxc::token::OPERATOR, "=="},
+            {eraxc::token::INSTANT, "1"},
+            {eraxc::token::R_BRACKET, ")"},
+            {eraxc::token::IDENTIFIER, "return"},
+            {eraxc::token::INSTANT, "0"},
+            {eraxc::token::SEMICOLON, ";"},
+            {eraxc::token::IDENTIFIER, "if"},
+            {eraxc::token::L_BRACKET, "("},
+            {eraxc::token::IDENTIFIER, "number"},
+            {eraxc::token::OPERATOR, "=="},
+            {eraxc::token::INSTANT, "2"},
+            {eraxc::token::R_BRACKET, ")"},
+            {eraxc::token::IDENTIFIER, "return"},
+            {eraxc::token::INSTANT, "1"},
+            {eraxc::token::SEMICOLON, ";"},
+            {eraxc::token::IDENTIFIER, "return"},
+            {eraxc::token::IDENTIFIER, "fib"},
+            {eraxc::token::L_BRACKET, "("},
+            {eraxc::token::IDENTIFIER, "number"},
+            {eraxc::token::OPERATOR, "-"},
+            {eraxc::token::INSTANT, "1"},
+            {eraxc::token::R_BRACKET, ")"},
+            {eraxc::token::IDENTIFIER, "+"},
+            {eraxc::token::IDENTIFIER, "fib"},
+            {eraxc::token::L_BRACKET, "("},
+            {eraxc::token::IDENTIFIER, "number"},
+            {eraxc::token::OPERATOR, "-"},
+            {eraxc::token::INSTANT, "2"},
+            {eraxc::token::R_BRACKET, ")"},
+            {eraxc::token::SEMICOLON, ";"},
+            {eraxc::token::R_F_BRACKET, "}"},
+
+
+            {eraxc::token::IDENTIFIER, "int"},
+            {eraxc::token::IDENTIFIER, "getInput"},
+            {eraxc::token::L_BRACKET, "("},
+            {eraxc::token::IDENTIFIER, "void"},
+            {eraxc::token::R_BRACKET, ")"},
+            {eraxc::token::L_F_BRACKET, "{"},
+            {eraxc::token::IDENTIFIER, "int"},
+            {eraxc::token::IDENTIFIER, "num"},
+            {eraxc::token::COMMA, ","},
+            {eraxc::token::IDENTIFIER, "excess_len"},
+            {eraxc::token::SEMICOLON, ";"},
+            {eraxc::token::IDENTIFIER, "char"},
+            {eraxc::token::IDENTIFIER, "buffer"},
+            {eraxc::token::L_SQ_BRACKET, "["},
+            {eraxc::token::INSTANT, "3"},
+            {eraxc::token::R_SQ_BRACKET, "]"},
+            {eraxc::token::COMMA, ","},
+            {eraxc::token::OPERATOR, "*"},
+            {eraxc::token::IDENTIFIER, "endPtr"},
+            {eraxc::token::SEMICOLON, ";"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+            {eraxc::token::IDENTIFIER, "unsigned"},
+        };
+
+        std::cout << r4.error << std::endl;
+        for (auto &i : r4.value) {
+            std::cout << i.data << std::endl;
         }
 
         return ALL_TESTS_PREPROCESSOR - passed_tests;
