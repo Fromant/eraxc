@@ -5,8 +5,6 @@
 
 #include "test_ArrayTree.h"
 #include "test_preprocessor.h"
-#include "test_lexer.h"
-#include "test_syntax_analyzer.h"
 
 #endif
 
@@ -14,9 +12,9 @@
 bool test_all() {
     #ifdef TEST
 
-
-    if (tests::test_preprocessor_tokenizer() != 0) {
-        std::cout << "Test in preprocessor is failed...\n";
+    auto f = tests::test_preprocessor_tokenizer();
+    if (f != 0) {
+        std::cout << "Preprocessor failed " << f << "/" << ALL_TESTS_PREPROCESSOR << " tests\n";
         return false;
     } else {
         std::cout << "Preprocessor passed all tests!\n";

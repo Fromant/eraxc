@@ -2,7 +2,7 @@
 
 - `int main() {...}`
 - functions
-- declarations
+- global variables declarations
 
 ## Declarations:
 - int a;
@@ -21,6 +21,8 @@
 - unary prefix ops : `!a` `-a` `~a`
 - unary postfix ops: `a++` `a--`
 - parentheses: `++(*a)`
+
+### All operators that can be used in expression is contained [here](operators.md) 
 
 ## selection, loops:
 

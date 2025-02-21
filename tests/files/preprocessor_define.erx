@@ -1,8 +1,11 @@
 #define test
 
+#define ZALUPA anton
+
 #ifdef test
 
 123
+ZALUPA
 
 //should skip that line lol
 
