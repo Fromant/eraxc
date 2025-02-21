@@ -42,10 +42,10 @@ namespace eraxc::IL {
                 u64 result_id = scope.next_id++;
                 assign_to.value.emplace_back(assign_to.value.back().assignee_type, result_id,
                                              IL_operand{assignee_it->second.id, assignee_it->second.type,
-                                                 false, false},
+                                                        false, false},
                                              IL_operand{assign_to.value.back().assignee,
-                                                 assign_to.value.back().assignee_type,
-                                                 false, false},
+                                                        assign_to.value.back().assignee_type,
+                                                        false, false},
                                              syntax::assign_to_common_op.at(assign_type));
                 assignee_it->second.id = result_id;
             }

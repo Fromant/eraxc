@@ -5,8 +5,6 @@
 
 #include "test_ArrayTree.h"
 #include "test_preprocessor.h"
-#include "test_lexer.h"
-#include "test_syntax_analyzer.h"
 
 #endif
 

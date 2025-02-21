@@ -26,7 +26,7 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
     total_time += dur;
     std::cout << "preprocessor_tokenizer done in: " << dur << "ms\n";
     if (!r) {
-        return {"Failed to tokenize file " + filename +". Error:\n"+r.error};
+        return {"Failed to tokenize file " + filename + ". Error:\n" + r.error};
     }
 
     t1 = std::chrono::high_resolution_clock::now();
@@ -34,7 +34,7 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
     auto IL_err = a.translate(r.value);
     t2 = std::chrono::high_resolution_clock::now();
     if (!IL_err) {
-        return {"Failed to translate to IL code. Error:\n"+IL_err.error};
+        return {"Failed to translate to IL code. Error:\n" + IL_err.error};
     }
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     total_time += dur;
@@ -45,7 +45,7 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
     auto asmtr = asmt.translate(a, "eraxc.asm");
     t2 = std::chrono::high_resolution_clock::now();
     if (!asmtr) {
-        return {"Failed to translate to IL code. Error:\n"+asmtr.error};
+        return {"Failed to translate to IL code. Error:\n" + asmtr.error};
     }
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     total_time += dur;
@@ -65,7 +65,7 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
     return {""};
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     #ifdef DEBUG
     std::cout << "DEBUG build. Running tests...\n";
     if (!test_all()) return -1;
