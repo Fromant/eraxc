@@ -8,10 +8,11 @@ namespace eraxc::IL {
             if (!scope.contains_id(t.data))
                 return {"No such identifier in this scope: " + t.data, {}};
             scope::declaration decl = scope.get_declaration(t.data);
-            return {"", {decl.id, decl.type, false, decl.isfunc}};
+            if (decl.isfunc) return {"Cannot use function there",{}};
+            return {"", {decl.id, decl.type, false}};
         }
         if (t.t == token::INSTANT) {
-            return {"", {std::stoull(t.data), syntax::u64, false, true}};
+            return {"", {std::stoull(t.data), syntax::u64, true}};
         }
         return {"Expected identifier or instant instead of " + t.data, {}};
     }
@@ -44,7 +45,8 @@ namespace eraxc::IL {
 
     error::errable<std::vector<IL_node>> IL_handler::translate_expr(const std::vector<token>& tokens,
                                                                     int& i, scope& scope,
-                                                                    std::set<token::type> end = {token::SEMICOLON}) {
+                                                                    const std::set<token::type>& end = {
+                                                                        token::SEMICOLON}) {
         std::vector<IL_node> tr{};
 
         std::stack<IL_operand> operands{};
@@ -67,14 +69,21 @@ namespace eraxc::IL {
             if (assign_type == syntax::ASSIGN) {
                 assignee_it->second.id = assign_to.value.back().assignee;
             } else {
+                if (assign_to.value.size() == 1 && assign_to.value.back().op == IL_node::ASSIGN) {
+                    assign_to.value.back() = IL_node{assign_to.value.back().assignee_type,
+                        assign_to.value.back().assignee,
+                        IL_operand{assignee_it->second.id, assignee_it->second.type, false},
+                        assign_to.value.back().operand1, syntax::assign_to_common_op.at(assign_type)
+                    };
+                    assignee_it->second.id = assign_to.value.back().assignee;
+                    return assign_to;
+                }
                 //create new id with old type
                 u64 result_id = scope.next_id++;
                 assign_to.value.emplace_back(assign_to.value.back().assignee_type, result_id,
-                                             IL_operand{assignee_it->second.id, assignee_it->second.type,
-                                                 false, false},
+                                             IL_operand{assignee_it->second.id, assignee_it->second.type, false},
                                              IL_operand{assign_to.value.back().assignee,
-                                                 assign_to.value.back().assignee_type,
-                                                 false, false},
+                                                 assign_to.value.back().assignee_type, false},
                                              syntax::assign_to_common_op.at(assign_type));
                 assignee_it->second.id = result_id;
             }
@@ -88,17 +97,22 @@ namespace eraxc::IL {
 
             IL_operand operand;
 
-            std::string s_operand = "";
+            std::string s_operand;
 
             if (tokens[i].t == token::L_BRACKET) {
                 //recursive parse
                 i++;
                 auto parentheses = translate_expr(tokens, i, scope, {token::R_BRACKET});
                 if (!parentheses) return parentheses;
-                tr.insert(tr.end(), parentheses.value.begin(), parentheses.value.end());
-                operand = {parentheses.value.back().assignee, parentheses.value.back().assignee_type, false, false};
+                if (parentheses.value.size() == 1 && parentheses.value.back().op == IL_node::ASSIGN) {
+                    operand = parentheses.value.back().operand1;
+                    scope.next_id = parentheses.value.back().assignee;
+                } else {
+                    tr.insert(tr.end(), parentheses.value.begin(), parentheses.value.end());
+                    operand = {parentheses.value.back().assignee, parentheses.value.back().assignee_type, false};
+                }
             } else if (tokens[i].t == token::INSTANT) {
-                operand = IL_operand{std::stoull(tokens[i].data), syntax::u64, false, true};
+                operand = IL_operand{std::stoull(tokens[i].data), syntax::u64, true};
             } else if (tokens[i].t == token::IDENTIFIER) {
                 if (tokens[i + 1].t == token::L_BRACKET) {
                     //function!
@@ -112,32 +126,53 @@ namespace eraxc::IL {
                     while (tokens[i].t != token::R_BRACKET) {
                         auto arg = translate_expr(tokens, i, scope, {token::R_BRACKET, token::COMMA});
                         if (!arg) return arg;
-                        u64 arg_type = arg.value.back().assignee_type;
-                        u64 arg_id = arg.value.back().assignee;
 
-                        //check arg type
-                        if (global_funcs[decl.id].args[args_passed].type != arg_type) {
-                            return {
-                                "Cannot pass arg of type " + std::to_string(arg_type) + " instead of " +
-                                std::to_string(global_funcs[decl.id].args[args_passed].type),
-                                {}};
+                        if (arg.value.size() == 1 && arg.value.back().op == IL_node::ASSIGN) {
+                            //can be optimized
+                            //return id so it can be used
+                            // scope.next_id = arg.value.back().assignee;
+                            //check arg type
+                            if (global_funcs[decl.id].args[args_passed].type != arg.value.back().operand1.type) {
+                                return {
+                                    "Cannot pass arg of type " + std::to_string(arg.value.back().operand1.type) +
+                                    " instead of " +
+                                    std::to_string(global_funcs[decl.id].args[args_passed].type),
+                                    {}};
+                            }
+                            tr.emplace_back(-1, -1,
+                                            arg.value.back().operand1,
+                                            IL_operand{args_passed, (u64)-1, false},
+                                            IL_node::PASS_ARG);
+                            args_passed++;
+                            scope.next_id = arg.value.back().assignee;
+                        } else {
+                            u64 arg_type = arg.value.back().assignee_type;
+                            u64 arg_id = arg.value.back().assignee;
+
+                            //check arg type
+                            if (global_funcs[decl.id].args[args_passed].type != arg_type) {
+                                return {
+                                    "Cannot pass arg of type " + std::to_string(arg_type) + " instead of " +
+                                    std::to_string(global_funcs[decl.id].args[args_passed].type),
+                                    {}};
+                            }
+
+                            args_passed++;
+                            tr.insert(tr.end(), arg.value.begin(), arg.value.end());
+                            tr.emplace_back(-1, -1,
+                                            IL_operand{arg_id, arg_type, false},
+                                            IL_operand{args_passed, (u64)-1, false},
+                                            IL_node::PASS_ARG);
                         }
-
-                        args_passed++;
-                        tr.insert(tr.end(), arg.value.begin(), arg.value.end());
-                        tr.emplace_back(-1, -1,
-                                        IL_operand{arg_id, arg_type, false, false},
-                                        IL_operand{args_passed, (u64)-1, false, false},
-                                        IL_node::PASS_ARG);
                     }
                     if (args_passed < global_funcs[decl.id].args.size()) {
                         return {"Not enough arguments for function: $" + std::to_string(decl.id), {}};
                     }
                     tr.emplace_back(decl.type, call_result_id,
-                                    IL_operand{decl.id, decl.type, true, false},
+                                    IL_operand{decl.id, decl.type, false},
                                     IL_operand{}, IL_node::CALL);
 
-                    operand = {call_result_id, decl.type, false, false};
+                    operand = {call_result_id, decl.type, false};
                 } else {
                     s_operand = tokens[i].data;
                     auto operand_err = translate_operand(tokens[i], scope);
@@ -151,7 +186,7 @@ namespace eraxc::IL {
                 u64 new_id = scope.next_id++;
                 tr.emplace_back(operand.type, new_id,
                                 operand,
-                                IL_operand{1, syntax::u64, false, false},
+                                IL_operand{1, syntax::u64, false},
                                 prefix.value);
                 if (!s_operand.empty()) scope[s_operand].id = new_id;
                 operand.id = new_id;
@@ -213,7 +248,7 @@ namespace eraxc::IL {
                 tr.emplace_back(result_type, result_id, operand1, operand2, to_add);
 
                 //result is a new operand
-                operands.push(IL_operand{result_id, result_type, false, false});
+                operands.push(IL_operand{result_id, result_type, false});
             }
 
             operands.push(operand);
@@ -237,7 +272,7 @@ namespace eraxc::IL {
             u64 result_id = scope.next_id++;
             tr.emplace_back(result_type, result_id, operand1, operand2, to_add);
 
-            operands.push(IL_operand{result_id, result_type, false, false});
+            operands.push(IL_operand{result_id, result_type, false});
         }
         if (tr.empty()) {
             tr.emplace_back(operands.top().type, scope.next_id++,
@@ -247,7 +282,7 @@ namespace eraxc::IL {
         for (auto ta : post_add) {
             u64 new_identifier = scope.next_id++;
             tr.emplace_back(ta.second.first.type, new_identifier, ta.second.first,
-                            IL_operand{1, syntax::u64, false, true},
+                            IL_operand{1, syntax::u64, true},
                             ta.first);
             scope[tokens[ta.second.second].data].id = new_identifier;
         }
