@@ -14,12 +14,12 @@
 10. Bitwise xor operator. Example: `a ^ b`
 11. Compare operators. Examples: `a==b; a!=b; a<b; a<=b; a>b; a>=b`. Produces bool
 12. Assign op `a = b`
+13. Assign operations: Examples: `a+=b; a-=b; a/=b; a*=b; a%=b; a&=b; a|=b; a<<=b; a>>=b; a~=b; a^=b`
 
 ## Unary operators:
 
 1. Bitwise not operator. Example: `~a`
 2. unary minus `-a`
-3. Assign operations: Examples: `a+=b; a-=b; a/=b; a*=b; a%=b; a&=b; a|=b; a<<=b; a>>=b; a~=b; a^=b`
 
 ### Prefix & postfix
 

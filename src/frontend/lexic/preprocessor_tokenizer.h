@@ -12,14 +12,12 @@
 
 namespace eraxc {
     struct token {
-        static inline std::set<char> special_symbols{
-            ';', '\'', '\"', '=', '+', '<', '>',
-            '%', '/', '*', '!', '&', '|', '^', '(', ')',
-            '{', '}', '[', ']', '-', '?', ':', '.', ',', '~'
-        };
+        static inline std::set<char> special_symbols {';', '\'', '\"', '=', '+', '<', '>', '%', '/',
+                                                      '*', '!',  '&',  '|', '^', '(', ')', '{', '}',
+                                                      '[', ']',  '-',  '?', ':', '.', ',', '~'};
 
-        static inline std::set<char> operator_chars{'<', '=', '>', '&', '|', '^', '%', '*', '/', '~', '+', '-', '!',
-            '?'};
+        static inline std::set<char> operator_chars {'<', '=', '>', '&', '|', '^', '%',
+                                                     '*', '/', '~', '+', '-', '!', '?'};
 
         enum type {
             SEMICOLON,
@@ -44,7 +42,7 @@ namespace eraxc {
 
         token() {
             t = NONE;
-            data = std::string{};
+            data = std::string {};
         }
 
         token(type t, const std::string& data) {
@@ -52,9 +50,7 @@ namespace eraxc {
             this->data = data;
         }
 
-        bool operator==(const token& other) const {
-            return t == other.t && data == other.data;
-        }
+        bool operator==(const token& other) const { return t == other.t && data == other.data; }
     };
 
     struct tokenizer {
@@ -65,8 +61,8 @@ namespace eraxc {
             ss >> macro;
             if (macro == "define") {
                 char c;
-                ss.get(c); //load first identifier letter
-                ss.get(c); //load first identifier letter
+                ss.get(c);  //load first identifier letter
+                ss.get(c);  //load first identifier letter
                 std::string def;
                 if (c != '_' && !std::isalpha(c)) return {"#define expected identifier as first argument", {}};
                 do {
@@ -88,19 +84,18 @@ namespace eraxc {
                 return {"", {}};
             }
             if (macro == "ifdef") {
-                std::string def{};
+                std::string def {};
                 ss >> def;
                 if (defined.contains(def)) {
                     //scroll until #endif
-                    std::stringstream tr{};
+                    std::stringstream tr {};
                     std::string l;
                     do {
                         ss >> l;
                         if (l == "#endif") break;
                         tr << l << ' ';
                     } while (!ss.eof());
-                    if (l != "#endif")
-                        return {"expected #endif before EOF", {}};
+                    if (l != "#endif") return {"expected #endif before EOF", {}};
                     return tokenize(tr);
                 }
                 std::string l;
@@ -108,24 +103,22 @@ namespace eraxc {
                     ss >> l;
                     if (l == "#endif") break;
                 } while (!ss.eof());
-                if (l != "#endif")
-                    return {"expected #endif before EOF: ", {}};
+                if (l != "#endif") return {"expected #endif before EOF: ", {}};
                 return {"", {}};
             }
             if (macro == "ifndef") {
-                std::string def{};
+                std::string def {};
                 ss >> def;
                 if (!defined.contains(def)) {
                     //scroll until endif
-                    std::stringstream tr{};
+                    std::stringstream tr {};
                     std::string l;
                     do {
                         ss >> l;
                         if (l == "#endif") break;
                         tr << l << ' ';
                     } while (!ss.eof());
-                    if (l != "#endif")
-                        return {"expected #endif before EOF: ", {}};
+                    if (l != "#endif") return {"expected #endif before EOF: ", {}};
                     return tokenize(tr);
                 }
                 std::string l;
@@ -133,34 +126,28 @@ namespace eraxc {
                     ss >> l;
                     if (l == "#endif") break;
                 } while (!ss.eof());
-                if (l != "#endif")
-                    return {"expected #endif before EOF: ", {}};
+                if (l != "#endif") return {"expected #endif before EOF: ", {}};
                 return {"", {}};
             }
-            return {{"No such macro: " + macro},
-                {}};
+            return {{"No such macro: " + macro}, {}};
         }
 
-        static bool is_identifier_char(char c) {
-            return c == '_' || c == '-' || std::isalpha(c) || std::isdigit(c);
-        }
+        static bool is_identifier_char(char c) { return c == '_' || c == '-' || std::isalpha(c) || std::isdigit(c); }
 
         static void add_token(std::vector<token>& tr, std::stringstream& tmp, token::type t) {
             if (t != token::NONE) tr.emplace_back(t, tmp.str());
-            tmp.str(std::string{});
+            tmp.str(std::string {});
         }
 
         error::errable<std::vector<token>> tokenize(std::stringstream& f) {
             std::vector<token> tokens;
 
             char c;
-            std::stringstream tmp{};
+            std::stringstream tmp {};
             while (!f.eof()) {
                 f.get(c);
                 if (f.eof()) break;
-                if (c == ' ' || c == '\n' || c == '\t') {
-                    continue;
-                }
+                if (c == ' ' || c == '\n' || c == '\t') { continue; }
                 if (c == '/' && f.peek() == '/') {
                     //we're in comment, skip line
                     do { f.get(c); } while (c != '\n' && !f.eof());
@@ -215,7 +202,7 @@ namespace eraxc {
                 if (c == '"') {
                     while (!f.eof()) {
                         f.get(c);
-                        if (c == '\n')break;
+                        if (c == '\n') break;
                         if (c == '"') {
                             add_token(tokens, tmp, token::STRING_INSTANT);
                             break;
@@ -228,27 +215,20 @@ namespace eraxc {
                 if (token::operator_chars.contains(c)) {
                     //is an operator
                     tmp << c;
-                    while (token::operator_chars.contains(char(f.peek())) && !f.eof()) {
-                        tmp << char(f.get());
-                    }
+                    while (token::operator_chars.contains(char(f.peek())) && !f.eof()) { tmp << char(f.get()); }
                     add_token(tokens, tmp, token::OPERATOR);
                     continue;
                 }
                 if (std::isdigit(c)) {
                     tmp << c;
-                    while (std::isdigit(f.peek()) && !f.eof()) {
-                        tmp << char(f.get());
-                    }
+                    while (std::isdigit(f.peek()) && !f.eof()) { tmp << char(f.get()); }
                     add_token(tokens, tmp, token::INSTANT);
                     continue;
                 }
                 if (std::isalpha(c) || c == '_') {
                     tmp << c;
-                    while (is_identifier_char(f.peek()) && !f.eof()) {
-                        tmp << char(f.get());
-                    }
-                    if (defined.contains(tmp.str()) && !defined.at(tmp.str()).empty())
-                        tmp.str(defined.at(tmp.str()));
+                    while (is_identifier_char(f.peek()) && !f.eof()) { tmp << char(f.get()); }
+                    if (defined.contains(tmp.str()) && !defined.at(tmp.str()).empty()) tmp.str(defined.at(tmp.str()));
                     add_token(tokens, tmp, token::IDENTIFIER);
                     continue;
                 }
@@ -261,7 +241,7 @@ namespace eraxc {
 
 
         error::errable<std::vector<token>> tokenize_file(const std::string& filename) {
-            std::ifstream f{filename};
+            std::ifstream f {filename};
             if (!f) return {"Cannot open file: " + filename, {}};
             std::stringstream ss;
             ss << f.rdbuf();
@@ -271,4 +251,4 @@ namespace eraxc {
 }
 
 
-#endif //TOKENIZER_H
+#endif  //TOKENIZER_H

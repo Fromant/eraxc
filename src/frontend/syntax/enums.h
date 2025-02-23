@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <set>
 
 namespace eraxc::syntax {
     enum operator_type : unsigned char {

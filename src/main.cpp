@@ -1,10 +1,9 @@
 #include <iostream>
 #include <chrono>
 
-#include "backend/IL_handler.h"
+#include "backend/JIR_handler.h"
 #include "frontend/lexic/preprocessor_tokenizer.h"
-
-#include "util/IL_utils.h"
+#include "util/JIR_utils.h"
 
 #include "backend/asm_translators/asm_x86.h"
 
@@ -30,21 +29,21 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
     }
 
     t1 = std::chrono::high_resolution_clock::now();
-    IL::IL_handler a{};
-    auto IL_err = a.translate(r.value);
+    JIR::JIR_handler a{};
+    auto JIR_err = a.translate(r.value);
     t2 = std::chrono::high_resolution_clock::now();
-    if (!IL_err) {
-        return {"Failed to translate to IL code. Error:\n" + IL_err.error};
+    if (!JIR_err) {
+        return {"Failed to translate to IL code. Error:\n" + JIR_err.error};
     }
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     total_time += dur;
     std::cout << "IL Handler done in: " << dur << "ms\n";
 
     std::cout << "\n\nGlobal init:\n";
-    print_IL_nodes(a.global_init);
+    print_JIR_nodes(a.global_variables_init);
 
     std::cout << "\n\nAll funcs:\n";
-    print_IL_funcs(a.global_funcs);
+    print_JIR_funcs(a.global_funcs);
 
     t1 = std::chrono::high_resolution_clock::now();
     asm_translator<X64> asmt{};

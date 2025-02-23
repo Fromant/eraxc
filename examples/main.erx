@@ -1,5 +1,7 @@
 
 
+i64 global = 2+2;
+
 u64 t(u64 ret) {
     return ret;
 }
@@ -11,5 +13,5 @@ int main() {
     u64 test=(1+2)*256/(a+1);
     test = 256*a++;
     u64 tes=(23+34)+t(a);
-    return tes;
+    return tes+global;
 }

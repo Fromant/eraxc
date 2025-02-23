@@ -7,5 +7,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g")
 
 add_executable(eraxc src/main.cpp
         src/util/error.cpp
-        src/backend/IL_handler.cpp
+        src/backend/JIR_handler.cpp
+        src/backend/JIR_handler.h
+        src/util/JIR_utils.h
 )

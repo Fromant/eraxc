@@ -10,27 +10,27 @@
 - [ ] preprocessor #else macro + tests
 - [ ] all defined words in preprocessor should be changed
 
-# IL:
-
-- [x] parentheses support `~(~a)[]`
-- [x] postfix operators `a++;` `(a++)++;`
-- [x] prefix operators `++a`
-- [ ] Optimize IL. 3 address instructions seems way too much
-- [x] call
-- [ ] IL generate labels
-- [ ] IL goto
-- [ ] branching
-- [ ] loops
+# JIR:
+- [x] ALLOC Function & fix operand order & fix add imm, imm
+- [ ] CFG consisting of functions
 - [ ] Redo typenames
-- [ ] Fix globals - think of them like ram space not stack var
-- [x] Types check
-- [ ] Types conversion
-- [ ] extern keyword
-- [ ] some temp built-in call function or `asm()` directive for printf
-- [ ] tests
-- [ ] Optimizations
+- [x] 2 address instruction nodes
+- [ ] 2 way scopes for namespaces (?)
+- [x] General math instruction support
+- [x] Parenthesis support
+- [x] Postfix operators
+- [x] Prefix operators
+- [x] Globals
+- [x] Call
+- [x] Return
+- [ ] Types check & conversion
+- [ ] Branching (if for while do)
+- [ ] extern?
+- [ ] JIR() directive for direct JIR code input
+- [ ] Tests
+- [ ] Optimisations
 - [ ] Optimisations tests
-
+- 
 # Backend:
 
 - [ ] change sub rsp, size to sub rsp, %16==0 for optimization (maybe even further)
@@ -39,5 +39,5 @@
 - [x] Decide on instruction and operands based on types
 - [x] calls (save rbp across calls btw)
 - [ ] A monstrous amount of tests
-- [ ] Write SSA form in comments for easier debug or smth (should be an option)
+- [ ] Write JIR form in comments for easier debug or smth (should be an option)
 - [ ] Platform-driven optimisations
