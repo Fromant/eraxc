@@ -10,4 +10,5 @@ add_executable(eraxc src/main.cpp
         src/backend/JIR_handler.cpp
         src/backend/JIR_handler.h
         src/util/JIR_utils.h
+        src/backend/asm_translators/asm_x86_mem.h
 )

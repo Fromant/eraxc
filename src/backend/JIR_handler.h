@@ -61,10 +61,10 @@ namespace eraxc::JIR {
         }
 
         JIR_operand() {
-            type=-1;
-            value=-1;
-            is_const=false;
-            is_temp=false;
+            type = -1;
+            value = -1;
+            is_const = false;
+            is_temp = false;
         }
     };
 
@@ -87,7 +87,7 @@ namespace eraxc::JIR {
         std::unordered_map<u64, JIR_function> global_funcs;
 
         //Global scope
-        scope global_scope{nullptr};
+        scope global_scope {nullptr};
 
         //Global vars init
         std::vector<JIR_node> global_variables_init;

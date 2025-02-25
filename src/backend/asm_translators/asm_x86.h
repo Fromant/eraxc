@@ -9,30 +9,11 @@
 #include <set>
 
 #include "asm_translator.h"
+#include "asm_x86_mem.h"
 
 namespace eraxc {
     template<>
     struct asm_translator<X64> {
-        enum x86_reg {
-            RAX,
-            RBX,
-            RCX,
-            RDX,
-
-            RBP,
-            RSP,
-            RSI,
-            RDI,
-
-            R8,
-            R9,
-            R10,
-            R11,
-            R12,
-            R13,
-            R14,
-            R15
-        };  //R stands for 64 bits
 
         static std::string type(u64 type) {
             if (type == syntax::i8 || type == syntax::u8) { return "db"; }
@@ -40,35 +21,6 @@ namespace eraxc {
             if (type == syntax::i32 || type == syntax::u32) { return "dd"; }
             if (type == syntax::i64 || type == syntax::u64) { return {"dq"}; }
             return {"ILLEGAL TYPE"};
-        }
-
-        static std::string reg_name(x86_reg reg, u64 type_size) {
-            std::string r;
-            if (type_size == 8) {
-                r = "r";
-            } else if (type_size == 4) {
-                r = "d";
-            } else return {"SIGREG_SIZE"};
-            switch (reg) {
-                case RAX: r += "ax"; break;
-                case RBX: r += "bx"; break;
-                case RCX: r += "cx"; break;
-                case RDX: r += "dx"; break;
-                case RBP: r += "bp"; break;
-                case RSP: r += "sp"; break;
-                case RSI: r += "si"; break;
-                case RDI: r += "di"; break;
-                case R8: r += "8"; break;
-                case R9: r += "9"; break;
-                case R10: r += "10"; break;
-                case R11: r += "11"; break;
-                case R12: r += "12"; break;
-                case R13: r += "13"; break;
-                case R14: r += "14"; break;
-                case R15: r += "15"; break;
-                default: return "ILLREG";
-            }
-            return r;
         }
 
         static u64 size(u64 type) {
@@ -85,65 +37,6 @@ namespace eraxc {
             }
         }
 
-        static constexpr x86_reg pass_ABI[] = {RCX, RDX, R8, R9};
-
-        struct memory_state {
-            //DO not use rbp and rsp for now
-            std::set<x86_reg> free_regs {RAX, RBX, RCX, RDX, RDI, RSI, R8, R9, R10, R11, R12, R13, R14, R15};
-
-            //For mapping used vars to regs
-            std::unordered_map<u64, x86_reg> used_regs {};
-
-
-            //also represents rsp change from start of stack allocating
-            u64 used_stack_space = 0;
-            int args_in_registers_count = 0;
-
-            //For mapping used vars to stack
-            std::unordered_map<u64, u64> stack_offsets {};
-
-            std::set<u64> globals{};
-
-            error::errable<std::string> get_var(u64 var, u64 type_size) {
-                if (globals.contains(var)) {
-                    return {"", "QWORD[rel var$"+std::to_string(var)+"]"};
-                }
-                if (stack_offsets.contains(var)) {
-                    u64 offset = used_stack_space - stack_offsets.at(var);
-                    if (offset == 0) {
-                        if (type_size == 8) return {"", "QWORD[rsp]"};
-                        if (type_size == 4) return {"", "DWORD[rsp]"};
-                        return {"Unsupported size", {}};
-                    }
-                    if (type_size == 8) return {"", "QWORD[rsp+" + std::to_string(offset) + ']'};
-                    if (type_size == 4) return {"", "DWORD[rsp+" + std::to_string(offset) + ']'};
-                    return {"Unsupported size", {}};
-                }
-                if (used_regs.contains(var)) { return {"", reg_name(used_regs[var], type_size)}; }
-                return {"Variable " + std::to_string(var) + " is not allocated", ""};
-            }
-
-            error::errable<std::string> allocate_stack_space(int size, u64 var) {
-#ifdef DEBUG  //some unuseful check. Delete later
-                if (stack_offsets.contains(var) || used_regs.contains(var)) {
-                    return {"Variable $" + std::to_string(var) + " is already allocated\n", ""};
-                }
-#endif
-                stack_offsets[var] = used_stack_space;
-                used_stack_space += size;
-                return {"", "sub rsp, " + std::to_string(size) + '\n'};
-            }
-
-            bool is_allocated(u64 var) const { return used_regs.contains(var) || stack_offsets.contains(var); }
-
-            void reset() {
-                used_stack_space = 0;
-                used_regs.clear();
-                args_in_registers_count = 0;
-                stack_offsets.clear();
-            }
-        };
-
         memory_state mem {};
 
         error::errable<void> print_IL_node_asm(const JIR::JIR_node& node, std::ostream& os) {
@@ -152,7 +45,7 @@ namespace eraxc {
                 auto op1 = get_operand(node.operand1);
                 if (!op1) return {op1.error};
 
-                os << "inc "<<op1.value << '\n';
+                os << "inc " << op1.value << '\n';
 
                 return {""};
             }
@@ -161,7 +54,7 @@ namespace eraxc {
                 auto op1 = get_operand(node.operand1);
                 if (!op1) return {op1.error};
 
-                os << "dec "<<op1.value << '\n';
+                os << "dec " << op1.value << '\n';
 
                 return {""};
             }
@@ -309,7 +202,7 @@ namespace eraxc {
                     "init_global_scope:\n"
                     "sub rsp, 0x08\n";
 
-            for (int i=1;i<JIR_handler.global_variables_init.size();i++) {
+            for (int i = 1; i < JIR_handler.global_variables_init.size(); i++) {
                 auto r = print_IL_node_asm(JIR_handler.global_variables_init[i], file);
                 if (!r) return r;
             }
