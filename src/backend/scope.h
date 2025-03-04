@@ -25,6 +25,7 @@ namespace eraxc {
         scope* father_scope = nullptr;
 
         u64 next_id = 0;
+        u64 local_labels_count = 0;
 
         explicit scope(scope* const father) {
             if (father == nullptr) {

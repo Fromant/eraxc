@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     if (!test_all()) return -1;
     #endif
 
-    auto err = compilation_pipeline("../examples/main.erx");
+    auto err = compilation_pipeline("../examples/if_test.erx");
     if (!err) {
         std::cerr << err.error << std::endl;
         exit(-1);

@@ -29,9 +29,13 @@ namespace eraxc::JIR {
         XOR,
         LSHIFT,
         RSHIFT,
+
+        CMP,
+
         MOVE,
         CALL,
         RET,
+        LABEL,
         JUMP,
         JE,
         JNE,
@@ -89,6 +93,9 @@ namespace eraxc::JIR {
         //Global scope
         scope global_scope {nullptr};
 
+        //THREAD UNSAFE VAR
+        JIR_operand jump_target_label;
+
         //Global vars init
         std::vector<JIR_node> global_variables_init;
 
@@ -104,7 +111,7 @@ namespace eraxc::JIR {
 
         error::errable<std::vector<JIR_node>> parse_declaration(const std::vector<token>& tokens, int& i, scope& scope);
 
-        static error::errable<JIR_op> op_to_jir_op(syntax::operator_type op);
+        static error::errable<std::pair<JIR_op, JIR_op>> op_to_jir_op(syntax::operator_type op);
     };
 
 

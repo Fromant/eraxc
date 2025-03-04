@@ -41,6 +41,12 @@ namespace eraxc {
 
         error::errable<void> print_IL_node_asm(const JIR::JIR_node& node, std::ostream& os) {
             if (node.operation == JIR::JIR_op::NONE) { return {""}; }
+
+            if (node.operation == JIR::JIR_op::LABEL) {
+                os << ".l"<<node.operand1.value<<":\n";
+                return {""};
+            }
+
             if (node.operation == JIR::JIR_op::INC) {
                 auto op1 = get_operand(node.operand1);
                 if (!op1) return {op1.error};
@@ -49,7 +55,6 @@ namespace eraxc {
 
                 return {""};
             }
-
             if (node.operation == JIR::JIR_op::DEC) {
                 auto op1 = get_operand(node.operand1);
                 if (!op1) return {op1.error};
@@ -74,6 +79,37 @@ namespace eraxc {
             }
             if (node.operation == JIR::JIR_op::JUMP) {
                 //handle jump differently
+                os << "jmp .l" << node.operand1.value << '\n';
+                return {""};
+            }
+            if (node.operation == JIR::JIR_op::JE) {
+                //handle jump differently
+                os << "je .l" << node.operand1.value << '\n';
+                return {""};
+            }
+            if (node.operation == JIR::JIR_op::JNE) {
+                //handle jump differently
+                os << "jne .l" << node.operand1.value << '\n';
+                return {""};
+            }
+            if (node.operation == JIR::JIR_op::JG) {
+                //handle jump differently
+                os << "jg .l" << node.operand1.value << '\n';
+                return {""};
+            }
+            if (node.operation == JIR::JIR_op::JGE) {
+                //handle jump differently
+                os << "jge .l" << node.operand1.value << '\n';
+                return {""};
+            }
+            if (node.operation == JIR::JIR_op::JL) {
+                //handle jump differently
+                os << "jl .l" << node.operand1.value << '\n';
+                return {""};
+            }
+            if (node.operation == JIR::JIR_op::JLE) {
+                //handle jump differently
+                os << "jle .l" << node.operand1.value << '\n';
                 return {""};
             }
             if (node.operation == JIR::JIR_op::CALL) {
@@ -150,6 +186,8 @@ namespace eraxc {
                 os << "shl rax, " << op2.value << '\n';
             } else if (node.operation == JIR::JIR_op::RSHIFT) {
                 os << "shr rax, " << op2.value << '\n';
+            } else if (node.operation == JIR::JIR_op::CMP) {
+                os << "cmp rax, " << op2.value << '\n';
             }
             //save result to assignee
             os << "mov " << op1.value << ", rax\n";

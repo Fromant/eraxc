@@ -58,6 +58,25 @@ namespace eraxc::JIR {
             } else if (node.operation == JIR_op::RSHIFT) {
                 std::cout << "RSHIFT " << operand_to_string(node.operand1) << ' ' << operand_to_string(node.operand2)
                           << std::endl;
+            } else if (node.operation == JIR_op::CMP) {
+                std::cout << "CMP " << operand_to_string(node.operand1) << ' ' << operand_to_string(node.operand2)
+                          << std::endl;
+            } else if (node.operation == JIR_op::LABEL) {
+                std::cout << ".l" << node.operand1.value << ':' << std::endl;
+            }else if (node.operation == JIR_op::JUMP) {
+                std::cout << "JMP .l" << node.operand1.value << std::endl;
+            } else if (node.operation == JIR_op::JE) {
+                std::cout << "JE .l" << node.operand1.value << std::endl;
+            } else if (node.operation == JIR_op::JNE) {
+                std::cout << "JNE .l" << node.operand1.value << std::endl;
+            } else if (node.operation == JIR_op::JL) {
+                std::cout << "JL .l" << node.operand1.value << std::endl;
+            } else if (node.operation == JIR_op::JLE) {
+                std::cout << "JLE .l" << node.operand1.value << std::endl;
+            } else if (node.operation == JIR_op::JG) {
+                std::cout << "JG .l" << node.operand1.value << std::endl;
+            } else if (node.operation == JIR_op::JGE) {
+                std::cout << "JGE .l" << node.operand1.value << std::endl;
             } else if (node.operation == JIR_op::JUMP) {
                 std::cout << "JUMP $f_ " << operand_to_string(node.operand1) << std::endl;
             } else if (node.operation == JIR_op::CALL) {
@@ -69,7 +88,7 @@ namespace eraxc::JIR {
                 std::cout << "INC " << operand_to_string(node.operand1) << std::endl;
             } else if (node.operation == JIR_op::DEC) {
                 std::cout << "DEC " << operand_to_string(node.operand1) << std::endl;
-            } else if (node.operation==JIR_op::ALLOC) {
+            } else if (node.operation == JIR_op::ALLOC) {
                 std::cout << "ALLOC " << operand_to_string(node.operand1) << std::endl;
             }
         }

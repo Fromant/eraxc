@@ -121,26 +121,31 @@ namespace eraxc::JIR {
 
             auto assignee_id = translate_operand(tokens[i], scope);
             if (!assignee_id) return {assignee_id.error, {}};
-            auto assign_op = op_to_jir_op(syntax::assign_to_common_op.at(syntax::operators.at(tokens[i + 1].data)));
-            if (!assign_op) return {assign_op.error, {}};
+            auto assign_op_err = op_to_jir_op(syntax::assign_to_common_op.at(syntax::operators.at(tokens[i + 1].data)));
+            if (!assign_op_err) return {assign_op_err.error, {}};
+            if (assign_op_err.value.second != JIR_op::NONE)
+                return {"Unexpected comparing assign operator. Contact developers.", tr};
+            auto assign_op = assign_op_err.value.first;
             i += 2;
             auto assign_to = translate_expr(tokens, i, scope);
             if (!assign_to) return {assign_to.error, {}};
 
             tr.insert(tr.end(), assign_to.value.begin(), assign_to.value.end());
             u64 result_id = assignee_id.value.value;
-            if (!assign_to.value.back().operand1.is_temp && assign_op.value == JIR_op::MOVE) {
+            if (!assign_to.value.back().operand1.is_temp && assign_op == JIR_op::MOVE) {
                 result_id = scope.next_id++;
                 tr.emplace_back(JIR_op::ALLOC, JIR_operand(result_type, result_id, false, false), JIR_operand {});
-                tr.emplace_back(assign_op.value, JIR_operand(result_type, result_id, false, false),
+                tr.emplace_back(assign_op, JIR_operand(result_type, result_id, false, false),
                                 assign_to.value.back().operand1);
                 assignee_iter->second.id = result_id;
-            } else if (assign_op.value!=JIR_op::MOVE) {
-                tr.emplace_back(assign_op.value, assignee_id.value, assign_to.value.back().operand1);
+            } else if (assign_op != JIR_op::MOVE) {
+                tr.emplace_back(assign_op, assignee_id.value, assign_to.value.back().operand1);
             }
 
             return {"", tr};
         }
+
+        JIR_op cond = JIR_op::NONE;
 
         while (tokens[i].t == token::IDENTIFIER || tokens[i].t == token::L_BRACKET || tokens[i].t == token::OPERATOR ||
                tokens[i].t == token::INSTANT) {
@@ -157,7 +162,7 @@ namespace eraxc::JIR {
                 tr.insert(tr.end(), parentheses.value.begin(), parentheses.value.end());
                 operand = parentheses.value.back().operand1;
             } else if (tokens[i].t == token::INSTANT) {
-                //TODO some float instants, select instant types (e.g. 32.f ; 64llu
+                //TODO some float instants, select instant types (e.g. 32.f ; 64llu), minus sign
                 operand = JIR_operand {syntax::u64, std::stoull(tokens[i].data), true, false};
             } else if (tokens[i].t == token::IDENTIFIER) {
                 if (tokens[i + 1].t == token::L_BRACKET) {
@@ -265,7 +270,12 @@ namespace eraxc::JIR {
                     tr.emplace_back(JIR_op::MOVE, result, operand1);
                 }
 
-                tr.emplace_back(to_add.value, result, operand2);
+                tr.emplace_back(to_add.value.first, result, operand2);
+
+                if (to_add.value.second != JIR_op::NONE) {
+                    //comparing something
+                    tr.emplace_back(to_add.value.second, this->jump_target_label, JIR_operand {});
+                }
 
                 //result is a new operand
                 operands.push(result);
@@ -299,7 +309,12 @@ namespace eraxc::JIR {
                 tr.emplace_back(JIR_op::MOVE, result, operand1);
             }
 
-            tr.emplace_back(to_add.value, result, operand2);
+            tr.emplace_back(to_add.value.first, result, operand2);
+
+            if (to_add.value.second != JIR_op::NONE) {
+                //comparing something
+                tr.emplace_back(to_add.value.second, this->jump_target_label, JIR_operand {});
+            }
 
             //result is a new operand
             operands.push(result);
@@ -350,6 +365,24 @@ namespace eraxc::JIR {
                 tr.emplace_back(JIR_op::RET, r.value.back().operand1, JIR_operand {});
             } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "if") {
                 //if statement
+                i++;
+                if (tokens[i].t != token::L_BRACKET) return {"Expected condition in brackets after if", {}};
+                i++;
+
+                const u64 label_num = scope.local_labels_count++;
+                this->jump_target_label = JIR_operand{u64(-1), label_num, true, false};
+
+                auto cond = translate_expr(tokens, i, scope, {token::R_BRACKET});
+                if (!cond) return {cond.error, tr};
+                i++;
+                if (tokens[i].t != token::L_F_BRACKET) return {"Expected body of conditional ('{}')", {}};
+                i++;
+                //parse all
+                auto body = translate_statements(tokens, i, scope);
+                if (!body) return {body.error, tr};
+                tr.insert(tr.end(), cond.value.begin(), cond.value.end());
+                tr.insert(tr.end(), body.value.begin(), body.value.end());
+                tr.emplace_back(JIR_op::LABEL, JIR_operand {u64(-1), label_num, false, false}, JIR_operand {});
             } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "while") {
                 //while statement
             } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "for") {
@@ -375,26 +408,33 @@ namespace eraxc::JIR {
     }
 
 
-    error::errable<JIR_op> JIR_handler::op_to_jir_op(syntax::operator_type op) {
-        if (op == syntax::ADD) return {"", JIR_op::ADD};
-        if (op == syntax::SUBTRACT) return {"", JIR_op::SUB};
-        if (op == syntax::MULTIPLY) return {"", JIR_op::MUL};
-        if (op == syntax::DIVIDE) return {"", JIR_op::DIV};
-        if (op == syntax::MODULO) return {"", JIR_op::MOD};
+    error::errable<std::pair<JIR_op, JIR_op>> JIR_handler::op_to_jir_op(syntax::operator_type op) {
+        if (op == syntax::ADD) return {"", {JIR_op::ADD, JIR_op::NONE}};
+        if (op == syntax::SUBTRACT) return {"", {JIR_op::SUB, JIR_op::NONE}};
+        if (op == syntax::MULTIPLY) return {"", {JIR_op::MUL, JIR_op::NONE}};
+        if (op == syntax::DIVIDE) return {"", {JIR_op::DIV, JIR_op::NONE}};
+        if (op == syntax::MODULO) return {"", {JIR_op::MOD, JIR_op::NONE}};
 
-        if (op == syntax::INCREMENT) return {"", JIR_op::INC};
-        if (op == syntax::DECREMENT) return {"", JIR_op::DEC};
+        if (op == syntax::INCREMENT) return {"", {JIR_op::INC, JIR_op::NONE}};
+        if (op == syntax::DECREMENT) return {"", {JIR_op::DEC, JIR_op::NONE}};
 
-        if (op == syntax::AND) return {"", JIR_op::AND};
-        if (op == syntax::OR) return {"", JIR_op::OR};
-        if (op == syntax::NOT) return {"", JIR_op::NOT};
-        if (op == syntax::XOR) return {"", JIR_op::XOR};
-        if (op == syntax::NEGATIVE) return {"", JIR_op::NEG};
+        if (op == syntax::AND) return {"", {JIR_op::AND, JIR_op::NONE}};
+        if (op == syntax::OR) return {"", {JIR_op::OR, JIR_op::NONE}};
+        if (op == syntax::NOT) return {"", {JIR_op::NOT, JIR_op::NONE}};
+        if (op == syntax::XOR) return {"", {JIR_op::XOR, JIR_op::NONE}};
+        if (op == syntax::NEGATIVE) return {"", {JIR_op::NEG, JIR_op::NONE}};
 
-        if (op == syntax::BITWISE_LSHIFT) return {"", JIR_op::LSHIFT};
-        if (op == syntax::BITWISE_RSHIFT) return {"", JIR_op::RSHIFT};
+        if (op == syntax::BITWISE_LSHIFT) return {"", {JIR_op::LSHIFT, JIR_op::NONE}};
+        if (op == syntax::BITWISE_RSHIFT) return {"", {JIR_op::RSHIFT, JIR_op::NONE}};
 
-        if (op == syntax::ASSIGN) return {"", JIR_op::MOVE};
+        if (op == syntax::ASSIGN) return {"", {JIR_op::MOVE, JIR_op::NONE}};
+
+        if (op == syntax::LESS) return {"", {JIR_op::CMP, JIR_op::JGE}};
+        if (op == syntax::LESS_EQ) return {"", {JIR_op::CMP, JIR_op::JG}};
+        if (op == syntax::GREATER) return {"", {JIR_op::CMP, JIR_op::JLE}};
+        if (op == syntax::GREATER_EQ) return {"", {JIR_op::CMP, JIR_op::JL}};
+        if (op == syntax::EQUAL) return {"", {JIR_op::CMP, JIR_op::JNE}};
+        if (op == syntax::NOT_EQUAL) return {"", {JIR_op::CMP, JIR_op::JE}};
 
         return {"Unsupported operator: " + std::to_string(op), {}};
     }

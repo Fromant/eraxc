@@ -12,8 +12,10 @@
 
 # JIR:
 - [x] ALLOC Function & fix operand order & fix add imm, imm
-- [ ] CFG consisting of functions
+- [ ] DEALLOC function to deallocate all the stuff that was allocated in function body or conditional branch or elsewhere
+- [ ] Control flow graph consisting of functions and codeblocks
 - [ ] Redo typenames
+- [ ] Types check & conversion
 - [x] 2 address instruction nodes
 - [ ] 2 way scopes for namespaces (?)
 - [x] General math instruction support
@@ -23,8 +25,11 @@
 - [x] Globals
 - [x] Call
 - [x] Return
-- [ ] Types check & conversion
-- [ ] Branching (if for while do)
+- [x] if support
+- [ ] else support
+- [ ] while support
+- [ ] for support
+- [ ] do support (?)
 - [ ] extern?
 - [ ] JIR() directive for direct JIR code input
 - [ ] Tests
