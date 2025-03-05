@@ -370,29 +370,42 @@ namespace eraxc::JIR {
                 i++;
 
                 const u64 label_num = scope.local_labels_count++;
-                this->jump_target_label = JIR_operand{u64(-1), label_num, true, false};
+                this->jump_target_label = JIR_operand {u64(-1), label_num, true, false};
 
                 auto cond = translate_expr(tokens, i, scope, {token::R_BRACKET});
                 if (!cond) return {cond.error, tr};
                 i++;
-                if (tokens[i].t != token::L_F_BRACKET) return {"Expected body of conditional ('{}')", {}};
-                i++;
-                //parse all
-                auto body = translate_statements(tokens, i, scope);
-                if (!body) return {body.error, tr};
+                error::errable<std::vector<JIR_node>> body {"", {}};
+                if (tokens[i].t != token::L_F_BRACKET) {
+                    //expect one expression
+                    body = translate_expr(tokens, i, scope);
+                    if (!body) return {"Expecting one expression after if without {}:\n" + body.error, tr};
+                } else {
+                    //parse all
+                    i++;
+                    body = translate_statements(tokens, i, scope);
+                    if (!body) return {body.error, tr};
+                }
                 tr.insert(tr.end(), cond.value.begin(), cond.value.end());
                 tr.insert(tr.end(), body.value.begin(), body.value.end());
                 tr.emplace_back(JIR_op::LABEL, JIR_operand {u64(-1), label_num, false, false}, JIR_operand {});
                 //check and parse else {}
-                if (tokens[i+1].t==token::IDENTIFIER && tokens[i+1].data=="else") {
-                    i+=2;
-                    if (tokens[i].t != token::L_F_BRACKET) return {"Expected body after else ('{}')", {}};
-                    i++;
-                    auto else_body = translate_statements(tokens, i, scope);
-                    if (!else_body) return {else_body.error, tr};
-                    tr.insert(tr.end(), else_body.value.begin(), else_body.value.end());
+                if (tokens[i + 1].t == token::IDENTIFIER && tokens[i + 1].data == "else") {
+                    i += 2;
+                    const u64 end_label_num = scope.local_labels_count++;
+                    tr.emplace(tr.end()-1, JIR_op::JUMP, JIR_operand{u64(-1),end_label_num,true,false}, JIR_operand {});
+                    if (tokens[i].t != token::L_F_BRACKET) {
+                        auto else_expr = translate_expr(tokens, i, scope);
+                        if (!else_expr) return {"Expecting one expression after else without {}:\n" + else_expr.error, tr};
+                        tr.insert(tr.end(), else_expr.value.begin(), else_expr.value.end());
+                    } else {
+                        i++;
+                        auto else_body = translate_statements(tokens, i, scope);
+                        if (!else_body) return {else_body.error, tr};
+                        tr.insert(tr.end(), else_body.value.begin(), else_body.value.end());
+                    }
+                    tr.emplace_back(JIR_op::LABEL, JIR_operand{u64(-1),end_label_num,true,false}, JIR_operand {});
                 }
-
             } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "while") {
                 //while statement
             } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "for") {

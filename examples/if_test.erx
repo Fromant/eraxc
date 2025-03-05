@@ -5,5 +5,9 @@ int main() {
     } else {
         c3 -= c3;
     }
+
+    if(c3==0) c3+=14;
+    else c3 -= 2;
+
     return c3;
 }
