@@ -383,6 +383,16 @@ namespace eraxc::JIR {
                 tr.insert(tr.end(), cond.value.begin(), cond.value.end());
                 tr.insert(tr.end(), body.value.begin(), body.value.end());
                 tr.emplace_back(JIR_op::LABEL, JIR_operand {u64(-1), label_num, false, false}, JIR_operand {});
+                //check and parse else {}
+                if (tokens[i+1].t==token::IDENTIFIER && tokens[i+1].data=="else") {
+                    i+=2;
+                    if (tokens[i].t != token::L_F_BRACKET) return {"Expected body after else ('{}')", {}};
+                    i++;
+                    auto else_body = translate_statements(tokens, i, scope);
+                    if (!else_body) return {else_body.error, tr};
+                    tr.insert(tr.end(), else_body.value.begin(), else_body.value.end());
+                }
+
             } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "while") {
                 //while statement
             } else if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "for") {

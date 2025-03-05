@@ -26,7 +26,8 @@
 - [x] Call
 - [x] Return
 - [x] if support
-- [ ] else support
+- [x] else support
+- [ ] one expression blocks after if and else without {}
 - [ ] while support
 - [ ] for support
 - [ ] do support (?)
