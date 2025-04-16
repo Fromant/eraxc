@@ -1,0 +1,12 @@
+
+i32 i32::create(i32 a) {
+    return a;
+}
+
+i32 i32::create(i64 a) {
+    JIR {
+        mov rax, DWORD(rel %a)
+        ret
+    }
+    return *(i32*)&a;
+}

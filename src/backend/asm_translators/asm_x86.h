@@ -1,11 +1,8 @@
-//
-// Created by frama on 01.02.2025.
-//
-
 #ifndef BLCK_COMPILER_ASM_X86_H
 #define BLCK_COMPILER_ASM_X86_H
 
 #include <ostream>
+#include <ranges>
 #include <set>
 
 #include "asm_translator.h"
@@ -19,8 +16,8 @@ namespace eraxc {
             if (type == syntax::i8 || type == syntax::u8) { return "db"; }
             if (type == syntax::i16 || type == syntax::u16) { return "dw"; }
             if (type == syntax::i32 || type == syntax::u32) { return "dd"; }
-            if (type == syntax::i64 || type == syntax::u64) { return {"dq"}; }
-            return {"ILLEGAL TYPE"};
+            if (type == syntax::i64 || type == syntax::u64) { return "dq"; }
+            return {"ILLTYPE"};
         }
 
         static u64 size(u64 type) {
@@ -39,15 +36,15 @@ namespace eraxc {
 
         memory_state mem {};
 
-        error::errable<void> print_IL_node_asm(const JIR::JIR_node& node, std::ostream& os) {
-            if (node.operation == JIR::JIR_op::NONE) { return {""}; }
+        error::errable<void> print_IL_node_asm(const JIR::Node& node, std::ostream& os) {
+            if (node.op == JIR::Operation::NONE) { return {""}; }
 
-            if (node.operation == JIR::JIR_op::LABEL) {
-                os << ".l"<<node.operand1.value<<":\n";
+            if (node.op == JIR::Operation::LABEL) {
+                os << ".l" << node.operand1.value << ":\n";
                 return {""};
             }
 
-            if (node.operation == JIR::JIR_op::INC) {
+            if (node.op == JIR::Operation::INC) {
                 auto op1 = get_operand(node.operand1);
                 if (!op1) return {op1.error};
 
@@ -55,7 +52,7 @@ namespace eraxc {
 
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::DEC) {
+            if (node.op == JIR::Operation::DEC) {
                 auto op1 = get_operand(node.operand1);
                 if (!op1) return {op1.error};
 
@@ -63,13 +60,14 @@ namespace eraxc {
 
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::RET) {
+            if (node.op == JIR::Operation::RET) {
                 auto ret_val = get_operand(node.operand1);
                 if (!ret_val) return {ret_val.error};
-                os << "mov rax, " << ret_val.value << '\n';
+                std::string reg = reg_name(x86_reg::RAX, size(node.operand1.type));
+                os << "mov " << reg << ", " << ret_val.value << '\n';
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::PASS) {
+            if (node.op == JIR::Operation::PASS) {
                 //pass arguments
                 auto op1 = get_operand(node.operand1);
                 if (!op1) return {op1.error};
@@ -77,52 +75,59 @@ namespace eraxc {
                    << op1.value << '\n';
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::JUMP) {
+            if (node.op == JIR::Operation::JUMP) {
                 //handle jump differently
                 os << "jmp .l" << node.operand1.value << '\n';
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::JE) {
+            if (node.op == JIR::Operation::JE) {
                 //handle jump differently
                 os << "je .l" << node.operand1.value << '\n';
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::JNE) {
+            if (node.op == JIR::Operation::JNE) {
                 //handle jump differently
                 os << "jne .l" << node.operand1.value << '\n';
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::JG) {
+            if (node.op == JIR::Operation::JG) {
                 //handle jump differently
                 os << "jg .l" << node.operand1.value << '\n';
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::JGE) {
+            if (node.op == JIR::Operation::JGE) {
                 //handle jump differently
                 os << "jge .l" << node.operand1.value << '\n';
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::JL) {
+            if (node.op == JIR::Operation::JL) {
                 //handle jump differently
                 os << "jl .l" << node.operand1.value << '\n';
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::JLE) {
+            if (node.op == JIR::Operation::JLE) {
                 //handle jump differently
                 os << "jle .l" << node.operand1.value << '\n';
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::CALL) {
+            if (node.op == JIR::Operation::CALL) {
                 auto op2 = mem.get_var(node.operand2.value, size(node.operand2.type));
                 if (!op2) return {op2.error};
                 os << "call $f_" << node.operand1.value << '\n';
-                os << "mov " << op2.value << ", rax\n";
+                std::string reg = reg_name(x86_reg::RAX, size(node.operand1.type));
+                os << "mov " << op2.value << ", " << reg << '\n';
                 mem.args_in_registers_count = 0;
                 return {""};
             }
-            if (node.operation == JIR::JIR_op::ALLOC) {
+            if (node.op == JIR::Operation::ALLOC) {
                 auto assignee = mem.allocate_stack_space(size(node.operand1.type), node.operand1.value);
                 if (!assignee) return {"Failed to allocate stack space"};
+                os << assignee.value;
+                return {""};
+            }
+            if (node.op == JIR::Operation::DEALLOC) {
+                auto assignee = mem.try_dealloc(size(node.operand1.type), node.operand1.value);
+                if (!assignee) return {"Failed to deallocate stack space: " + assignee.error};
                 os << assignee.value;
                 return {""};
             }
@@ -134,14 +139,15 @@ namespace eraxc {
             if (!op1) return {op1.error};
             if (!op2) return {op2.error};
 
-            if (node.operation == JIR::JIR_op::MOVE) {
-                if (node.operand2.is_const) {
+            if (node.op == JIR::Operation::MOVE) {
+                if (node.operand2.is_instant) {
                     os << "mov " << op1.value << ", " << node.operand2.value << '\n';
                 } else {
                     //if move operand is located on stack, spill him to rax and then do move
                     if (mem.stack_offsets.contains(node.operand2.value)) {
-                        os << "mov rax, " << op2.value << '\n';
-                        os << "mov " << op1.value << ", rax\n";
+                        std::string reg = reg_name(x86_reg::RAX, size(node.operand2.type));
+                        os << "mov " << reg << ", " << op2.value << '\n';
+                        os << "mov " << op1.value << ", " << reg << '\n';
                     } else {
                         //move operand contained in register
                         os << "mov " << op1.value << ", " << op2.value << '\n';
@@ -152,63 +158,91 @@ namespace eraxc {
 
             //mov op1 to rax
             //TODO if already register there's no need in this
-            os << "mov rax, " << op1.value << '\n';
+            std::string reg = reg_name(x86_reg::RAX, size(node.operand1.type));
+            os << "mov " << reg << ", " << op1.value << '\n';
 
-            if (node.operation == JIR::JIR_op::ADD) {
-                os << "add rax, " << op2.value << '\n';
-            } else if (node.operation == JIR::JIR_op::SUB) {
-                os << "sub rax, " << op2.value << '\n';
-            } else if (node.operation == JIR::JIR_op::MUL) {
-                os << "imul rax, " << op2.value << '\n';
-            } else if (node.operation == JIR::JIR_op::DIV) {
+            if (node.op == JIR::Operation::ADD) {
+                os << "add " << reg << ", " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::SUB) {
+                os << "sub " << reg << ", " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::MUL) {
+                os << "imul " << reg << ", " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::DIV) {
                 //For now use idiv (that's slow)
                 os << "xor rdx, rdx ;Divide operation\n";  //Dividend top half
                 os << "mov rbx, " << op2.value << '\n';  //Divisor
                 os << "idiv rbx\n";  // Do divide. Modulo is now in rdx.
-            } else if (node.operation == JIR::JIR_op::MOD) {
+            } else if (node.op == JIR::Operation::MOD) {
                 //For now use idiv (that's slow)
                 os << "xor rdx, rdx ;Modulo operation\n";  //Dividend top half
                 os << "mov rbx, " << op2.value << '\n';  //Divisor
                 os << "idiv rbx\n";  // Do divide. Modulo is now in rdx
                 os << "mov " << op1.value << ", rdx\n";
                 return {""};
-            } else if (node.operation == JIR::JIR_op::NOT) {
-                os << "not rax, " << op2.value << '\n';
-            } else if (node.operation == JIR::JIR_op::NEG) {
-                os << "neg rax, " << op2.value << '\n';
-            } else if (node.operation == JIR::JIR_op::AND) {
-                os << "and rax, " << op2.value << '\n';
-            } else if (node.operation == JIR::JIR_op::OR) {
-                os << "or rax, " << op2.value << '\n';
-            } else if (node.operation == JIR::JIR_op::XOR) {
-                os << "xor rax, " << op2.value << '\n';
-            } else if (node.operation == JIR::JIR_op::LSHIFT) {
-                os << "shl rax, " << op2.value << '\n';
-            } else if (node.operation == JIR::JIR_op::RSHIFT) {
-                os << "shr rax, " << op2.value << '\n';
-            } else if (node.operation == JIR::JIR_op::CMP) {
-                os << "cmp rax, " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::NOT) {
+                os << "not " << reg << ", " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::NEG) {
+                os << "neg " << reg << ", " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::AND) {
+                os << "and " << reg << ", " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::OR) {
+                os << "or " << reg << ", " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::XOR) {
+                os << "xor " << reg << ", " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::LSHIFT) {
+                os << "shl " << reg << ", " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::RSHIFT) {
+                os << "shr " << reg << ", " << op2.value << '\n';
+            } else if (node.op == JIR::Operation::CMP) {
+                os << "cmp " << reg << ", " << op2.value << '\n';
             }
             //save result to assignee
-            os << "mov " << op1.value << ", rax\n";
+            os << "mov " << op1.value << ", " << reg << "\n";
 
             return {""};
         }
 
-        error::errable<std::string> get_operand(const JIR::JIR_operand& op) {
-            if (op.is_const) { return {"", std::to_string(op.value)}; }
+        error::errable<std::string> get_operand(const JIR::Operand& op) {
+            if (op.is_instant) { return {"", std::to_string(op.value)}; }
             return mem.get_var(op.value, size(op.type));
         }
 
-        error::errable<void> translate(const JIR::JIR_handler& JIR_handler, const std::string& o_filename) {
+        error::errable<void> print_cfg_node(const JIR::CFG& cfg, size_t node_id, std::ostream& os) {
+            os << "$f_" << node_id << ":\nsub rsp, 8\n";
+            const JIR::CFG_Node& node = cfg.get_cfg_node(node_id);
+            //allocs
+            for (const auto& alloc : node.allocations) {
+                if (mem.used_regs.contains(alloc.value)) continue;
+                auto allocation = mem.allocate_stack_space(size(alloc.type), alloc.value);
+                if (!allocation) return {"Failed to allocate stack space: " + allocation.error};
+                os << allocation.value;
+            }
+            //body
+            for (const auto& JIR_node : node.body) {
+                auto print = print_IL_node_asm(JIR_node, os);
+                if (!print) return print;
+            }
+            //deallocs
+            for (const auto& allocation : std::ranges::reverse_view(node.allocations)) {
+                auto ddd = mem.try_dealloc(size(allocation.type), allocation.value);
+                if (!ddd) return {"Failed to deallocate variable: " + ddd.error};
+                os << ddd.value;
+            }
+            os << "add rsp, 8\nret\n";
+            return {""};
+        }
+
+        error::errable<void> translate(const JIR::CFG& cfg, const std::string& o_filename) {
             std::ofstream file {o_filename};
 
             if (!file) return {"Failed to open output file " + o_filename};
 
             file << "global main\nbits 64\nextern printf\nsection .data\n";
 
+            const Scope& global_scope = cfg.get_scope(0);
+
             //print globals
-            for (const auto& global_var : JIR_handler.global_scope.identifiers) {
+            for (const auto& global_var : global_scope.identifiers) {
                 if (global_var.second.is_func) continue;
                 file << "var$" << global_var.second.id << ' ' << type(global_var.second.type) << " 0\n";
                 mem.globals.insert(global_var.second.id);
@@ -218,57 +252,32 @@ namespace eraxc {
                     "section .text\n"
                     "main:\n"
                     "sub rsp, 0x28\n"
-                    "call init_global_scope\n";
-
-            //add main function there
-            auto main_it = JIR_handler.global_scope.identifiers.find("main");
-            if (main_it == JIR_handler.global_scope.identifiers.end() || main_it->second.is_func == false ||
-                !JIR_handler.global_funcs.at(main_it->second.id).args.empty()) {
-                return {"Failed to find main function"};
-            }
-            const std::vector<JIR::JIR_node>& main_body = JIR_handler.global_funcs.at(main_it->second.id).body;
-            for (const auto& JIR_node : main_body) {
-                auto r = print_IL_node_asm(JIR_node, file);
-                if (!r) return r;
-            }
+                    "call $f_0\n"
+                 <<
+                //call to main function
+                "call $f_" << cfg.get_funcs().at(global_scope.identifiers.find("main")->second.id).node_id << '\n';
 
             //now return rsp to where it's been before allocations
             file << "add rsp, 0x" << std::hex << mem.used_stack_space + 0x28 << std::dec << '\n';
             mem.reset();
 
-            file << "ret;\n"
-                    "init_global_scope:\n"
-                    "sub rsp, 0x08\n";
+            file << "ret;\n";
 
-            for (int i = 1; i < JIR_handler.global_variables_init.size(); i++) {
-                auto r = print_IL_node_asm(JIR_handler.global_variables_init[i], file);
+            //print global init
+            {
+                auto r = print_cfg_node(cfg, 0, file);
                 if (!r) return r;
             }
 
-            file << "add rsp, " << mem.used_stack_space + 0x08 << "\nret\n";
-            mem.reset();
-
-
             //now print all functions
-
-            for (auto it = JIR_handler.global_funcs.begin(); it != JIR_handler.global_funcs.end(); ++it) {
-                if (it->first == main_it->second.id) continue;
-                //label to call
-                file << "$f_" << it->first << ":\n";
-                //function prolog
-                //resolve args
-                for (int i = 0; i < it->second.args.size(); ++i) {
-                    mem.used_regs.emplace(it->second.args[i].value, pass_ABI[mem.args_in_registers_count++]);
+            for (const auto& func : cfg.get_funcs()) {
+                //TODO handle args pass correctly
+                for (const auto& param : func.second.params) {
+                    mem.used_regs.emplace(param.value, pass_ABI[mem.args_in_registers_count++]);
                 }
                 mem.args_in_registers_count = 0;
-                file << "sub rsp,0x08\n";
-                //function body
-                for (const auto& il_node : it->second.body) {
-                    auto r = print_IL_node_asm(il_node, file);
-                    if (!r) return r;
-                }
-                //function epilog
-                file << "add rsp, 0x" << std::hex << mem.used_stack_space + 0x08 << std::dec << "\nret\n";
+                auto r = print_cfg_node(cfg, func.second.node_id, file);
+                if (!r) return r;
                 mem.reset();
             }
             return {""};

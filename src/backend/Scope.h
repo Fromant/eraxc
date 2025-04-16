@@ -1,7 +1,3 @@
-//
-// Created by frama on 27.01.2025.
-//
-
 #ifndef BLCK_COMPILER_SCOPE_H
 #define BLCK_COMPILER_SCOPE_H
 
@@ -14,20 +10,19 @@ namespace eraxc {
 
     typedef unsigned long long u64;
 
-    struct scope {
+    struct Scope {
 
         struct declaration {
-            u64 type;
-            u64 id;
-            bool is_func;
+            u64 type = -1;
+            u64 id = -1;
+            bool is_func = false;
         };
 
-        scope* father_scope = nullptr;
+        Scope* father_scope = nullptr;
 
         u64 next_id = 0;
-        u64 local_labels_count = 0;
 
-        explicit scope(scope* const father) {
+        explicit Scope(Scope* const father) {
             if (father == nullptr) {
                 //global scope
                 typenames = std::unordered_map<std::string, size_t> {
@@ -43,7 +38,7 @@ namespace eraxc {
             father_scope = father;
         }
 
-        scope() = delete;
+        Scope() = delete;
 
         bool contains_type(const std::string& type) const {
             auto it = this;
@@ -65,10 +60,10 @@ namespace eraxc {
             return false;
         }
 
-        size_t get_type_id(const std::string& type) {
+        size_t get_type_id(const std::string& type) const {
             auto it = this;
             while (it != nullptr) {
-                if (it->typenames.contains(type)) return it->typenames[type];
+                if (it->typenames.contains(type)) return it->typenames.at(type);
                 it = it->father_scope;
             }
             return -1;
@@ -96,6 +91,16 @@ namespace eraxc {
             identifiers[id] = {type, next_id, is_func};
             next_id++;
             return tr;
+        }
+
+        std::unordered_map<std::string, declaration>::iterator find(const std::string& name) {
+            Scope* it = this;
+            while (it != nullptr) {
+                auto tr = it->identifiers.find(name);
+                if (tr != it->identifiers.end()) return tr;
+                it = it->father_scope;
+            }
+            return identifiers.end();
         }
 
         declaration& operator[](const std::string& id) { return identifiers[id]; }

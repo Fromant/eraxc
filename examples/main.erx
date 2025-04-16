@@ -1,17 +1,17 @@
 
 
-i64 global = 2+2;
+i64 global = 2l+2l;
 
 u64 t(u64 ret) {
     return ret;
 }
 
 int main() {
-    u64 a=13;
+    u64 a=13ul;
     a++;
-    a+=26;
-    u64 test=(1+2)*256/(a+1);
-    test = 256*a++;
-    u64 tes=(23+34)+t(a);
+    a+=26ul;
+    u64 test=(1ul+2ul)*256ul/(a+1ul);
+    test = 256ul*a++;
+    u64 tes=(23ul+34ul)+t(a);
     return tes+global;
 }

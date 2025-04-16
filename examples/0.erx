@@ -1,34 +1,30 @@
 
 int ad;
 
-int a = 0;
-//IL: i32 $1 = 0;
+int a = 0i;
 
-int b = 1 + 1 + 1 * 8 + 12 + 13;
-//IL: i32 $2=8*1; i32 $3=$2+1; i32 $4=$3+1
+int b = 1i + 1i + 1i * 8i + 12i + 13i;
 
 int c = b;
-//IL: i32 $5=$4
 
-int d = 2; //$6=2
-//now both d and b are $6
+int d = 2i;
 
-int e = b; //$7=$6
-int f = d; //$8=$6
-
+int e = b;
+int f = d;
 
 int test_IL(int param1, int param2) {
-    int a = param1+123;
+    int a = param1+123i;
     int sum = param1+param2;
-    i32 test = a = 2;
-    a=321;
-    a+=627+123;
+    i32 test = a = 2i;
+    a=321i;
+    a+=627i+123i;
     sum=a;
     return sum;
 }
 
 int main() {
-    int test11=11;
+    int test11=11i;
+    int test12 = test11 = 1i;
 
-    return 11111111111;
+    return test11 + test12;
 }

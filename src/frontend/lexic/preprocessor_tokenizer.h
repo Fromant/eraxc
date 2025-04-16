@@ -19,6 +19,8 @@ namespace eraxc {
         static inline std::set<char> operator_chars {'<', '=', '>', '&', '|', '^', '%',
                                                      '*', '/', '~', '+', '-', '!', '?'};
 
+        static inline std::set<char> instant_number_chars {'u', 'l', 'i'};
+
         enum type {
             SEMICOLON,
             COLON,
@@ -221,7 +223,9 @@ namespace eraxc {
                 }
                 if (std::isdigit(c)) {
                     tmp << c;
-                    while (std::isdigit(f.peek()) && !f.eof()) { tmp << char(f.get()); }
+                    while ((std::isdigit(f.peek()) || token::instant_number_chars.contains(f.peek())) && !f.eof()) {
+                        tmp << char(f.get());
+                    }
                     add_token(tokens, tmp, token::INSTANT);
                     continue;
                 }

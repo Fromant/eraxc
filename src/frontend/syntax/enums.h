@@ -269,10 +269,10 @@ namespace eraxc::syntax {
         {BITWISE_RSHIFT_ASSIGN, 16},
         {BITWISE_AND_ASSIGN, 16},
         {BITWISE_OR_ASSIGN, 16},
-        {BITWISE_XOR_ASSIGN, 16},
+        {BITWISE_XOR_ASSIGN, 16}
     };
 
-    const inline std::unordered_map<std::string, operator_type> unary_operators{
+    const inline std::unordered_map<std::string, operator_type> prefix_operators{
         {"+", POSITIVE},
         {"-", NEGATIVE},
         {"*", INDIRECTION},

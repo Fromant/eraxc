@@ -25,7 +25,7 @@ namespace error {
             value = val;
         }
 
-        explicit operator bool() {
+        explicit operator bool() const {
             return error.empty();
         }
     };

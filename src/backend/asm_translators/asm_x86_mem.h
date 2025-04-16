@@ -1,9 +1,7 @@
-//
-// Created by frama on 25.02.2025.
-//
-
 #ifndef ASM_X86_MEM_H
 #define ASM_X86_MEM_H
+
+#include "../JIR/utils.h"
 
 namespace eraxc {
     enum class x86_reg {
@@ -31,7 +29,7 @@ namespace eraxc {
         if (type_size == 8) {
             r = "r";
         } else if (type_size == 4) {
-            r = "d";
+            r = "e";
         } else return {"ILLREG SIZE"};
         switch (reg) {
             case x86_reg::RAX: r += "ax"; break;
@@ -78,7 +76,11 @@ namespace eraxc {
         std::set<u64> globals {};
 
         error::errable<std::string> get_var(u64 var, u64 type_size) {
-            if (globals.contains(var)) { return {"", "QWORD[rel var$" + std::to_string(var) + "]"}; }
+            if (globals.contains(var)) {
+                if (type_size == 8) return {"", "QWORD[rel var$" + std::to_string(var) + "]"};
+                if (type_size == 4) return {"", "DWORD[rel var$" + std::to_string(var) + "]"};
+                return {"Unsupported size", ""};
+            }
             if (stack_offsets.contains(var)) {
                 u64 offset = used_stack_space - stack_offsets.at(var);
                 if (offset == 0) {
@@ -103,6 +105,25 @@ namespace eraxc {
             stack_offsets[var] = used_stack_space;
             used_stack_space += size;
             return {"", "sub rsp, " + std::to_string(size) + '\n'};
+        }
+
+        error::errable<std::string> try_dealloc(int size, u64 var) {
+            if (used_regs.contains(var)) {
+                used_regs.erase(var);
+                return {"", ""};
+            }
+            if (stack_offsets.contains(var)) { return try_dealloc_stack_space(size, var); }
+            return {"Variable " + std::to_string(var) + " is not allocated", ""};
+        }
+
+        error::errable<std::string> try_dealloc_stack_space(int size, u64 var) {
+            if (stack_offsets[var] + size != used_stack_space) {
+                //is not top stack element => cannot dealloc
+                return {"Variable $" + std::to_string(var) + " is not on top of stack", ""};
+            }
+            used_stack_space = stack_offsets[var];
+            stack_offsets.erase(var);
+            return {"", "add rsp, " + JIR::utils::int_to_hex(size) + '\n'};
         }
 
         bool is_allocated(u64 var) const { return used_regs.contains(var) || stack_offsets.contains(var); }
