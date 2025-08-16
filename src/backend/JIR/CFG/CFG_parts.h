@@ -25,4 +25,4 @@ namespace eraxc::JIR {
     };
 }
 
-#endif //CFG_PARTS_H
+#endif  //CFG_PARTS_H

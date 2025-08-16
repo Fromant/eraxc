@@ -19,6 +19,9 @@
 - [ ] preprocessor #else macro + tests
 - [x] all defined words in preprocessor should be changed
 
+# Lexer/Parser:
+- [ ] ? create keyword token type for keywords (e.g. `else` `for` `if` `return` `yield`)
+
 # JIR/CFG:
 - [ ] Move all errors to separate file
 - [x] Control flow graph consisting of functions and codeblocks
@@ -34,13 +37,15 @@
 - [x] Globals
 - [x] Call
 - [x] Return
-- [ ] if support
-- [ ] else support
-- [ ] one expression blocks after if and else without {}
-- [ ] while support
-- [ ] for support
-- [ ] do support (?)
-- [ ] extern keyword
+- [x] `if` support
+- [x] one expression blocks after if (without `{}`)
+- [x] `else` support
+- [ ] `return` keyword terminate all allocated variables
+- [ ] `while` support
+- [ ] `for` support
+- [ ] `do` support (?)
+- [ ] `extern` keyword
+- [ ] `defer` keyword
 - [ ] JIR() directive for direct JIR code input
 - [ ] Tests
 - [ ] Optimisations
@@ -48,7 +53,7 @@
 
 # Backend:
 - [ ] Actually initiate globals!
-- [ ] compress all sub rsp to 1
+- [ ] compress all `sub rsp n` to just one `sub rsp` per function
 - [ ] asm translation x86-64 split for linux and windows
 - [ ] codegen registers alloc
 - [ ] A monstrous amount of tests

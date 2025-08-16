@@ -121,17 +121,6 @@ namespace eraxc::JIR::utils {
             // std::cout << "}\n";
         }
     }
-
-    inline error::errable<Operand> translate_operand(const token& t, const Scope& scope) {
-        if (t.t == token::IDENTIFIER) {
-            if (!scope.contains_id(t.data)) return {"No such identifier in this scope: " + t.data, {}};
-            Scope::declaration decl = scope.get_declaration(t.data);
-            if (decl.is_func) return {"Cannot use function there", {}};
-            return {"", {decl.type, decl.id, false, false}};
-        }
-        if (t.t == token::INSTANT) { return {"", {syntax::u64, std::stoull(t.data), true, false}}; }
-        return {"Expected identifier or instant instead of " + t.data, {}};
-    }
 }
 
 #endif //UTILS_H

@@ -3,7 +3,7 @@
 
 #include "backend/JIR/CFG/CFG.h"
 #include "frontend/lexic/preprocessor_tokenizer.h"
-#include "backend/asm_translators/asm_x86.h"
+#include "backend/codegen/asm_x86.h"
 
 #ifdef DEBUG
 #define TEST

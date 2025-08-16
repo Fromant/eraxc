@@ -97,14 +97,14 @@ namespace eraxc {
         }
 
         error::errable<std::string> allocate_stack_space(int size, u64 var) {
-#ifdef DEBUG  //some unuseful check. Delete later
+            #ifdef DEBUG  //some spare check
             if (stack_offsets.contains(var) || used_regs.contains(var)) {
                 return {"Variable $" + std::to_string(var) + " is already allocated\n", ""};
             }
-#endif
+            #endif
             stack_offsets[var] = used_stack_space;
             used_stack_space += size;
-            return {"", "sub rsp, " + std::to_string(size) + '\n'};
+            return {"", "sub rsp, " + std::to_string(size) + "; allocate $" + std::to_string(var) + '\n'};
         }
 
         error::errable<std::string> try_dealloc(int size, u64 var) {
@@ -123,7 +123,7 @@ namespace eraxc {
             }
             used_stack_space = stack_offsets[var];
             stack_offsets.erase(var);
-            return {"", "add rsp, " + JIR::utils::int_to_hex(size) + '\n'};
+            return {"", "add rsp, " + JIR::utils::int_to_hex(size) + "; dealloc $" + std::to_string(var) + '\n'};
         }
 
         bool is_allocated(u64 var) const { return used_regs.contains(var) || stack_offsets.contains(var); }

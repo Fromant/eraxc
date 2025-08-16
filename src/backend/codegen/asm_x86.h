@@ -35,8 +35,9 @@ namespace eraxc {
         }
 
         memory_state mem {};
+        std::set<size_t> printed_nodes;
 
-        error::errable<void> print_IL_node_asm(const JIR::Node& node, std::ostream& os) {
+        error::errable<void> print_JIR_node_asm(const JIR::Node& node, std::ostream& os) {
             if (node.op == JIR::Operation::NONE) { return {""}; }
 
             if (node.op == JIR::Operation::LABEL) {
@@ -157,7 +158,7 @@ namespace eraxc {
             }
 
             //mov op1 to rax
-            //TODO if already register there's no need in this
+            //TODO if already in register there's no need in this
             std::string reg = reg_name(x86_reg::RAX, size(node.operand1.type));
             os << "mov " << reg << ", " << op1.value << '\n';
 
@@ -195,6 +196,7 @@ namespace eraxc {
                 os << "shr " << reg << ", " << op2.value << '\n';
             } else if (node.op == JIR::Operation::CMP) {
                 os << "cmp " << reg << ", " << op2.value << '\n';
+                return {""}; //return without saving from reg to stack
             }
             //save result to assignee
             os << "mov " << op1.value << ", " << reg << "\n";
@@ -207,9 +209,13 @@ namespace eraxc {
             return mem.get_var(op.value, size(op.type));
         }
 
+
         error::errable<void> print_cfg_node(const JIR::CFG& cfg, size_t node_id, std::ostream& os) {
-            os << "$f_" << node_id << ":\nsub rsp, 8\n";
+
+            // if (printed_nodes.contains(node_id)) return {""};
+
             const JIR::CFG_Node& node = cfg.get_cfg_node(node_id);
+
             //allocs
             for (const auto& alloc : node.allocations) {
                 if (mem.used_regs.contains(alloc.value)) continue;
@@ -219,16 +225,28 @@ namespace eraxc {
             }
             //body
             for (const auto& JIR_node : node.body) {
-                auto print = print_IL_node_asm(JIR_node, os);
+                auto print = print_JIR_node_asm(JIR_node, os);
                 if (!print) return print;
             }
+
+            //print subnodes
+            const auto& edges = cfg.get_edges().equal_range(node_id);
+            for (auto i = edges.first; i != edges.second; ++i) {
+                os << ".l" << i->second << ":\n";
+                auto r1 = print_cfg_node(cfg, i->second, os);
+                if (!r1) return r1;
+                // os << "add rsp, 8\nret\n";
+            }
+
             //deallocs
             for (const auto& allocation : std::ranges::reverse_view(node.allocations)) {
                 auto ddd = mem.try_dealloc(size(allocation.type), allocation.value);
                 if (!ddd) return {"Failed to deallocate variable: " + ddd.error};
                 os << ddd.value;
             }
-            os << "add rsp, 8\nret\n";
+
+            printed_nodes.insert(node_id);
+
             return {""};
         }
 
@@ -243,8 +261,8 @@ namespace eraxc {
 
             //print globals
             for (const auto& global_var : global_scope.identifiers) {
-                if (global_var.second.is_func) continue;
-                file << "var$" << global_var.second.id << ' ' << type(global_var.second.type) << " 0\n";
+                if (global_var.second.is_func()) continue;
+                file << "var$" << global_var.second.id << ' ' << type(global_var.second.get_type()) << " 0\n";
                 mem.globals.insert(global_var.second.id);
             }
 
@@ -265,19 +283,26 @@ namespace eraxc {
 
             //print global init
             {
+                file << "$f_0:\nsub rsp, 8\n";
                 auto r = print_cfg_node(cfg, 0, file);
                 if (!r) return r;
+                file << "add rsp, 8\nret\n";
             }
 
             //now print all functions
             for (const auto& func : cfg.get_funcs()) {
-                //TODO handle args pass correctly
+                //TODO handle args pass correctly (only 4 params would fit in ABI)
                 for (const auto& param : func.second.params) {
                     mem.used_regs.emplace(param.value, pass_ABI[mem.args_in_registers_count++]);
                 }
                 mem.args_in_registers_count = 0;
+
+                file << "$f_" << func.second.node_id << ":\nsub rsp, 8\n";
                 auto r = print_cfg_node(cfg, func.second.node_id, file);
+                file << "add rsp, 8\nret\n";
+
                 if (!r) return r;
+
                 mem.reset();
             }
             return {""};

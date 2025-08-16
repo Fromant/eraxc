@@ -18,6 +18,7 @@ int test_IL(int param1, int param2) {
     i32 test = a = 2i;
     a=321i;
     a+=627i+123i;
+    if(sum>a) sum=a;
     sum=a;
     return sum;
 }
@@ -25,6 +26,9 @@ int test_IL(int param1, int param2) {
 int main() {
     int test11=11i;
     int test12 = test11 = 1i;
+
+    if(test11!=1i) test11=12i;
+    else test11 = 13i;
 
     return test11 + test12;
 }

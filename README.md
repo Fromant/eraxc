@@ -5,14 +5,14 @@
 
 Project currently is in WIP state, almost nothing is ready
 
-Currently, transpiles files to pure win64 x86-64 NASM
+Currently, transpiles files to pure win64 x86-64 NASM and turns that into executable via gcc linker
 
 #### no LLVM
 
 Source code will be compiled to executable, transpiled into IL bytecode as C# for some VM with JIT or interpreted with native slow interpreter
 
 
-Erax is a joy (at least for now) successor / replacer of C lang with a bunch of improvements (all WIP):
+Erax is a joy (at least for now) successor / replacer of C/C++ lang with a bunch of improvements (all WIP):
 1. instants have slightly other syntax: `64ul` ~= `64llu` (almost same as `64lu`; `64i` ~= `(int)64` and so on
 2. built-in Structs with functions and namespaces
 3. fixed data types sizes on all platform along with standard C types `int` ~= `i32`. See more in [here](docs/keywords.md)

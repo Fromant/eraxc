@@ -7,6 +7,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g")
 
 add_executable(eraxc src/main.cpp
         src/util/error.cpp
-        src/backend/asm_translators/asm_x86_mem.h
+        src/backend/codegen/asm_x86_mem.h
         src/backend/JIR/CFG/CFG.cpp
 )

@@ -17,27 +17,31 @@ namespace eraxc::JIR {
 
         std::vector<CFG_Node> nodes;
 
-        //better use multimap? <int from_id, [to_id, instruction id]>
-        std::vector<CFG_Edge> edges;  //every JMP, CALL, RET is edge
+        // multimap <int from_id, int to_id>. every JUMP is an edge
+        std::multimap<size_t, size_t> edges;
 
         std::map<u64, CFG_Func> global_funcs;
         std::vector<Scope> scopes;
 
+        std::stack<Operation> jump_ops;
+
         Scope& get_cfg_scope(size_t node_id);
 
         error::errable<void> parse_declaration(const std::vector<token>& tokens, int& i, size_t node_id);
-        error::errable<void> parse_function(const std::vector<token>& tokens, int& i, size_t node_id);
-        error::errable<void> parse_statements(const std::vector<token>& tokens, int& i, size_t node_id);
+        error::errable<void> parse_function(const std::vector<token>& tokens, int& i, size_t& node_id);
+        error::errable<void> parse_statements(const std::vector<token>& tokens, int& i, size_t& node_id);
+        error::errable<void> parse_statement(const std::vector<token>& tokens, int& i, size_t& node_id);
 
-        error::errable<void> parse_if(const std::vector<token>& tokens, int& i, size_t node_id);
+        error::errable<void> parse_if(const std::vector<token>& tokens, int& i, size_t& node_id);
         error::errable<void> parse_do(const std::vector<token>& tokens, int& i, size_t node_id);
         error::errable<void> parse_while(const std::vector<token>& tokens, int& i, size_t node_id);
         error::errable<void> parse_for(const std::vector<token>& tokens, int& i, size_t node_id);
 
-        error::errable<Operand> parse_expression(const std::vector<token>& tokens, int& i, size_t node_id,
+        error::errable<Operand> parse_instant(const token& t, Scope& scope) const;
+        error::errable<Operand> parse_expression(const std::vector<token>& tokens, int& i, size_t& node_id,
                                                  const std::set<token::type>& end = {token::SEMICOLON});
         error::errable<void> push_expr_stack(std::stack<syntax::operator_type>& operations,
-                                             std::stack<Operand>& operands, size_t node_id);
+                                             std::stack<Operand>& operands, size_t& node_id);
         error::errable<std::pair<Operand, Nodes>> parse_expr_operand(const std::vector<token>& tokens, int& i,
                                                                      size_t node_id);
 
@@ -51,6 +55,7 @@ namespace eraxc::JIR {
         const Scope& get_scope(size_t node_id) const;
         const CFG_Node& get_cfg_node(size_t node_id) const { return nodes[node_id]; };
         const std::map<u64, CFG_Func>& get_funcs() const { return global_funcs; }
+        const auto& get_edges() const { return edges; }
 
         void print_functions() const;
         void print_nodes() const;
