@@ -9,4 +9,8 @@ add_executable(eraxc src/main.cpp
         src/util/error.cpp
         src/backend/codegen/asm_x86_mem.h
         src/backend/JIR/CFG/CFG.cpp
+        src/backend/JIR/ScopeManager.cpp
+        src/backend/JIR/ScopeManager.h
 )
+
+include_directories(eraxc src)

@@ -1,0 +1,3 @@
+
+
+#include "ScopeManager.h"

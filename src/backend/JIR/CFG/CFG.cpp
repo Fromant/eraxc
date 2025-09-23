@@ -8,23 +8,12 @@
 
 #include <format>
 
-
 namespace eraxc::JIR {
-
-    Scope& CFG::get_cfg_scope(const size_t node_id) {
-        return scopes[nodes[node_id].scope_id];
-    }
-
-    const Scope& CFG::get_scope(size_t node_id) const {
-        return scopes[nodes[node_id].scope_id];
-    }
-
 
     error::errable<void> CFG::create(const std::vector<token>& tokens) {
         int i = 0;
         size_t global_node_id = nodes.size();
-        nodes.emplace_back(CFG_Node {{}, {}, scopes.size()});
-        scopes.emplace_back(size_t(-1), nullptr);
+        nodes.emplace_back();
 
         while (i < tokens.size()) {
             if (tokens[i].t == token::IDENTIFIER && tokens[i + 1].t == token::IDENTIFIER) {
@@ -40,33 +29,34 @@ namespace eraxc::JIR {
             } else return {"Unknown statement: " + tokens[i].data};
         }
         //check for main() entrypoint
-        if (!get_cfg_scope(global_node_id).contains_id("main", scopes)) return {NO_ENTRYPOINT_ERROR};
-        auto main_decl = get_cfg_scope(global_node_id).get_declaration("main", scopes);
-        if (!main_decl.is_func()) return {NO_ENTRYPOINT_ERROR};
-        if (main_decl.get_type() != get_cfg_scope(global_node_id).get_type_id("int", scopes))
-            return {NO_ENTRYPOINT_ERROR};
+        if (scopeManager.size() != 1) {
+            return {"Something went wrong during compilation. Scopes count: " + std::to_string(scopeManager.size())};
+        }
+        if (!scopeManager.containsIdRecursive("main")) return {NO_ENTRYPOINT_ERROR};
+        auto main_decl = scopeManager.findDeclaration("main");
+        if (!main_decl.isFunc()) return {NO_ENTRYPOINT_ERROR};
+        if (main_decl.getType() != scopeManager.findTypeRecursive("int")) return {NO_ENTRYPOINT_ERROR};
+
+        scopeManager.dealloc_top(nodes[global_node_id].body);
 
         return {""};
     }
 
 
     error::errable<void> CFG::parse_function(const std::vector<token>& tokens, int& i, size_t& node_id) {
-        if (!get_cfg_scope(node_id).contains_type(tokens[i].data, scopes))
-            return {"No such typename " + tokens[i].data};
-        const u64 return_type = get_cfg_scope(node_id).get_type_id(tokens[i].data, scopes);
+        if (!scopeManager.containsTypeRecursive(tokens[i].data)) return {"No such typename " + tokens[i].data};
+        const u64 return_type = scopeManager.findTypeRecursive(tokens[i].data);
 
-        if (get_cfg_scope(node_id).cur_contains_id(tokens[i + 1].data))
+        if (scopeManager.containsId(tokens[i + 1].data))
             return {"Variable " + tokens[i + 1].data + " is already defined in this scope"};
 
-        const u64 func_id = get_cfg_scope(node_id).add_id(tokens[i + 1].data, return_type, true);
+        const u64 func_id = scopeManager.addId(tokens[i + 1].data, return_type, true, nodes[node_id].body);
 
         size_t func_node_id = nodes.size();
-        nodes.emplace_back(CFG_Node {{}, {}, scopes.size()});
-        scopes.emplace_back(get_cfg_node(node_id).scope_id, std::addressof(get_cfg_scope(node_id)));
-        get_cfg_scope(func_node_id).father_scope = get_cfg_node(node_id).scope_id;
-        std::vector<Operand> args {};
+        nodes.emplace_back();
 
-        if (tokens[i + 1].data == "main" && tokens[i].data == "return") root_id = func_node_id;
+        scopeManager.push();
+        std::vector<Operand> args {};
 
         i += 3;
 
@@ -74,14 +64,12 @@ namespace eraxc::JIR {
         while (tokens[i].t != token::R_BRACKET) {
             if (tokens[i].t == token::NONE) return {"Unexpected EOF in arguments list"};
             if (tokens[i].t == token::IDENTIFIER) {
-                if (!get_cfg_scope(func_node_id).contains_type(tokens[i].data, scopes))
-                    return {"No such typename " + tokens[i].data};
-                u64 arg_type = get_cfg_scope(func_node_id).get_type_id(tokens[i].data, scopes);
+                u64 arg_type = scopeManager.findTypeRecursive(tokens[i].data);
+                if (arg_type == ScopeManager::NOT_FOUND) return {"No such typename " + tokens[i].data};
+
                 if (tokens[i + 1].t != token::IDENTIFIER)
                     return {"Expected variable name in arguments list instead of " + tokens[i + 1].data};
-                u64 arg_id = get_cfg_scope(func_node_id)
-                                 .add_id(tokens[i + 1].data,
-                                         get_cfg_scope(func_node_id).get_type_id(tokens[i].data, scopes), false);
+                u64 arg_id = scopeManager.addIdWithoutAllocation(tokens[i + 1].data, arg_type, false);
                 args.emplace_back(arg_type, arg_id, false, false);
             } else
                 return {"Expected function variable list or end of function declaration instead of " + tokens[i].data};
@@ -93,7 +81,7 @@ namespace eraxc::JIR {
                 return {"Expected comma ',' or right bracket instead of " + tokens[i + 2].data};
             i += 3;
         }
-        // nodes[func_node_id].allocations.insert(nodes[func_node_id].allocations.end(), args.begin(), args.end());
+
         i++;
         //parse function body
         if (tokens[i].t != token::L_F_BRACKET) return {"Expected function body '{' instead of " + tokens[i].data};
@@ -103,6 +91,9 @@ namespace eraxc::JIR {
 
         auto body = parse_statements(tokens, i, func_node_id);
         if (!body) return {body.error};
+
+        scopeManager.dealloc_top(nodes[func_node_id].body);
+        scopeManager.pop();
 
         return {""};
     }
@@ -120,6 +111,8 @@ namespace eraxc::JIR {
 
         // now node_id stands for positive branch (see push_expr_stack() for clarification)
 
+        scopeManager.push();
+
         if (tokens[i].t == token::L_F_BRACKET) {
             //body
             auto body = parse_statements(tokens, i, node_id);
@@ -130,17 +123,18 @@ namespace eraxc::JIR {
             if (!body) return body;
         }
 
+        scopeManager.dealloc_top(nodes[node_id].body);
+        scopeManager.pop();
+
         Operation jump_op = jump_ops.top();
         jump_ops.pop();
 
         //create negative cfg branch node
         size_t negative_branch_id = nodes.size();
-        nodes.emplace_back(CFG_Node {{}, {}, scopes.size()});
-        scopes.emplace_back(get_cfg_scope(node_id_before));
+        nodes.emplace_back();
 
         edges.emplace(node_id_before, node_id);
         edges.emplace(node_id_before, negative_branch_id);
-
 
         //jump from last cfg node to negative leaving positive branch not executed
         nodes[node_id_before].body.emplace_back(jump_op, Operand {u64(-1), negative_branch_id, true, false},
@@ -151,8 +145,8 @@ namespace eraxc::JIR {
 
             //create cfg node that comes after else body
             size_t new_branch_id = nodes.size();
-            nodes.emplace_back(CFG_Node {{}, {}, scopes.size()});
-            scopes.emplace_back(get_cfg_scope(node_id_before));
+            nodes.emplace_back();
+            scopeManager.push();
 
             // edges.emplace(node_id, new_branch_id);
             edges.emplace(negative_branch_id, new_branch_id);
@@ -165,13 +159,16 @@ namespace eraxc::JIR {
             i++;
             if (tokens[i].t == token::L_F_BRACKET) {
                 //body
-                auto body = parse_statements(tokens, i, negative_branch_id);
+                auto body = parse_statements(tokens, i, new_branch_id);
                 if (!body) return body;
             } else {
                 //single statement
-                auto body = parse_statement(tokens, i, negative_branch_id);
+                auto body = parse_statement(tokens, i, new_branch_id);
                 if (!body) return body;
             }
+
+            scopeManager.dealloc_top(nodes[new_branch_id].body);
+            scopeManager.pop();
 
             //shift current node to new branch
             node_id = new_branch_id;
@@ -196,7 +193,12 @@ namespace eraxc::JIR {
                 i++;
                 auto to_return = parse_expression(tokens, i, node_id);
                 if (!to_return) return to_return.error;
-                nodes[node_id].body.emplace_back(Operation::RET, to_return.value, Operand {});
+
+                auto& body = nodes[node_id].body;
+
+                // scopeManager.dealloc_top(nodes[node_id].body);
+
+                body.emplace_back(Operation::RET, to_return.value, Operand {});
             } else if (tokens[i].data == "if") {
                 //parse if
                 auto ifn = parse_if(tokens, i, node_id);
@@ -223,35 +225,31 @@ namespace eraxc::JIR {
     }
 
     error::errable<void> CFG::parse_declaration(const std::vector<token>& tokens, int& i, size_t node_id) {
-        if (!get_cfg_scope(node_id).contains_type(tokens[i].data, scopes))
-            return {"Unknown type identifier: " + tokens[i].data};
-        if (get_cfg_scope(node_id).cur_contains_id(tokens[i + 1].data))
+        if (!scopeManager.containsTypeRecursive(tokens[i].data)) return {"Unknown type identifier: " + tokens[i].data};
+        if (scopeManager.containsId(tokens[i + 1].data))
             return {"This identifier is already defined: " + tokens[i + 1].data};
 
-        const u64 type = get_cfg_scope(node_id).get_type_id(tokens[i].data, scopes);
+        const u64 type = scopeManager.findTypeRecursive(tokens[i].data);
 
-        get_cfg_scope(node_id).identifiers[tokens[i + 1].data] = {type, get_cfg_scope(node_id).next_id, false};
+        scopeManager.addId(tokens[i + 1].data, type, false, nodes[node_id].body);
 
         if (tokens[i + 2].t == token::OPERATOR) {
             std::string name = tokens[i + 1].data;
             //parsing initialization
-            size_t old_size = nodes[node_id].allocations.size();
+            size_t old_size = scopeManager.top().allocatedIds;
             i++;
             auto init = parse_expression(tokens, i, node_id);
 
             if (!init) return init.error;
 
-            if (nodes[node_id].allocations.size() == old_size) {
-                const u64 id = get_cfg_scope(node_id).add_id(name, type, false);
-                nodes[node_id].allocations.emplace_back(Operand(type, id, false, false));
+            if (scopeManager.top().allocatedIds == old_size) {
+                const u64 id = scopeManager.addId(name, type, false, nodes[node_id].body);
             }
 
             return {""};
         }
 
-        const u64 id = get_cfg_scope(node_id).add_id(tokens[i + 1].data, type, false);
-
-        nodes[node_id].allocations.emplace_back(Operand(type, id, false, false));
+        const u64 id = scopeManager.addId(tokens[i + 1].data, type, false, nodes[node_id].body);
 
         if (tokens[i + 2].t != token::SEMICOLON)
             return {"Expected semicolon after declaration instead of: " + tokens[i + 3].data};
@@ -280,11 +278,12 @@ namespace eraxc::JIR {
         if (tokens[i].t != token::IDENTIFIER)
             return {"Expected identifier in expression operand instead of: " + tokens[i].data, {}};
 
-        auto decl = get_cfg_scope(node_id).get_declaration(tokens[i].data, scopes);
-        if (decl.id == -1 && decl.get_type() == -1) return {"Unknown identifier in this scope: " + tokens[i].data, {}};
+        auto decl = scopeManager.findDeclarationRecursive(tokens[i].data);
+        if (decl.getId() == -1 && decl.getType() == -1)
+            return {"Unknown identifier in this scope: " + tokens[i].data, {}};
         i++;
 
-        Operand operand {decl.get_type(), decl.id, false, false};
+        Operand operand {decl.getType(), decl.getId(), false, false};
         for (auto op : prefix_ops) { nodes[node_id].body.emplace_back(op, operand, Operand {}); }
 
         while ((tokens[i].t == token::OPERATOR && syntax::postfix_operators.contains(tokens[i].data)) ||
@@ -292,7 +291,7 @@ namespace eraxc::JIR {
 
             if (tokens[i].t == token::L_BRACKET) {
                 //function call
-                if (!decl.is_func()) return {"Function declaration expected", {}};
+                if (!decl.isFunc()) return {"Function declaration expected", {}};
                 u64 args_passed = 0;
                 i++;
                 //parse args
@@ -302,24 +301,23 @@ namespace eraxc::JIR {
 
                     auto arg1 = arg.value;
 
-                    if (global_funcs[decl.id].params[args_passed].type != arg1.type) {
+                    if (global_funcs[decl.getId()].params[args_passed].type != arg1.type) {
                         return {"Invalid argument type in function call.\nExpected: " +
-                                    std::to_string(global_funcs[decl.id].params[args_passed].type) +
+                                    std::to_string(global_funcs[decl.getId()].params[args_passed].type) +
                                     ", got:" + std::to_string(arg1.type),
                                 {}};
                     }
                     args_passed++;
                     nodes[node_id].body.emplace_back(Operation::PASS, arg1, Operand {});
                 }
-                if (args_passed < global_funcs[decl.id].params.size()) {
-                    return {"Not enough arguments for function: $" + std::to_string(decl.id), {}};
+                if (args_passed < global_funcs[decl.getId()].params.size()) {
+                    return {"Not enough arguments for function: $" + std::to_string(decl.getId()), {}};
                 }
 
-                u64 call_result_id = get_cfg_scope(node_id).next_id++;
-                nodes[node_id].allocations.emplace_back(decl.get_type(), call_result_id, false, true);
+                u64 call_result_id = scopeManager.addAnonymousId(decl.getType(), false, nodes[node_id].body);
                 nodes[node_id].body.emplace_back(Operation::CALL, operand,
-                                                 Operand {decl.get_type(), call_result_id, false, true});
-                operand = Operand(decl.get_type(), call_result_id, false, true);
+                                                 Operand {decl.getType(), call_result_id, false, true});
+                operand = Operand(decl.getType(), call_result_id, false, true);
                 continue;
             }
 
@@ -353,10 +351,11 @@ namespace eraxc::JIR {
         result.is_rvalue = true;
 
         if (operand1.is_instant || !operand1.is_rvalue) {
-            u64 result_id = get_cfg_scope(node_id).next_id++;
+            u64 result_id = scopeManager.addAnonymousId(result.type, false, nodes[node_id].body, true);
             result.value = result_id;
             result.is_instant = false;
-            nodes[node_id].allocations.emplace_back(result);
+            // nodes[node_id].allocations.emplace_back(result);
+            // nodes[node_id].body.emplace_back(Operation::ALLOC, result, Operand {});
             nodes[node_id].body.emplace_back(Operation::MOVE, result, operand1);
         }
 
@@ -374,8 +373,7 @@ namespace eraxc::JIR {
 
             //create positive cfg branch
             size_t positive_branch_id = this->nodes.size();
-            nodes.emplace_back(CFG_Node {{}, {}, scopes.size()});
-            scopes.emplace_back(get_cfg_scope(node_id));
+            nodes.emplace_back();
 
             jump_ops.push(to_add.second);
 
@@ -389,17 +387,17 @@ namespace eraxc::JIR {
         return {""};
     }
 
-    error::errable<Operand> CFG::parse_instant(const token& t, Scope& scope) const {
+    error::errable<Operand> CFG::parse_instant(const token& t) const {
         //TODO handle out of range, etc. Best practise would be write my own parsing library with `error::errable`
         Operand tr {};
         if (t.data[t.data.size() - 2] == 'u') {
             if (t.data.back() == 'l') {
                 //unsigned long, u64
-                tr = {scope.get_type_id("u64", scopes), u64(std::stoull(t.data.substr(0, t.data.size() - 2))), true,
-                      true};
+                tr = {scopeManager.findTypeRecursive("u64"), u64(std::stoull(t.data.substr(0, t.data.size() - 2))),
+                      true, true};
             } else if (t.data.back() == 'i') {
                 //unsigned integer instant, u32
-                tr = {scope.get_type_id("u32", scopes), u64(std::stol(t.data.substr(0, t.data.size() - 2))), true,
+                tr = {scopeManager.findTypeRecursive("u32"), u64(std::stol(t.data.substr(0, t.data.size() - 2))), true,
                       true};
             } else {
                 return {"Non-explicit or unknown constant type\nMake constant type explicit: e.g. `16i`", tr};
@@ -407,15 +405,15 @@ namespace eraxc::JIR {
         } else {
             if (t.data.back() == 'l') {
                 //long, i64
-                tr = {scope.get_type_id("i64", scopes), u64(std::stol(t.data.substr(0, t.data.size() - 1))), true,
+                tr = {scopeManager.findTypeRecursive("i64"), u64(std::stol(t.data.substr(0, t.data.size() - 1))), true,
                       true};
             } else if (t.data.back() == 'i') {
                 //integer instant, i32
-                tr = {scope.get_type_id("i32", scopes), u64(std::stoi(t.data.substr(0, t.data.size() - 1))), true,
+                tr = {scopeManager.findTypeRecursive("i32"), u64(std::stoi(t.data.substr(0, t.data.size() - 1))), true,
                       true};
             } else {
                 //if none is present, stick to i32
-                tr = {scope.get_type_id("i32", scopes), u64(std::stoi(t.data.substr(0, t.data.size() - 1))), true,
+                tr = {scopeManager.findTypeRecursive("i32"), u64(std::stoi(t.data.substr(0, t.data.size() - 1))), true,
                       true};
             }
         }
@@ -433,9 +431,10 @@ namespace eraxc::JIR {
             if (tokens[i].t != token::IDENTIFIER)
                 return {"Expected variable on the left side of assign operator", Operand {}};
 
-            auto assignee_iter = get_cfg_scope(node_id).find(tokens[i].data, scopes);
-            if (assignee_iter == get_cfg_scope(node_id).identifiers.end())
+            const auto& assignee = scopeManager.findDeclarationRecursive(tokens[i].data);
+            if (assignee == ScopeManager::NOT_FOUND_DECL)
                 return {"Unknown identifier in assignee: " + tokens[i].data, Operand {}};
+            const std::string& assignee_name = tokens[i].data;
 
             //parse assign operation
             Operation assign_op = assign_op_to_common_op(syntax::operators.at(tokens[i + 1].data));
@@ -450,14 +449,20 @@ namespace eraxc::JIR {
 
             Operand tr {u64(-2), u64(-2), false, true};
 
+            //DO i need this assign logic??
             if (!assign_to.value.is_rvalue && assign_op == Operation::MOVE) {
-                Operand new_assignee {assignee_iter->second.get_type(), get_cfg_scope(node_id).next_id++, false, false};
+                Operand new_assignee {
+                    assignee.getType(),
+                    // scopeManager.top().allocatedIds++,
+                    scopeManager.addAnonymousId(assignee.getType(), false, nodes[node_id].body, false),
+                    false, false};
+                // nodes[node_id].body.emplace_back(Operation::ALLOC, new_assignee, Operand {});
+                // scopeManager.addAllocation(new_assignee);
                 tr = new_assignee;
-                nodes[node_id].allocations.emplace_back(new_assignee);
                 nodes[node_id].body.emplace_back(assign_op, new_assignee, assign_to.value);
-                assignee_iter->second.id = new_assignee.value;
+                scopeManager.setDeclaration(assignee_name, {assignee.getType(), new_assignee.value, false});
             } else {
-                tr = Operand(assignee_iter->second.get_type(), assignee_iter->second.id, false, false);
+                tr = Operand(assignee.getType(), assignee.getId(), false, false);
                 nodes[node_id].body.emplace_back(assign_op, tr, assign_to.value);
             }
             return {"", tr};
@@ -480,7 +485,7 @@ namespace eraxc::JIR {
                 if (!parentheses) return parentheses;
                 operand = parentheses.value;
             } else if (tokens[i].t == token::INSTANT) {
-                auto instant = parse_instant(tokens[i], get_cfg_scope(node_id));
+                auto instant = parse_instant(tokens[i]);
                 if (!instant) return instant;
                 operand = instant.value;
                 i++;
@@ -530,9 +535,9 @@ namespace eraxc::JIR {
     }
 
     void CFG::print_nodes() const {
-        for (const auto& node : nodes) {
-            std::cout << '_' << node.scope_id << ":\n";
-            utils::print_JIR_nodes(node.body);
+        for (int i = 0; i < nodes.size(); i++) {
+            std::cout << '_' << i << ":\n";
+            utils::print_JIR_nodes(nodes[i].body);
         }
     }
 

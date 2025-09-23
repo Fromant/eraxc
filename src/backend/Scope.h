@@ -1,131 +1,39 @@
-#ifndef BLCK_COMPILER_SCOPE_H
-#define BLCK_COMPILER_SCOPE_H
+#pragma once
 
 #include <unordered_map>
 #include <string>
 
-#include "../frontend/syntax/enums.h"
+#include "util/common.h"
 
 namespace eraxc {
 
-    typedef unsigned long long u64;
-
     struct Scope {
 
-        struct declaration {
+        struct Declaration {
         private:
-            u64 type = -1;
+            u64 type;
+            u64 id;
+            bool _isFunc;
 
         public:
-            u64 id = -1;
-            bool is_func() const { return (type & 0x8000000000000000llu) == 0x8000000000000000llu; };
+            Declaration(u64 type, u64 id, bool is_func) : type(type), id(id), _isFunc(is_func) {}
+            Declaration() : type(-1), id(-1), _isFunc(false) {}
 
-            declaration(u64 type, u64 id, bool is_func) : type(type & 0x7FFFFFFFFFFFFFFFLLU), id(id) {
-                if (is_func) this->type |= 0x8000000000000000;
-            }
-
-            u64 get_type() const { return type & 0x7FFFFFFFFFFFFFFFLLU; }
-
-            declaration() : type(-1), id(-1) {};
+            bool isFunc() const { return _isFunc; }
+            u64 getId() const { return id; }
+            u64 getType() const { return type; }
+            void setId(u64 id) { this->id = id; }
+            bool operator==(const Declaration& declaration) const {
+                return type == declaration.type && id == declaration.id && _isFunc == declaration.isFunc();
+            };
         };
 
-        size_t father_scope = -1;
 
-        u64 next_id = 0;
-
-        std::unordered_map<std::string, declaration> identifiers {};
+        //number of allocations (including anonymous)
+        u64 allocatedIds = 0;
+        std::unordered_map<std::string, Declaration> identifiers {};
         std::unordered_map<std::string, size_t> typenames {};
 
-        explicit Scope(size_t father_scope_id, const Scope* father) {
-            if (father_scope_id == -1 || father == nullptr) {
-                //global scope
-                typenames = std::unordered_map<std::string, size_t> {
-                    {"i8", syntax::i8},     {"i16", syntax::i16},   {"i32", syntax::i32},
-                    {"i64", syntax::i64},   {"i128", syntax::i128}, {"i256", syntax::i256},
-
-                    {"u8", syntax::u8},     {"u16", syntax::u16},   {"u32", syntax::u32},
-                    {"u64", syntax::u64},   {"u128", syntax::u128}, {"u256", syntax::u256},
-
-                    {"int", syntax::i32},   {"long", syntax::i64},  {"char", syntax::i8},
-                    {"bool", syntax::BOOL}, {"short", syntax::i16}, {"void", syntax::VOID}};
-            } else next_id = father->next_id;
-            father_scope = father_scope_id;
-        }
-
-        Scope() = delete;
-
-        bool contains_type(const std::string& type, const std::vector<Scope>& scopes) const {
-            auto it = this;
-            while (it->father_scope != -1) {
-                if (it->typenames.contains(type)) return true;
-                it = &scopes[it->father_scope];
-            }
-            if (it->typenames.contains(type)) return true;
-            return false;
-        }
-
-        bool cur_contains_id(const std::string& id) const { return identifiers.contains(id); }
-
-        bool contains_id(const std::string& id, const std::vector<Scope>& scopes) const {
-            auto it = this;
-            while (it->father_scope != -1) {
-                if (it->identifiers.contains(id)) return true;
-                it = &scopes[it->father_scope];
-            }
-            if (it->identifiers.contains(id)) return true;
-            return false;
-        }
-
-        size_t get_type_id(const std::string& type, const std::vector<Scope>& scopes) const {
-            auto it = this;
-            while (it->father_scope != -1) {
-                if (it->typenames.contains(type)) return it->typenames.at(type);
-                it = &scopes[it->father_scope];
-            }
-            if (it->typenames.contains(type)) return it->typenames.at(type);
-            return -1;
-        }
-
-        /// Function for getting declaration id in scope
-        /// \param id string of declaration
-        /// \param scopes vector of scopes from CFG
-        /// \return declaration id
-        declaration get_declaration(const std::string& id, const std::vector<Scope>& scopes) const {
-            auto it = this;
-            while (it->father_scope != -1) {
-                if (it->identifiers.contains(id)) return it->identifiers.at(id);
-                it = &scopes[it->father_scope];
-            }
-            if (it->identifiers.contains(id)) return it->identifiers.at(id);
-            return declaration {size_t(-1), size_t(-1), false};
-        }
-
-        /// Function to add declaration into scope
-        /// \param id declaration to add
-        /// \param type id of type of added identifier
-        /// \param is_func is this identifier a function
-        /// \return the index of declaration
-        size_t add_id(const std::string& id, size_t type, bool is_func) {
-            size_t tr = next_id;
-            identifiers[id] = {type, next_id, is_func};
-            next_id++;
-            return tr;
-        }
-
-        std::unordered_map<std::string, declaration>::iterator find(const std::string& name,
-                                                                    std::vector<Scope>& scopes) {
-            Scope* it = this;
-            while (it->father_scope != -1) {
-                auto tr = it->identifiers.find(name);
-                if (tr != it->identifiers.end()) return tr;
-                it = &scopes[it->father_scope];
-            }
-            auto tr = it->identifiers.find(name);
-            if (tr != it->identifiers.end()) return tr;
-            return identifiers.end();
-        }
-
-        declaration& operator[](const std::string& id) { return identifiers[id]; }
+        Scope() = default;
     };
 }
-#endif  //BLCK_COMPILER_SCOPE_H

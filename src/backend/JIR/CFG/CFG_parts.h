@@ -8,8 +8,7 @@ namespace eraxc::JIR {
 
     struct CFG_Node {
         std::vector<Node> body;
-        std::vector<Operand> allocations;
-        size_t scope_id;
+        // std::vector<Operand> allocations;
     };
 
     struct CFG_Edge {

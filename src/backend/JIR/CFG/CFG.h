@@ -1,11 +1,13 @@
 #ifndef CFG_H
 #define CFG_H
 
-#include <map>
 #include <stack>
 
 #include "../Node.h"
 #include "CFG_parts.h"
+#include "backend/JIR/ScopeManager.h"
+
+#include <map>
 
 
 namespace eraxc::JIR {
@@ -13,19 +15,15 @@ namespace eraxc::JIR {
     typedef std::vector<Node> Nodes;
 
     class CFG {
-        size_t root_id = -1;
-
         std::vector<CFG_Node> nodes;
 
         // multimap <int from_id, int to_id>. every JUMP is an edge
         std::multimap<size_t, size_t> edges;
 
         std::map<u64, CFG_Func> global_funcs;
-        std::vector<Scope> scopes;
+        ScopeManager scopeManager;
 
         std::stack<Operation> jump_ops;
-
-        Scope& get_cfg_scope(size_t node_id);
 
         error::errable<void> parse_declaration(const std::vector<token>& tokens, int& i, size_t node_id);
         error::errable<void> parse_function(const std::vector<token>& tokens, int& i, size_t& node_id);
@@ -37,7 +35,7 @@ namespace eraxc::JIR {
         error::errable<void> parse_while(const std::vector<token>& tokens, int& i, size_t node_id);
         error::errable<void> parse_for(const std::vector<token>& tokens, int& i, size_t node_id);
 
-        error::errable<Operand> parse_instant(const token& t, Scope& scope) const;
+        error::errable<Operand> parse_instant(const token& t) const;
         error::errable<Operand> parse_expression(const std::vector<token>& tokens, int& i, size_t& node_id,
                                                  const std::set<token::type>& end = {token::SEMICOLON});
         error::errable<void> push_expr_stack(std::stack<syntax::operator_type>& operations,
@@ -52,10 +50,11 @@ namespace eraxc::JIR {
         /// @return error that happened if any did
         error::errable<void> create(const std::vector<token>& tokens);
 
-        const Scope& get_scope(size_t node_id) const;
         const CFG_Node& get_cfg_node(size_t node_id) const { return nodes[node_id]; };
         const std::map<u64, CFG_Func>& get_funcs() const { return global_funcs; }
         const auto& get_edges() const { return edges; }
+
+        const ScopeManager& getScopeManager() const { return scopeManager; }
 
         void print_functions() const;
         void print_nodes() const;

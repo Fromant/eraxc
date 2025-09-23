@@ -2,7 +2,6 @@
 #define BLCK_COMPILER_ASM_X86_H
 
 #include <ostream>
-#include <ranges>
 #include <set>
 
 #include "asm_translator.h"
@@ -122,7 +121,7 @@ namespace eraxc {
             }
             if (node.op == JIR::Operation::ALLOC) {
                 auto assignee = mem.allocate_stack_space(size(node.operand1.type), node.operand1.value);
-                if (!assignee) return {"Failed to allocate stack space"};
+                if (!assignee) return {"Failed to allocate stack space: " + assignee.error};
                 os << assignee.value;
                 return {""};
             }
@@ -134,6 +133,9 @@ namespace eraxc {
             }
 
             //TODO choose instruction better. Check if instant.
+
+            // if (node.operand1.is_instant)
+            // if (node.operand2.is_instant)
 
             auto op1 = get_operand(node.operand1);
             auto op2 = get_operand(node.operand2);
@@ -196,7 +198,7 @@ namespace eraxc {
                 os << "shr " << reg << ", " << op2.value << '\n';
             } else if (node.op == JIR::Operation::CMP) {
                 os << "cmp " << reg << ", " << op2.value << '\n';
-                return {""}; //return without saving from reg to stack
+                return {""};  //return without saving from reg to stack
             }
             //save result to assignee
             os << "mov " << op1.value << ", " << reg << "\n";
@@ -216,13 +218,6 @@ namespace eraxc {
 
             const JIR::CFG_Node& node = cfg.get_cfg_node(node_id);
 
-            //allocs
-            for (const auto& alloc : node.allocations) {
-                if (mem.used_regs.contains(alloc.value)) continue;
-                auto allocation = mem.allocate_stack_space(size(alloc.type), alloc.value);
-                if (!allocation) return {"Failed to allocate stack space: " + allocation.error};
-                os << allocation.value;
-            }
             //body
             for (const auto& JIR_node : node.body) {
                 auto print = print_JIR_node_asm(JIR_node, os);
@@ -238,13 +233,6 @@ namespace eraxc {
                 // os << "add rsp, 8\nret\n";
             }
 
-            //deallocs
-            for (const auto& allocation : std::ranges::reverse_view(node.allocations)) {
-                auto ddd = mem.try_dealloc(size(allocation.type), allocation.value);
-                if (!ddd) return {"Failed to deallocate variable: " + ddd.error};
-                os << ddd.value;
-            }
-
             printed_nodes.insert(node_id);
 
             return {""};
@@ -257,13 +245,10 @@ namespace eraxc {
 
             file << "global main\nbits 64\nextern printf\nsection .data\n";
 
-            const Scope& global_scope = cfg.get_scope(0);
-
             //print globals
-            for (const auto& global_var : global_scope.identifiers) {
-                if (global_var.second.is_func()) continue;
-                file << "var$" << global_var.second.id << ' ' << type(global_var.second.get_type()) << " 0\n";
-                mem.globals.insert(global_var.second.id);
+            for (const auto& it : cfg.getScopeManager().top_allocations()) {
+                file << "var$" << it.value << ' ' << type(it.type) << " 0\n";
+                mem.globals.insert(it.value);
             }
 
             file << "DBG_PRINT: db \"{%d}: %d\", 0x0A, 0x00\n"
@@ -273,7 +258,7 @@ namespace eraxc {
                     "call $f_0\n"
                  <<
                 //call to main function
-                "call $f_" << cfg.get_funcs().at(global_scope.identifiers.find("main")->second.id).node_id << '\n';
+                "call $f_" << cfg.get_funcs().at(cfg.getScopeManager().findIdRecursive("main")).node_id << '\n';
 
             //now return rsp to where it's been before allocations
             file << "add rsp, 0x" << std::hex << mem.used_stack_space + 0x28 << std::dec << '\n';
@@ -282,12 +267,10 @@ namespace eraxc {
             file << "ret;\n";
 
             //print global init
-            {
-                file << "$f_0:\nsub rsp, 8\n";
-                auto r = print_cfg_node(cfg, 0, file);
-                if (!r) return r;
-                file << "add rsp, 8\nret\n";
-            }
+            file << "$f_0:\nsub rsp, 8\n";
+            auto r = print_cfg_node(cfg, 0, file);
+            if (!r) return r;
+            file << "add rsp, 8\nret\n";
 
             //now print all functions
             for (const auto& func : cfg.get_funcs()) {

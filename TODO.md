@@ -26,6 +26,7 @@
 - [ ] Move all errors to separate file
 - [x] Control flow graph consisting of functions and codeblocks
 - [x] Types check
+- [x] Move all the allocation and deallocation logic inside cfg pass. Only allocate when needed. Maybe even move stack machine to CFG?
 - [ ] Get rid of excessive asm lines
 - [ ] Redo typenames
 - [ ] Type explicit casting (only explicit!)
