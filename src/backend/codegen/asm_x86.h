@@ -116,7 +116,10 @@ namespace eraxc {
             if (node.op == JIR::Operation::CALL) {
                 auto op2 = mem.get_var(node.operand2.value, size(node.operand2.type));
                 if (!op2) return {op2.error};
+                const auto diff = (mem.used_stack_space + 8) % 16;
+                if (diff != 0) os << "sub rsp, " << 16 - diff << '\n';
                 os << "call $f_" << node.operand1.value << '\n';
+                if (diff != 0) os << "add rsp, " << 16 - diff << '\n';
                 std::string reg = reg_name(x86_reg::RAX, size(node.operand1.type));
                 os << "mov " << op2.value << ", " << reg << '\n';
                 mem.args_in_registers_count = 0;
