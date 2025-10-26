@@ -13,16 +13,28 @@ cmake-configure:
     - echo "Configuring cmake...."
     - cmake -DCMAKE_BUILD_TYPE=Debug -S ./ -B ./build
     - echo "Complete"
+  artifacts:
+    paths:
+      - build/
+    expire_in: 1 hour
 
 build-eraxc:
   stage: build
   script:
     - cmake --build ./build --target eraxc
+  artifacts:
+    paths:
+      - build/
+    expire_in: 1 hour
 
 build-tests:
   stage: build
   script:
     - cmake --build ./build --target eraxTests
+  artifacts:
+    paths:
+      - build/
+    expire_in: 1 hour
 
 unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
