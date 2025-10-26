@@ -42,7 +42,7 @@ namespace eraxc::JIR::utils {
                 std::cout << "DIV " << operand_to_string(node.operand1) << ' ' << operand_to_string(node.operand2)
                           << std::endl;
             } else if (node.op == Operation::RET) {
-                std::cout << "RET " << operand_to_string(node.operand1) << std::endl;
+                std::cout << "RET" << std::endl;
             } else if (node.op == Operation::MOD) {
                 std::cout << "MOD " << operand_to_string(node.operand1) << ' ' << operand_to_string(node.operand2)
                           << std::endl;

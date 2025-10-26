@@ -61,10 +61,7 @@ namespace eraxc {
                 return {""};
             }
             if (node.op == JIR::Operation::RET) {
-                auto ret_val = get_operand(node.operand1);
-                if (!ret_val) return {ret_val.error};
-                std::string reg = reg_name(x86_reg::RAX, size(node.operand1.type));
-                os << "mov " << reg << ", " << ret_val.value << '\n';
+                os << "add rsp, " << mem.used_stack_space << '\n';
                 return {""};
             }
             if (node.op == JIR::Operation::PASS) {
@@ -73,6 +70,12 @@ namespace eraxc {
                 if (!op1) return {op1.error};
                 os << "mov " << reg_name(pass_ABI[mem.args_in_registers_count++], size(node.operand1.type)) << ", "
                    << op1.value << '\n';
+                return {""};
+            }
+            if (node.op == JIR::Operation::PASS_RET) {
+                auto op1 = get_operand(node.operand1);
+                if (!op1) return {op1.error};
+                os << "mov " << reg_name(x86_reg::RAX, size(node.operand1.type)) << ", " << op1.value << '\n';
                 return {""};
             }
             if (node.op == JIR::Operation::JUMP) {
@@ -126,9 +129,9 @@ namespace eraxc {
                 return {""};
             }
             if (node.op == JIR::Operation::DEALLOC) {
-                auto assignee = mem.try_dealloc(size(node.operand1.type), node.operand1.value);
-                if (!assignee) return {"Failed to deallocate stack space: " + assignee.error};
-                os << assignee.value;
+                // auto assignee = mem.try_dealloc(size(node.operand1.type), node.operand1.value);
+                // if (!assignee) return {"Failed to deallocate stack space: " + assignee.error};
+                // os << assignee.value;
                 return {""};
             }
 

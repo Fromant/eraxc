@@ -39,6 +39,7 @@ namespace eraxc::JIR {
         JL,
         JLE,
         PASS,
+        PASS_RET,
         ALLOC,
         DEALLOC,
         STORE,
