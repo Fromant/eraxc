@@ -1,6 +1,5 @@
 image: 
-  name: cmake-gcc:latest
-  pull_policy: if-not-present
+  name: froman22/cmake-gcc:latest
 
 stages:          # List of stages for jobs, and their order of execution
   - cmake_configure
