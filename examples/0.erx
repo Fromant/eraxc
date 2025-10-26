@@ -30,5 +30,9 @@ int main() {
     if(test11!=1i) test11=12i;
     else test11 = 13i;
 
-    return test11 + test12;
+    test12 = test_IL(test11, 120);
+
+    int test13 = test_IL(11,12);
+
+    return test11 + test12 + test13;
 }
