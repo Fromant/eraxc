@@ -1,0 +1,46 @@
+
+stages:          # List of stages for jobs, and their order of execution
+  - cmake_configure
+  - build
+  - test
+#   - deploy
+
+cmake-configure:
+  stage: cmake_configure
+  script:
+    - echo "Configuring cmake...."
+    - cmake -DCMAKE_BUILD_TYPE=Debug -S ./ -B ./build
+    - echo "Complete"
+
+build-eraxc:
+  stage: build
+  script:
+    - cmake --build ./build --target eraxc
+
+build-tests:
+  stage: build
+  script:
+    - cmake --build ./build --target eraxTests
+
+unit-test-job:   # This job runs in the test stage.
+  stage: test    # It only starts when the job in the build stage completes successfully.
+  script:
+    - echo "Running unit tests... This will take about 60 seconds."
+    - cd ./build/tests
+    - ./eraxTests --gtest_output="xml:test_results.xml"
+  artifacts:
+    reports:
+        junit: build/tests/test_results.xml
+
+lint-test-job:   # This job also runs in the test stage.
+  stage: test    # It can run at the same time as unit-test-job (in parallel).
+  script:
+    - echo "Linter goes here"
+    - sleep 10
+
+# deploy-job:      # This job runs in the deploy stage.
+#   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
+#   environment: production
+#   script:
+#     - echo "Deploying application..."
+#     - echo "Application successfully deployed."
