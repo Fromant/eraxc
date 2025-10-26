@@ -159,11 +159,11 @@ namespace eraxc::JIR {
             i++;
             if (tokens[i].t == token::L_F_BRACKET) {
                 //body
-                auto body = parse_statements(tokens, i, new_branch_id);
+                auto body = parse_statements(tokens, i, negative_branch_id);
                 if (!body) return body;
             } else {
                 //single statement
-                auto body = parse_statement(tokens, i, new_branch_id);
+                auto body = parse_statement(tokens, i, negative_branch_id);
                 if (!body) return body;
             }
 
@@ -179,6 +179,7 @@ namespace eraxc::JIR {
 
     error::errable<void> CFG::parse_statements(const std::vector<token>& tokens, int& i, size_t& node_id) {
         //all the stuff should have CFG node arg for alloc & dealloc purposes
+        if (tokens[i].t == token::L_F_BRACKET) { i++; }
         while (tokens[i].t != token::R_F_BRACKET) {
             auto statement = parse_statement(tokens, i, node_id);
             if (!statement) return statement;

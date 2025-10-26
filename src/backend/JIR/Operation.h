@@ -71,10 +71,10 @@ namespace eraxc::JIR {
 
         if (op == syntax::ASSIGN) return {Operation::MOVE, Operation::NONE};
 
-        if (op == syntax::LESS) return {Operation::CMP, Operation::JGE};
-        if (op == syntax::LESS_EQ) return {Operation::CMP, Operation::JG};
-        if (op == syntax::GREATER) return {Operation::CMP, Operation::JLE};
-        if (op == syntax::GREATER_EQ) return {Operation::CMP, Operation::JL};
+        if (op == syntax::LESS) return {Operation::CMP, Operation::JL};
+        if (op == syntax::LESS_EQ) return {Operation::CMP, Operation::JLE};
+        if (op == syntax::GREATER) return {Operation::CMP, Operation::JG};
+        if (op == syntax::GREATER_EQ) return {Operation::CMP, Operation::JGE};
         if (op == syntax::EQUAL) return {Operation::CMP, Operation::JNE};
         if (op == syntax::NOT_EQUAL) return {Operation::CMP, Operation::JE};
 
