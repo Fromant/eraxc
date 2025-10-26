@@ -3,7 +3,6 @@
 #include "Node.h"
 #include "Operand.h"
 #include "Operation.h"
-#include "CFG/CFG_parts.h"
 
 #include "backend/Scope.h"
 #include "frontend/syntax/enums.h"
@@ -169,6 +168,15 @@ namespace eraxc::JIR {
             // Operand dealloc {id.second.getType(), id.second.getId(), false, false};
             // nodes.emplace_back(Operation::DEALLOC, dealloc, Operand {});
             // }
+        }
+
+        void dealloc_all(Nodes& nodes) {
+            for (int i = allocations.size()-1;i>0;i--) {
+                auto & allocs = allocations[i];
+                for (auto& allocatee : std::views::reverse(allocs)) {
+                    nodes.emplace_back(Operation::DEALLOC, allocatee, Operand {});
+                }
+            }
         }
 
         void pop() {

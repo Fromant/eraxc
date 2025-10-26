@@ -92,7 +92,10 @@ namespace eraxc::JIR {
         auto body = parse_statements(tokens, i, func_node_id);
         if (!body) return {body.error};
 
-        scopeManager.dealloc_top(nodes[func_node_id].body);
+        if (nodes[func_node_id].body.back().op != Operation::RET) {
+            scopeManager.dealloc_top(nodes[func_node_id].body);
+            nodes[func_node_id].body.emplace_back(Operation::RET, Operand {}, Operand {});
+        }
         scopeManager.pop();
 
         return {""};
@@ -197,9 +200,9 @@ namespace eraxc::JIR {
 
                 auto& body = nodes[node_id].body;
 
-                // scopeManager.dealloc_top(nodes[node_id].body);
-
-                body.emplace_back(Operation::RET, to_return.value, Operand {});
+                body.emplace_back(Operation::PASS_RET, to_return.value, Operand {});
+                scopeManager.dealloc_all(body);
+                body.emplace_back(Operation::RET, Operand {}, Operand {});
             } else if (tokens[i].data == "if") {
                 //parse if
                 auto ifn = parse_if(tokens, i, node_id);
@@ -296,9 +299,9 @@ namespace eraxc::JIR {
                 u64 args_passed = 0;
                 i++;
                 //parse args
-                while (tokens[i].t != token::R_BRACKET) {
+                while (tokens[i - 1].t != token::R_BRACKET) {
                     auto arg = parse_expression(tokens, i, node_id, {token::R_BRACKET, token::COMMA});
-                    if (!arg) return {"Error while parsing function call argument", {}};
+                    if (!arg) return {"Error while parsing function call argument" + arg.error, {}};
 
                     auto arg1 = arg.value;
 
@@ -455,8 +458,7 @@ namespace eraxc::JIR {
                 Operand new_assignee {
                     assignee.getType(),
                     // scopeManager.top().allocatedIds++,
-                    scopeManager.addAnonymousId(assignee.getType(), false, nodes[node_id].body, false),
-                    false, false};
+                    scopeManager.addAnonymousId(assignee.getType(), false, nodes[node_id].body, false), false, false};
                 // nodes[node_id].body.emplace_back(Operation::ALLOC, new_assignee, Operand {});
                 // scopeManager.addAllocation(new_assignee);
                 tr = new_assignee;
