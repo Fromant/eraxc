@@ -1,13 +1,13 @@
 #include <iostream>
 #include <chrono>
 
-#include "backend/JIR/CFG/CFG.h"
-#include "frontend/lexic/preprocessor_tokenizer.h"
-#include "backend/codegen/asm_x86.h"
+#include "src/backend/JIR/CFG/CFG.h"
+#include "src/frontend/lexic/preprocessor_tokenizer.h"
+#include "src/backend/codegen/asm_x86.h"
 
 #ifdef DEBUG
 #define TEST
-#include "../tests/test_all.h"
+#include "tests/test_all.h"
 #endif
 
 using namespace eraxc;

@@ -5,12 +5,11 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g")
 
-add_executable(eraxc src/main.cpp
-        src/util/error.cpp
-        src/backend/codegen/asm_x86_mem.h
-        src/backend/JIR/CFG/CFG.cpp
-        src/backend/JIR/ScopeManager.cpp
-        src/backend/JIR/ScopeManager.h
-)
+add_executable(eraxc main.cpp)
+add_subdirectory(src)
 
-include_directories(eraxc src)
+target_link_libraries(eraxc eraxCore)
+target_include_directories(eraxc PRIVATE src/)
+
+add_subdirectory(tests)
+

@@ -223,7 +223,9 @@ namespace eraxc {
                 }
                 if (std::isdigit(c)) {
                     tmp << c;
-                    while ((std::isdigit(f.peek()) || token::instant_number_chars.contains(f.peek())) && !f.eof()) {
+                    while (
+                        (std::isdigit(f.peek()) || token::instant_number_chars.contains(f.peek()) || f.peek() == '.') &&
+                        !f.eof()) {
                         tmp << char(f.get());
                     }
                     add_token(tokens, tmp, token::INSTANT);
@@ -241,6 +243,11 @@ namespace eraxc {
 
 
             return {"", tokens};
+        }
+
+        error::errable<std::vector<token>> tokenize(const std::string& s) {
+            auto ss = std::stringstream {s};
+            return tokenize(ss);
         }
 
 

@@ -25,7 +25,7 @@ bool test_all() {
         std::cout << "JIR failed " << jir << "/" << ALL_TESTS_JIR << " tests\n";
         return false;
     } else {
-        std::cout << "JIR and CFG generators passed all tests!\n";
+        std::cout << "JIR passed all tests!\n";
     }
 
     std::cerr.flush();
