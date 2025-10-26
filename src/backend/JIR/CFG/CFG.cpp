@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "errors.h"
-#include "../../scope.h"
+#include "../../Scope.h"
 #include "../utils.h"
 
 #include <format>
