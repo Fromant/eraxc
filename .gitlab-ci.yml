@@ -1,3 +1,4 @@
+image: cmake-gcc:latest
 
 stages:          # List of stages for jobs, and their order of execution
   - cmake_configure
