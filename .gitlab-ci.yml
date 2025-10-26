@@ -1,4 +1,6 @@
-image: cmake-gcc:latest
+image: 
+  name: cmake-gcc:latest
+  pull_policy: if-not-present
 
 stages:          # List of stages for jobs, and their order of execution
   - cmake_configure
