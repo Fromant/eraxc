@@ -261,10 +261,12 @@ namespace eraxc {
                     "section .text\n"
                     "main:\n"
                     "sub rsp, 0x28\n"
-                    "call $f_0\n"
-                 <<
-                //call to main function
-                "call $f_" << cfg.get_funcs().at(cfg.getScopeManager().findIdRecursive("main")).node_id << '\n';
+                    "call $f_0\n";
+            //TODO move global initialization to separate cfg node that is always presented
+
+            if (const auto main_id = cfg.getScopeManager().findIdRecursive("main"); main_id != 0) {
+                file << "call $f_" << main_id << '\n';
+            }
 
             //now return rsp to where it's been before allocations
             file << "add rsp, 0x" << std::hex << mem.used_stack_space + 0x28 << std::dec << '\n';
@@ -273,10 +275,15 @@ namespace eraxc {
             file << "ret;\n";
 
             //print global init
-            file << "$f_0:\nsub rsp, 8\n";
-            auto r = print_cfg_node(cfg, 0, file);
-            if (!r) return r;
-            file << "add rsp, 8\nret\n";
+            if (!cfg.get_nodes()[0].body.empty()) {
+                file << "$f_0:\nsub rsp, 8\n";
+                auto r = print_cfg_node(cfg, 0, file);
+                if (!r) return r;
+                file << "add rsp, " << 8 + mem.used_stack_space << "\nret\n";
+                mem.used_stack_space = 0;
+                // file << "add rsp, 8\nret\n";
+                mem.reset();
+            }
 
             //now print all functions
             for (const auto& func : cfg.get_funcs()) {
@@ -286,7 +293,7 @@ namespace eraxc {
                 }
                 mem.args_in_registers_count = 0;
 
-                file << "$f_" << func.second.node_id << ":\nsub rsp, 8\n";
+                file << "$f_" << func.first << ":\nsub rsp, 8\n";
                 auto r = print_cfg_node(cfg, func.second.node_id, file);
                 file << "add rsp, 8\nret\n";
 
