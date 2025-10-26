@@ -2,7 +2,7 @@
 #define CFG_PARTS_H
 
 #include <vector>
-#include "../../scope.h"
+#include "../../Scope.h"
 
 namespace eraxc::JIR {
 
