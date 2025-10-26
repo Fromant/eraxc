@@ -1,7 +1,7 @@
 #ifndef JIR_NODE
 #define JIR_NODE
 
-#include "operand.h"
+#include "Operand.h"
 #include "Operation.h"
 
 namespace eraxc::JIR {

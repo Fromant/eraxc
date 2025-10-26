@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Node.h"
-#include "operand.h"
+#include "Operand.h"
 #include "CFG/CFG_parts.h"
 
 namespace eraxc::JIR::utils {
