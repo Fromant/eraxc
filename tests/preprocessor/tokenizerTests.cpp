@@ -6,7 +6,7 @@
 TEST(TokenizerTest, ParseNumbers) {
     eraxc::tokenizer tokenizer;
     auto r = tokenizer.tokenize("123");
-    ASSERT_TRUE(r.error.empty());
+    ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 1);
     EXPECT_EQ(r.value[0].t, eraxc::token::INSTANT);
     EXPECT_EQ(r.value[0].data, "123");
@@ -15,7 +15,7 @@ TEST(TokenizerTest, ParseNumbers) {
 TEST(TokenizerTest, ParseFloatNumbers) {
     eraxc::tokenizer tokenizer;
     auto r = tokenizer.tokenize("123.2");
-    ASSERT_TRUE(r.error.empty());
+    ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 1);
     EXPECT_EQ(r.value[0].t, eraxc::token::INSTANT);
     EXPECT_EQ(r.value[0].data, "123.2");
@@ -31,7 +31,9 @@ TEST(TokenizerTest, ParseSingleCharOperators) {
         EXPECT_EQ(res.value[0].t, eraxc::token::OPERATOR);
     };
 
-    for (const auto& op : eraxc::token::operator_chars) { checkResult(std::string() + op, op); }
+    for (const auto& op : eraxc::token::operator_chars) {
+        checkResult(std::string() + op, op);
+    }
 }
 
 TEST(TokenizerTest, ParseMultiCharOperators) {
@@ -45,7 +47,8 @@ TEST(TokenizerTest, ParseMultiCharOperators) {
     };
 
     for (const auto& op : eraxc::token::operator_chars) {
-        if (op == '/') continue;  //bypass because `///` is a comment
+        if (op == '/')
+            continue;  //bypass because `///` is a comment
         checkResult(std::string(3, op), std::string(3, op));
     }
 }
@@ -57,7 +60,9 @@ TEST(TokenizerTest, ParseAllOperators) {
     ASSERT_EQ(res.error, "");
     ASSERT_EQ(res.value.size(), 26);
 
-    for (const auto& op : res.value) { EXPECT_EQ(op.t, eraxc::token::OPERATOR); }
+    for (const auto& op : res.value) {
+        EXPECT_EQ(op.t, eraxc::token::OPERATOR);
+    }
 }
 
 TEST(TokenizerTest, ParseSpecialSymbols) {
@@ -74,13 +79,15 @@ TEST(TokenizerTest, ParseSpecialSymbols) {
     ASSERT_EQ(res.error, "");
     ASSERT_EQ(res.value.size(), reference.size());
 
-    for (auto i = 0; i < reference.size(); i++) { EXPECT_EQ(reference[i], res.value[i].t); }
+    for (auto i = 0; i < reference.size(); i++) {
+        EXPECT_EQ(reference[i], res.value[i].t);
+    }
 }
 
 
 TEST(TokenizerTest, GeneralTest) {
     eraxc::tokenizer tokenizer;
-    std::string filepath = "../../tests/files/tokenizer.erx";
+    std::string filepath = "../../tests/preprocessor/files/tokenizer.erx";
 
     const std::vector<eraxc::token> reference {
         {eraxc::token::IDENTIFIER, "unsigned"},
@@ -407,22 +414,26 @@ TEST(TokenizerTest, GeneralTest) {
     };
 
     auto compare_tokens = [](const eraxc::token& a, const eraxc::token& b) {
-        if (a.t == b.t && a.data == b.data) { return testing::AssertionSuccess(); }
+        if (a.t == b.t && a.data == b.data) {
+            return testing::AssertionSuccess();
+        }
         return testing::AssertionFailure() << a.data << " != " << b.data;
     };
 
     auto res = tokenizer.tokenize_file(filepath);
-    ASSERT_TRUE(res.error.empty());
+    ASSERT_EQ(res.error, "");
     ASSERT_EQ(res.value.size(), reference.size());
 
-    for (auto i = 0; i < reference.size(); i++) { EXPECT_TRUE(compare_tokens(res.value[i], reference[i])); }
+    for (auto i = 0; i < reference.size(); i++) {
+        EXPECT_TRUE(compare_tokens(res.value[i], reference[i]));
+    }
 }
 
 
 TEST(TokenizerTest, IgnoreComments) {
     eraxc::tokenizer tokenizer;
     auto r = tokenizer.tokenize("123.2 //comment till end of line//full line comment\n132.2");
-    ASSERT_TRUE(r.error.empty());
+    ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 2);
     EXPECT_EQ(r.value[0].t, eraxc::token::INSTANT);
     EXPECT_EQ(r.value[0].data, "123.2");
@@ -433,7 +444,7 @@ TEST(TokenizerTest, IgnoreComments) {
 TEST(TokenizerTest, IgnoreSpacesTabsLineBreaks) {
     eraxc::tokenizer tokenizer;
     auto r = tokenizer.tokenize("123.2  132.2 \t \t 1 12\t\t1");
-    ASSERT_TRUE(r.error.empty());
+    ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 5);
     EXPECT_EQ(r.value[0].t, eraxc::token::INSTANT);
     EXPECT_EQ(r.value[0].data, "123.2");
@@ -450,7 +461,7 @@ TEST(TokenizerTest, IgnoreSpacesTabsLineBreaks) {
 TEST(TokenizerTest, Identifiers) {
     eraxc::tokenizer tokenizer;
     auto r = tokenizer.tokenize("test_123 test-123 _test 123test");
-    ASSERT_TRUE(r.error.empty());
+    ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 5);
     EXPECT_EQ(r.value[0].t, eraxc::token::IDENTIFIER);
     EXPECT_EQ(r.value[0].data, "test_123");

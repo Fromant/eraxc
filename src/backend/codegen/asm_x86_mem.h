@@ -1,5 +1,4 @@
-#ifndef ASM_X86_MEM_H
-#define ASM_X86_MEM_H
+#pragma once
 
 #include "../JIR/utils.h"
 
@@ -30,7 +29,8 @@ namespace eraxc {
             r = "r";
         } else if (type_size == 4) {
             r = "e";
-        } else return {"ILLREG SIZE"};
+        } else
+            return {"ILLREG SIZE"};
         switch (reg) {
             case x86_reg::RAX: r += "ax"; break;
             case x86_reg::RBX: r += "bx"; break;
@@ -77,31 +77,39 @@ namespace eraxc {
 
         error::errable<std::string> get_var(u64 var, u64 type_size) {
             if (globals.contains(var)) {
-                if (type_size == 8) return {"", "QWORD[rel var$" + std::to_string(var) + "]"};
-                if (type_size == 4) return {"", "DWORD[rel var$" + std::to_string(var) + "]"};
+                if (type_size == 8)
+                    return {"", "QWORD[rel var$" + std::to_string(var) + "]"};
+                if (type_size == 4)
+                    return {"", "DWORD[rel var$" + std::to_string(var) + "]"};
                 return {"Unsupported size", ""};
             }
             if (stack_offsets.contains(var)) {
                 u64 offset = used_stack_space - stack_offsets.at(var);
                 if (offset == 0) {
-                    if (type_size == 8) return {"", "QWORD[rsp]"};
-                    if (type_size == 4) return {"", "DWORD[rsp]"};
+                    if (type_size == 8)
+                        return {"", "QWORD[rsp]"};
+                    if (type_size == 4)
+                        return {"", "DWORD[rsp]"};
                     return {"Unsupported size", {}};
                 }
-                if (type_size == 8) return {"", "QWORD[rsp+" + std::to_string(offset) + ']'};
-                if (type_size == 4) return {"", "DWORD[rsp+" + std::to_string(offset) + ']'};
+                if (type_size == 8)
+                    return {"", "QWORD[rsp+" + std::to_string(offset) + ']'};
+                if (type_size == 4)
+                    return {"", "DWORD[rsp+" + std::to_string(offset) + ']'};
                 return {"Unsupported size", {}};
             }
-            if (used_regs.contains(var)) { return {"", reg_name(used_regs[var], type_size)}; }
+            if (used_regs.contains(var)) {
+                return {"", reg_name(used_regs[var], type_size)};
+            }
             return {"Variable " + std::to_string(var) + " is not allocated", ""};
         }
 
         error::errable<std::string> allocate_stack_space(int size, u64 var) {
-            #ifdef DEBUG  //some spare check
+#ifdef DEBUG  //some spare check
             if (stack_offsets.contains(var) || used_regs.contains(var)) {
                 return {"Variable $" + std::to_string(var) + " is already allocated\n", ""};
             }
-            #endif
+#endif
             stack_offsets[var] = used_stack_space;
             used_stack_space += size;
             return {"", "sub rsp, " + std::to_string(size) + "; allocate $" + std::to_string(var) + '\n'};
@@ -112,7 +120,9 @@ namespace eraxc {
                 used_regs.erase(var);
                 return {"", ""};
             }
-            if (stack_offsets.contains(var)) { return try_dealloc_stack_space(size, var); }
+            if (stack_offsets.contains(var)) {
+                return try_dealloc_stack_space(size, var);
+            }
             return {"Variable " + std::to_string(var) + " is not allocated", ""};
         }
 
@@ -126,7 +136,9 @@ namespace eraxc {
             return {"", "add rsp, " + JIR::utils::int_to_hex(size) + "; dealloc $" + std::to_string(var) + '\n'};
         }
 
-        bool is_allocated(u64 var) const { return used_regs.contains(var) || stack_offsets.contains(var); }
+        bool is_allocated(u64 var) const {
+            return used_regs.contains(var) || stack_offsets.contains(var);
+        }
 
         void reset() {
             used_stack_space = 0;
@@ -136,4 +148,3 @@ namespace eraxc {
         }
     };
 }
-#endif  //ASM_X86_MEM_H

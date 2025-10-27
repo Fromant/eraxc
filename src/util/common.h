@@ -1,7 +1,4 @@
-#ifndef COMMON_H
-#define COMMON_H
+#pragma once
 
 typedef unsigned long long int u64;
 typedef long long int i64;
-
-#endif //COMMON_H

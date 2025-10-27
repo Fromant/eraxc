@@ -1,5 +1,4 @@
-#ifndef OPERAND_H
-#define OPERAND_H
+#pragma once
 
 #include "../../util/common.h"
 
@@ -11,6 +10,3 @@ namespace eraxc::JIR {
         bool is_rvalue;
     };
 }
-
-
-#endif  //OPERAND_H

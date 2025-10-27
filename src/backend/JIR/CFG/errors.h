@@ -1,5 +1,5 @@
-#ifndef ERRORS_H
-#define ERRORS_H
+#pragma once
+
 #include <string>
 
 namespace eraxc::JIR {
@@ -8,5 +8,3 @@ namespace eraxc::JIR {
     const std::string UNKNOWN_IDENTIFIER_ERROR = "Unknown identifier: ";
 
 }
-
-#endif  //ERRORS_H

@@ -1,13 +1,12 @@
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #include <iostream>
 #include <string>
 #include <vector>
 
+#include "CFG/CFG_parts.h"
 #include "Node.h"
 #include "Operand.h"
-#include "CFG/CFG_parts.h"
 
 namespace eraxc::JIR::utils {
 
@@ -19,7 +18,8 @@ namespace eraxc::JIR::utils {
 
     inline std::string operand_to_string(const Operand& op) {
         std::string result {};
-        if (!op.is_instant) result += '$';
+        if (!op.is_instant)
+            result += '$';
         result += std::to_string(op.value);
         return result;
     }
@@ -122,5 +122,3 @@ namespace eraxc::JIR::utils {
         }
     }
 }
-
-#endif //UTILS_H

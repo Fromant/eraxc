@@ -1,13 +1,12 @@
 #pragma once
 
+#include <ranges>
+
 #include "Node.h"
 #include "Operand.h"
 #include "Operation.h"
-
 #include "backend/Scope.h"
 #include "frontend/syntax/enums.h"
-
-#include <ranges>
 
 namespace eraxc::JIR {
     class ScopeManager {
@@ -33,7 +32,9 @@ namespace eraxc::JIR {
                 {"bool", syntax::BOOL}, {"short", syntax::i16}, {"void", syntax::VOID}};
         }
 
-        size_t size() { return scopes.size(); }
+        size_t size() {
+            return scopes.size();
+        }
 
         u64 addType(const std::string& type) {
             u64 tr = top().typenames.size();
@@ -42,26 +43,34 @@ namespace eraxc::JIR {
         }
 
         void addTypes(const std::vector<std::string>& typenames) {
-            for (const auto& type : typenames) { addType(type); }
+            for (const auto& type : typenames) {
+                addType(type);
+            }
         }
 
         bool containsTypeRecursive(const std::string& type) const {
             for (const auto& scope : std::ranges::views::reverse(scopes)) {
-                if (scope.typenames.contains(type)) return true;
+                if (scope.typenames.contains(type))
+                    return true;
             }
             return false;
         }
 
-        bool containsType(const std::string& type) const { return top().typenames.contains(type); }
+        bool containsType(const std::string& type) const {
+            return top().typenames.contains(type);
+        }
 
         bool containsIdRecursive(const std::string& id) const {
             for (const auto& scope : std::ranges::views::reverse(scopes)) {
-                if (scope.identifiers.contains(id)) return true;
+                if (scope.identifiers.contains(id))
+                    return true;
             }
             return false;
         }
 
-        bool containsId(const std::string& id) const { return top().identifiers.contains(id); }
+        bool containsId(const std::string& id) const {
+            return top().identifiers.contains(id);
+        }
 
         static constexpr u64 NOT_FOUND = -1llu;
 
@@ -85,27 +94,36 @@ namespace eraxc::JIR {
 
         auto findDeclarationRecursive(const std::string& name) const {
             for (auto& scope : std::ranges::views::reverse(scopes)) {
-                if (auto it = scope.identifiers.find(name); it != scope.identifiers.end()) { return it->second; }
+                if (auto it = scope.identifiers.find(name); it != scope.identifiers.end()) {
+                    return it->second;
+                }
             }
             return NOT_FOUND_DECL;
         }
 
         auto findDeclaration(const std::string& name) const {
-            if (auto it = top().identifiers.find(name); it != top().identifiers.end()) { return it->second; }
+            if (auto it = top().identifiers.find(name); it != top().identifiers.end()) {
+                return it->second;
+            }
             return NOT_FOUND_DECL;
         }
 
-        void setDeclaration(const std::string& name, const Scope::Declaration& decl) { top().identifiers[name] = decl; }
+        void setDeclaration(const std::string& name, const Scope::Declaration& decl) {
+            top().identifiers[name] = decl;
+        }
 
         u64 findTypeRecursive(const std::string& type) const {
             for (const auto& scope : std::ranges::views::reverse(scopes)) {
-                if (auto it = scope.typenames.find(type); it != scope.typenames.end()) { return it->second; }
+                if (auto it = scope.typenames.find(type); it != scope.typenames.end()) {
+                    return it->second;
+                }
             }
             return NOT_FOUND;
         }
 
         u64 findType(const std::string& type) const {
-            if (auto it = top().typenames.find(type); it != top().typenames.end()) return it->second;
+            if (auto it = top().typenames.find(type); it != top().typenames.end())
+                return it->second;
             return NOT_FOUND;
         }
 
@@ -141,17 +159,27 @@ namespace eraxc::JIR {
             return id++;
         }
 
-        void addAllocation(const Operand& op) { allocations.back().emplace_back(op); }
+        void addAllocation(const Operand& op) {
+            allocations.back().emplace_back(op);
+        }
 
-        Scope& top() { return scopes.back(); }
-        const Scope& top() const { return scopes.back(); }
+        Scope& top() {
+            return scopes.back();
+        }
+        const Scope& top() const {
+            return scopes.back();
+        }
 
-        const auto& top_allocations() const { return allocations.back(); }
+        const auto& top_allocations() const {
+            return allocations.back();
+        }
 
         void push() {
             scopes.emplace_back();
             allocations.emplace_back();
-            if (scopes.size() > 1) { scopes.back().allocatedIds = scopes[scopes.size() - 2].allocatedIds; }
+            if (scopes.size() > 1) {
+                scopes.back().allocatedIds = scopes[scopes.size() - 2].allocatedIds;
+            }
         }
 
         void dealloc_top(Nodes& nodes) {
@@ -171,8 +199,8 @@ namespace eraxc::JIR {
         }
 
         void dealloc_all(Nodes& nodes) {
-            for (int i = allocations.size()-1;i>0;i--) {
-                auto & allocs = allocations[i];
+            for (int i = allocations.size() - 1; i > 0; i--) {
+                auto& allocs = allocations[i];
                 for (auto& allocatee : std::views::reverse(allocs)) {
                     nodes.emplace_back(Operation::DEALLOC, allocatee, Operand {});
                 }

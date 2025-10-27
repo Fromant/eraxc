@@ -1,5 +1,4 @@
-#ifndef JIR_NODE
-#define JIR_NODE
+#pragma once
 
 #include "Operand.h"
 #include "Operation.h"
@@ -11,5 +10,3 @@ namespace eraxc::JIR {
         Operand operand2;
     };
 }
-
-#endif

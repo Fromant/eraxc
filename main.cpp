@@ -1,9 +1,9 @@
-#include <iostream>
 #include <chrono>
+#include <iostream>
 
 #include "src/backend/JIR/CFG/CFG.h"
-#include "src/frontend/lexic/preprocessor_tokenizer.h"
 #include "src/backend/codegen/asm_x86.h"
+#include "src/frontend/lexic/preprocessor_tokenizer.h"
 
 using namespace eraxc;
 
@@ -22,7 +22,7 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
     }
 
     t1 = std::chrono::high_resolution_clock::now();
-    JIR::CFG cfg{};
+    JIR::CFG cfg {};
     auto JIR_err = cfg.create(tokens.value);
     t2 = std::chrono::high_resolution_clock::now();
     if (!JIR_err) {
@@ -35,7 +35,7 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
     cfg.print_nodes();
 
     t1 = std::chrono::high_resolution_clock::now();
-    asm_translator<X64> asmt{};
+    asm_translator<X64> asmt {};
     auto asmtr = asmt.translate(cfg, "eraxc.asm");
     t2 = std::chrono::high_resolution_clock::now();
     if (!asmtr) {
@@ -52,14 +52,14 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
     system("nasm -f win64 eraxc.asm -o eraxc.obj");
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
-    std::cout << "nasm compiler done in: " << dur<<"ms\n";
+    std::cout << "nasm compiler done in: " << dur << "ms\n";
     total_time += dur;
 
     t1 = std::chrono::high_resolution_clock::now();
     system("gcc eraxc.obj -o a.exe");
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
-    std::cout << "gcc linker done in: " << dur<<"ms\n";
+    std::cout << "gcc linker done in: " << dur << "ms\n";
     total_time += dur;
 
     std::cout << "\nCompilation completed successfully in " << total_time << "ms\n";

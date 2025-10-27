@@ -1,7 +1,7 @@
-#ifndef CFG_PARTS_H
-#define CFG_PARTS_H
+#pragma once
 
 #include <vector>
+
 #include "../../Scope.h"
 
 namespace eraxc::JIR {
@@ -23,5 +23,3 @@ namespace eraxc::JIR {
         std::vector<Operand> params;
     };
 }
-
-#endif  //CFG_PARTS_H

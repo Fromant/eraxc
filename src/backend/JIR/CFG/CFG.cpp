@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-#include "errors.h"
 #include "../../Scope.h"
 #include "../utils.h"
+#include "errors.h"
 
 namespace eraxc::JIR {
 
@@ -18,22 +18,28 @@ namespace eraxc::JIR {
                 if (tokens[i + 2].t == token::L_BRACKET) {
                     //func decl
                     auto f = parse_function(tokens, i, global_node_id);
-                    if (!f) return {"Error while parsing a function declaration:\n" + f.error};
+                    if (!f)
+                        return {"Error while parsing a function declaration:\n" + f.error};
                 } else {
                     //global var decl
                     auto f = parse_declaration(tokens, i, global_node_id);
-                    if (!f) return {"Error while parsing a variable declaration:\n" + f.error};
+                    if (!f)
+                        return {"Error while parsing a variable declaration:\n" + f.error};
                 }
-            } else return {"Unknown statement: " + tokens[i].data};
+            } else
+                return {"Unknown statement: " + tokens[i].data};
         }
         //check for main() entrypoint
         if (scopeManager.size() != 1) {
             return {"Something went wrong during compilation. Scopes count: " + std::to_string(scopeManager.size())};
         }
-        if (!scopeManager.containsIdRecursive("main")) return {NO_ENTRYPOINT_ERROR};
+        if (!scopeManager.containsIdRecursive("main"))
+            return {NO_ENTRYPOINT_ERROR};
         auto main_decl = scopeManager.findDeclaration("main");
-        if (!main_decl.isFunc()) return {NO_ENTRYPOINT_ERROR};
-        if (main_decl.getType() != scopeManager.findTypeRecursive("int")) return {NO_ENTRYPOINT_ERROR};
+        if (!main_decl.isFunc())
+            return {NO_ENTRYPOINT_ERROR};
+        if (main_decl.getType() != scopeManager.findTypeRecursive("int"))
+            return {NO_ENTRYPOINT_ERROR};
 
         scopeManager.dealloc_top(nodes[global_node_id].body);
 
@@ -42,7 +48,8 @@ namespace eraxc::JIR {
 
 
     error::errable<void> CFG::parse_function(const std::vector<token>& tokens, int& i, size_t& node_id) {
-        if (!scopeManager.containsTypeRecursive(tokens[i].data)) return {"No such typename " + tokens[i].data};
+        if (!scopeManager.containsTypeRecursive(tokens[i].data))
+            return {"No such typename " + tokens[i].data};
         const u64 return_type = scopeManager.findTypeRecursive(tokens[i].data);
 
         if (scopeManager.containsId(tokens[i + 1].data))
@@ -60,10 +67,12 @@ namespace eraxc::JIR {
 
         //parse arguments declaration
         while (tokens[i].t != token::R_BRACKET) {
-            if (tokens[i].t == token::NONE) return {"Unexpected EOF in arguments list"};
+            if (tokens[i].t == token::NONE)
+                return {"Unexpected EOF in arguments list"};
             if (tokens[i].t == token::IDENTIFIER) {
                 u64 arg_type = scopeManager.findTypeRecursive(tokens[i].data);
-                if (arg_type == ScopeManager::NOT_FOUND) return {"No such typename " + tokens[i].data};
+                if (arg_type == ScopeManager::NOT_FOUND)
+                    return {"No such typename " + tokens[i].data};
 
                 if (tokens[i + 1].t != token::IDENTIFIER)
                     return {"Expected variable name in arguments list instead of " + tokens[i + 1].data};
@@ -82,13 +91,15 @@ namespace eraxc::JIR {
 
         i++;
         //parse function body
-        if (tokens[i].t != token::L_F_BRACKET) return {"Expected function body '{' instead of " + tokens[i].data};
+        if (tokens[i].t != token::L_F_BRACKET)
+            return {"Expected function body '{' instead of " + tokens[i].data};
         i++;
 
         global_funcs[func_id] = CFG_Func {return_type, func_node_id, args};
 
         auto body = parse_statements(tokens, i, func_node_id);
-        if (!body) return {body.error};
+        if (!body)
+            return {body.error};
 
         if (nodes[func_node_id].body.back().op != Operation::RET) {
             scopeManager.dealloc_top(nodes[func_node_id].body);
@@ -100,15 +111,18 @@ namespace eraxc::JIR {
     }
 
     error::errable<void> CFG::parse_if(const std::vector<token>& tokens, int& i, size_t& node_id) {
-        if (tokens[i + 1].t != token::L_BRACKET) return {"Expected left bracket after if: `if(cond) {body}`"};
+        if (tokens[i + 1].t != token::L_BRACKET)
+            return {"Expected left bracket after if: `if(cond) {body}`"};
         i += 2;
 
         size_t node_id_before = node_id;
 
         auto expr = parse_expression(tokens, i, node_id, {token::R_BRACKET});
-        if (!expr) return {expr.error};
+        if (!expr)
+            return {expr.error};
 
-        if (node_id_before == node_id) return {"Expected conditional expression inside of if()"};
+        if (node_id_before == node_id)
+            return {"Expected conditional expression inside of if()"};
 
         // now node_id stands for positive branch (see push_expr_stack() for clarification)
 
@@ -117,11 +131,13 @@ namespace eraxc::JIR {
         if (tokens[i].t == token::L_F_BRACKET) {
             //body
             auto body = parse_statements(tokens, i, node_id);
-            if (!body) return body;
+            if (!body)
+                return body;
         } else {
             //single statement
             auto body = parse_statement(tokens, i, node_id);
-            if (!body) return body;
+            if (!body)
+                return body;
         }
 
         scopeManager.dealloc_top(nodes[node_id].body);
@@ -161,11 +177,13 @@ namespace eraxc::JIR {
             if (tokens[i].t == token::L_F_BRACKET) {
                 //body
                 auto body = parse_statements(tokens, i, negative_branch_id);
-                if (!body) return body;
+                if (!body)
+                    return body;
             } else {
                 //single statement
                 auto body = parse_statement(tokens, i, negative_branch_id);
-                if (!body) return body;
+                if (!body)
+                    return body;
             }
 
             scopeManager.dealloc_top(nodes[new_branch_id].body);
@@ -173,17 +191,21 @@ namespace eraxc::JIR {
 
             //shift current node to new branch
             node_id = new_branch_id;
-        } else node_id = negative_branch_id;
+        } else
+            node_id = negative_branch_id;
 
         return {""};
     }
 
     error::errable<void> CFG::parse_statements(const std::vector<token>& tokens, int& i, size_t& node_id) {
         //all the stuff should have CFG node arg for alloc & dealloc purposes
-        if (tokens[i].t == token::L_F_BRACKET) { i++; }
+        if (tokens[i].t == token::L_F_BRACKET) {
+            i++;
+        }
         while (tokens[i].t != token::R_F_BRACKET) {
             auto statement = parse_statement(tokens, i, node_id);
-            if (!statement) return statement;
+            if (!statement)
+                return statement;
         }
         i++;
         return {""};
@@ -194,7 +216,8 @@ namespace eraxc::JIR {
             if (tokens[i].data == "return") {
                 i++;
                 auto to_return = parse_expression(tokens, i, node_id);
-                if (!to_return) return to_return.error;
+                if (!to_return)
+                    return to_return.error;
 
                 auto& body = nodes[node_id].body;
 
@@ -204,7 +227,8 @@ namespace eraxc::JIR {
             } else if (tokens[i].data == "if") {
                 //parse if
                 auto ifn = parse_if(tokens, i, node_id);
-                if (!ifn) return ifn;
+                if (!ifn)
+                    return ifn;
             } else if (tokens[i].data == "for") {
                 //parse for
             } else if (tokens[i].data == "while") {
@@ -215,19 +239,23 @@ namespace eraxc::JIR {
                 if (tokens[i + 1].t == token::IDENTIFIER) {
                     //declaration
                     auto decl = parse_declaration(tokens, i, node_id);
-                    if (!decl) return decl;
+                    if (!decl)
+                        return decl;
                     return {""};
                 }
                 //expr
                 auto expr = parse_expression(tokens, i, node_id);
-                if (!expr) return expr.error;
+                if (!expr)
+                    return expr.error;
             }
-        } else return {"Expected statement instead of: " + tokens[i].data};
+        } else
+            return {"Expected statement instead of: " + tokens[i].data};
         return {""};
     }
 
     error::errable<void> CFG::parse_declaration(const std::vector<token>& tokens, int& i, size_t node_id) {
-        if (!scopeManager.containsTypeRecursive(tokens[i].data)) return {"Unknown type identifier: " + tokens[i].data};
+        if (!scopeManager.containsTypeRecursive(tokens[i].data))
+            return {"Unknown type identifier: " + tokens[i].data};
         if (scopeManager.containsId(tokens[i + 1].data))
             return {"This identifier is already defined: " + tokens[i + 1].data};
 
@@ -242,7 +270,8 @@ namespace eraxc::JIR {
             i++;
             auto init = parse_expression(tokens, i, node_id);
 
-            if (!init) return init.error;
+            if (!init)
+                return init.error;
 
             if (scopeManager.top().allocatedIds == old_size) {
                 const u64 id = scopeManager.addId(name, type, false, nodes[node_id].body);
@@ -286,20 +315,24 @@ namespace eraxc::JIR {
         i++;
 
         Operand operand {decl.getType(), decl.getId(), false, false};
-        for (auto op : prefix_ops) { nodes[node_id].body.emplace_back(op, operand, Operand {}); }
+        for (auto op : prefix_ops) {
+            nodes[node_id].body.emplace_back(op, operand, Operand {});
+        }
 
         while ((tokens[i].t == token::OPERATOR && syntax::postfix_operators.contains(tokens[i].data)) ||
                tokens[i].t == token::L_BRACKET || tokens[i].t == token::L_SQ_BRACKET) {
 
             if (tokens[i].t == token::L_BRACKET) {
                 //function call
-                if (!decl.isFunc()) return {"Function declaration expected", {}};
+                if (!decl.isFunc())
+                    return {"Function declaration expected", {}};
                 u64 args_passed = 0;
                 i++;
                 //parse args
                 while (tokens[i - 1].t != token::R_BRACKET) {
                     auto arg = parse_expression(tokens, i, node_id, {token::R_BRACKET, token::COMMA});
-                    if (!arg) return {"Error while parsing function call argument" + arg.error, {}};
+                    if (!arg)
+                        return {"Error while parsing function call argument" + arg.error, {}};
 
                     auto arg1 = arg.value;
 
@@ -324,12 +357,14 @@ namespace eraxc::JIR {
             }
 
             if (tokens[i].t == token::L_SQ_BRACKET) {
-                while (tokens[i].t != token::R_SQ_BRACKET) i++;
+                while (tokens[i].t != token::R_SQ_BRACKET)
+                    i++;
                 continue;
             }
 
             Operation postfix_op = postfix_op_to_jir_op(tokens[i]);
-            if (postfix_op == Operation::ERR) return {"No such postfix operator: " + tokens[i].data, {}};
+            if (postfix_op == Operation::ERR)
+                return {"No such postfix operator: " + tokens[i].data, {}};
             i++;
             postfix_ops.emplace_back(postfix_op, operand, Operand {});
         }
@@ -340,7 +375,8 @@ namespace eraxc::JIR {
     error::errable<void> CFG::push_expr_stack(std::stack<syntax::operator_type>& operations,
                                               std::stack<Operand>& operands, size_t& node_id) {
         auto to_add = op_to_jir_op(operations.top());
-        if (to_add.first == Operation::ERR) return {"Invalid operation encountered."};
+        if (to_add.first == Operation::ERR)
+            return {"Invalid operation encountered."};
         operations.pop();
         //operands are on stack in backwards order so flip em
         Operand operand1 = operands.top();
@@ -447,7 +483,8 @@ namespace eraxc::JIR {
             //parse expression of what to assign to
             i += 2;
             auto assign_to = parse_expression(tokens, i, node_id, end);
-            if (!assign_to) return assign_to;
+            if (!assign_to)
+                return assign_to;
 
             Operand tr {u64(-2), u64(-2), false, true};
 
@@ -483,16 +520,19 @@ namespace eraxc::JIR {
                 //recursive parse
                 i++;
                 auto parentheses = parse_expression(tokens, i, node_id, {token::R_BRACKET});
-                if (!parentheses) return parentheses;
+                if (!parentheses)
+                    return parentheses;
                 operand = parentheses.value;
             } else if (tokens[i].t == token::INSTANT) {
                 auto instant = parse_instant(tokens[i]);
-                if (!instant) return instant;
+                if (!instant)
+                    return instant;
                 operand = instant.value;
                 i++;
             } else {
                 auto operand_err = parse_expr_operand(tokens, i, node_id);
-                if (!operand_err) return {"Error while parsing expression:\n" + operand_err.error, Operand {}};
+                if (!operand_err)
+                    return {"Error while parsing expression:\n" + operand_err.error, Operand {}};
 
                 operand = operand_err.value.first;
                 postfix_ops.insert(postfix_ops.begin(), operand_err.value.second.begin(),
@@ -515,7 +555,8 @@ namespace eraxc::JIR {
             while (!operations.empty() &&
                    syntax::operator_priorities.at(operations.top()) < syntax::operator_priorities.at(op)) {
                 auto r = push_expr_stack(operations, operands, node_id);
-                if (!r) return {r.error, {}};
+                if (!r)
+                    return {r.error, {}};
             }
 
             operations.push(op);
@@ -524,9 +565,12 @@ namespace eraxc::JIR {
 
         while (operands.size() > 1) {
             auto push_result = push_expr_stack(operations, operands, node_id);
-            if (!push_result) return {push_result.error, Operand {}};
+            if (!push_result)
+                return {push_result.error, Operand {}};
         }
-        for (auto postfix : postfix_ops) { nodes[node_id].body.emplace_back(postfix); }
+        for (auto postfix : postfix_ops) {
+            nodes[node_id].body.emplace_back(postfix);
+        }
 
         if (end.contains(tokens[i].t)) {
             i++;
@@ -553,7 +597,8 @@ namespace eraxc::JIR {
                 }
                 std::cout << func.second.params[args_size - 1].type << " $" << func.second.params[args_size - 1].value
                           << ") {\n";
-            } else std::cout << ") {\n";
+            } else
+                std::cout << ") {\n";
 
             utils::print_JIR_nodes(nodes[func.second.node_id].body);
 

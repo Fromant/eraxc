@@ -1,5 +1,4 @@
-#ifndef BLCK_COMPILER_ASM_X86_H
-#define BLCK_COMPILER_ASM_X86_H
+#pragma once
 
 #include <ostream>
 #include <set>
@@ -12,10 +11,18 @@ namespace eraxc {
     struct asm_translator<X64> {
 
         static std::string type(u64 type) {
-            if (type == syntax::i8 || type == syntax::u8) { return "db"; }
-            if (type == syntax::i16 || type == syntax::u16) { return "dw"; }
-            if (type == syntax::i32 || type == syntax::u32) { return "dd"; }
-            if (type == syntax::i64 || type == syntax::u64) { return "dq"; }
+            if (type == syntax::i8 || type == syntax::u8) {
+                return "db";
+            }
+            if (type == syntax::i16 || type == syntax::u16) {
+                return "dw";
+            }
+            if (type == syntax::i32 || type == syntax::u32) {
+                return "dd";
+            }
+            if (type == syntax::i64 || type == syntax::u64) {
+                return "dq";
+            }
             return {"ILLTYPE"};
         }
 
@@ -37,7 +44,9 @@ namespace eraxc {
         std::set<size_t> printed_nodes;
 
         error::errable<void> print_JIR_node_asm(const JIR::Node& node, std::ostream& os) {
-            if (node.op == JIR::Operation::NONE) { return {""}; }
+            if (node.op == JIR::Operation::NONE) {
+                return {""};
+            }
 
             if (node.op == JIR::Operation::LABEL) {
                 os << ".l" << node.operand1.value << ":\n";
@@ -46,7 +55,8 @@ namespace eraxc {
 
             if (node.op == JIR::Operation::INC) {
                 auto op1 = get_operand(node.operand1);
-                if (!op1) return {op1.error};
+                if (!op1)
+                    return {op1.error};
 
                 os << "inc " << op1.value << '\n';
 
@@ -54,7 +64,8 @@ namespace eraxc {
             }
             if (node.op == JIR::Operation::DEC) {
                 auto op1 = get_operand(node.operand1);
-                if (!op1) return {op1.error};
+                if (!op1)
+                    return {op1.error};
 
                 os << "dec " << op1.value << '\n';
 
@@ -67,14 +78,16 @@ namespace eraxc {
             if (node.op == JIR::Operation::PASS) {
                 //pass arguments
                 auto op1 = get_operand(node.operand1);
-                if (!op1) return {op1.error};
+                if (!op1)
+                    return {op1.error};
                 os << "mov " << reg_name(pass_ABI[mem.args_in_registers_count++], size(node.operand1.type)) << ", "
                    << op1.value << '\n';
                 return {""};
             }
             if (node.op == JIR::Operation::PASS_RET) {
                 auto op1 = get_operand(node.operand1);
-                if (!op1) return {op1.error};
+                if (!op1)
+                    return {op1.error};
                 os << "mov " << reg_name(x86_reg::RAX, size(node.operand1.type)) << ", " << op1.value << '\n';
                 return {""};
             }
@@ -115,11 +128,14 @@ namespace eraxc {
             }
             if (node.op == JIR::Operation::CALL) {
                 auto op2 = mem.get_var(node.operand2.value, size(node.operand2.type));
-                if (!op2) return {op2.error};
+                if (!op2)
+                    return {op2.error};
                 const auto diff = (mem.used_stack_space + 8) % 16;
-                if (diff != 0) os << "sub rsp, " << 16 - diff << '\n';
+                if (diff != 0)
+                    os << "sub rsp, " << 16 - diff << '\n';
                 os << "call $f_" << node.operand1.value << '\n';
-                if (diff != 0) os << "add rsp, " << 16 - diff << '\n';
+                if (diff != 0)
+                    os << "add rsp, " << 16 - diff << '\n';
                 std::string reg = reg_name(x86_reg::RAX, size(node.operand1.type));
                 os << "mov " << op2.value << ", " << reg << '\n';
                 mem.args_in_registers_count = 0;
@@ -127,7 +143,8 @@ namespace eraxc {
             }
             if (node.op == JIR::Operation::ALLOC) {
                 auto assignee = mem.allocate_stack_space(size(node.operand1.type), node.operand1.value);
-                if (!assignee) return {"Failed to allocate stack space: " + assignee.error};
+                if (!assignee)
+                    return {"Failed to allocate stack space: " + assignee.error};
                 os << assignee.value;
                 return {""};
             }
@@ -145,8 +162,10 @@ namespace eraxc {
 
             auto op1 = get_operand(node.operand1);
             auto op2 = get_operand(node.operand2);
-            if (!op1) return {op1.error};
-            if (!op2) return {op2.error};
+            if (!op1)
+                return {op1.error};
+            if (!op2)
+                return {op2.error};
 
             if (node.op == JIR::Operation::MOVE) {
                 if (node.operand2.is_instant) {
@@ -213,7 +232,9 @@ namespace eraxc {
         }
 
         error::errable<std::string> get_operand(const JIR::Operand& op) {
-            if (op.is_instant) { return {"", std::to_string(op.value)}; }
+            if (op.is_instant) {
+                return {"", std::to_string(op.value)};
+            }
             return mem.get_var(op.value, size(op.type));
         }
 
@@ -227,7 +248,8 @@ namespace eraxc {
             //body
             for (const auto& JIR_node : node.body) {
                 auto print = print_JIR_node_asm(JIR_node, os);
-                if (!print) return print;
+                if (!print)
+                    return print;
             }
 
             //print subnodes
@@ -235,7 +257,8 @@ namespace eraxc {
             for (auto i = edges.first; i != edges.second; ++i) {
                 os << ".l" << i->second << ":\n";
                 auto r1 = print_cfg_node(cfg, i->second, os);
-                if (!r1) return r1;
+                if (!r1)
+                    return r1;
                 // os << "add rsp, 8\nret\n";
             }
 
@@ -247,7 +270,8 @@ namespace eraxc {
         error::errable<void> translate(const JIR::CFG& cfg, const std::string& o_filename) {
             std::ofstream file {o_filename};
 
-            if (!file) return {"Failed to open output file " + o_filename};
+            if (!file)
+                return {"Failed to open output file " + o_filename};
 
             file << "global main\nbits 64\nextern printf\nsection .data\n";
 
@@ -278,7 +302,8 @@ namespace eraxc {
             if (!cfg.get_nodes()[0].body.empty()) {
                 file << "$f_0:\nsub rsp, 8\n";
                 auto r = print_cfg_node(cfg, 0, file);
-                if (!r) return r;
+                if (!r)
+                    return r;
                 file << "add rsp, " << 8 + mem.used_stack_space << "\nret\n";
                 mem.used_stack_space = 0;
                 // file << "add rsp, 8\nret\n";
@@ -297,7 +322,8 @@ namespace eraxc {
                 auto r = print_cfg_node(cfg, func.second.node_id, file);
                 file << "add rsp, 8\nret\n";
 
-                if (!r) return r;
+                if (!r)
+                    return r;
 
                 mem.reset();
             }
@@ -305,5 +331,3 @@ namespace eraxc {
         }
     };
 }
-
-#endif  //BLCK_COMPILER_ASM_X86_H

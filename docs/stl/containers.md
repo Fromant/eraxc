@@ -8,4 +8,7 @@ Implemented containers will be marked with filled checkbox
 - [ ] Vector (ArrayList)
 - [ ] Map
 - [ ] HashMap
+- [ ] ConcurrentHashMap
+- [ ] Queue, Deque
+- [ ] PriorityQueue
 - [ ] ...
