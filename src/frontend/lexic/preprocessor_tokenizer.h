@@ -60,6 +60,39 @@ namespace eraxc {
         std::unordered_map<std::string, std::string> defined;
 
         error::errable<std::vector<token>> process_macro(std::stringstream& ss) {
+
+            const auto read_until_endif = [](std::stringstream& ss) -> error::errable<std::string> {
+                std::string buffer;
+                std::string line;
+                int depth = 0; // current nesting level
+
+                while (std::getline(ss, line)) {
+                    // Trim leading whitespace to check for directives
+                    auto start = line.find_first_not_of(" \t");
+                    if (start == std::string::npos) {
+                        // Empty or whitespace-only line
+                        buffer += line + '\n';
+                        continue;
+                    }
+                    std::string trimmed = line.substr(start);
+
+                    // Check for preprocessor directives
+                    if (trimmed.rfind("#ifdef", 0) == 0 || trimmed.rfind("#ifndef", 0) == 0) {
+                        depth++;
+                    } else if (trimmed == "#endif") {
+                        if (depth == 0) {
+                            // Found the matching #endif for the original #ifdef
+                            return {"", buffer};
+                        }
+                        depth--;
+                    }
+                    // Append the full line (including original whitespace)
+                    buffer += line + '\n';
+                }
+
+                return {"expected #endif before EOF", {}};
+            };
+
             std::string macro;
             ss >> macro;
             if (macro == "define") {
@@ -82,6 +115,8 @@ namespace eraxc {
                 std::string to_def;
                 ss.get(c);
                 do {
+                    if (!is_identifier_char(c))
+                        return {"Expected identifier as define second argument", {}};
                     to_def += c;
                     ss.get(c);
                 } while (!ss.eof() && c != '\n');
@@ -91,55 +126,36 @@ namespace eraxc {
             if (macro == "ifdef") {
                 std::string def {};
                 ss >> def;
+                //skip rest of line
+                ss.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 if (defined.contains(def)) {
-                    //scroll until #endif
-                    std::stringstream tr {};
-                    std::string l;
-                    do {
-                        ss >> l;
-                        if (l == "#endif")
-                            break;
-                        tr << l << ' ';
-                    } while (!ss.eof());
-                    if (l != "#endif")
-                        return {"expected #endif before EOF", {}};
+                    auto block_result = read_until_endif(ss);
+                    if (!block_result)
+                        return {block_result.error, {}};
+                    std::stringstream tr(block_result.value);
                     return tokenize(tr);
                 }
-                std::string l;
-                do {
-                    ss >> l;
-                    if (l == "#endif")
-                        break;
-                } while (!ss.eof());
-                if (l != "#endif")
-                    return {"expected #endif before EOF: ", {}};
+
+                auto skip_result = read_until_endif(ss);
+                if (!skip_result)
+                    return {skip_result.error, {}};
                 return {"", {}};
             }
             if (macro == "ifndef") {
-                std::string def {};
+                std::string def;
                 ss >> def;
+                ss.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
                 if (!defined.contains(def)) {
-                    //scroll until endif
-                    std::stringstream tr {};
-                    std::string l;
-                    do {
-                        ss >> l;
-                        if (l == "#endif")
-                            break;
-                        tr << l << ' ';
-                    } while (!ss.eof());
-                    if (l != "#endif")
-                        return {"expected #endif before EOF: ", {}};
+                    auto block_result = read_until_endif(ss);
+                    if (!block_result)
+                        return {block_result.error, {}};
+                    std::stringstream tr(block_result.value);
                     return tokenize(tr);
                 }
-                std::string l;
-                do {
-                    ss >> l;
-                    if (l == "#endif")
-                        break;
-                } while (!ss.eof());
-                if (l != "#endif")
-                    return {"expected #endif before EOF: ", {}};
+                auto skip_result = read_until_endif(ss);
+                if (!skip_result)
+                    return {skip_result.error, {}};
                 return {"", {}};
             }
             return {{"No such macro: " + macro}, {}};
@@ -224,8 +240,8 @@ namespace eraxc {
                 if (c == '"') {
                     while (!f.eof()) {
                         f.get(c);
-                        if (c == '\n')
-                            break;
+                        // if (c == '\n')
+                            // break;
                         if (c == '"') {
                             add_token(tokens, tmp, token::STRING_INSTANT);
                             break;

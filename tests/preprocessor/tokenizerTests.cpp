@@ -474,3 +474,76 @@ TEST(TokenizerTest, Identifiers) {
     EXPECT_EQ(r.value[4].t, eraxc::token::IDENTIFIER);
     EXPECT_EQ(r.value[4].data, "test");
 }
+
+TEST(TokenizerTest, StringLiterals) {
+    eraxc::tokenizer tokenizer;
+    auto r = tokenizer.tokenize(R"("hello world")");
+    ASSERT_EQ(r.error, "");
+    ASSERT_EQ(r.value.size(), 1);
+    EXPECT_EQ(r.value[0].t, eraxc::token::STRING_INSTANT);
+    EXPECT_EQ(r.value[0].data, "hello world");
+}
+
+TEST(TokenizerTest, EmptyString) {
+    eraxc::tokenizer tokenizer;
+    auto r = tokenizer.tokenize(R"("")");
+    ASSERT_EQ(r.error, "");
+    ASSERT_EQ(r.value.size(), 1);
+    EXPECT_EQ(r.value[0].t, eraxc::token::STRING_INSTANT);
+    EXPECT_EQ(r.value[0].data, "");
+}
+
+TEST(TokenizerTest, UnterminatedStringError) {
+    eraxc::tokenizer tokenizer;
+    auto r = tokenizer.tokenize(R"("unterminated)");
+    EXPECT_NE(r.error, "");
+}
+
+TEST(TokenizerTest, ComplexOperators) {
+    eraxc::tokenizer tokenizer;
+    std::string src = "!= == <<= >>= += -= *= /= %= &= |= ^= ~";
+    auto res = tokenizer.tokenize(src);
+    ASSERT_EQ(res.error, "");
+    std::vector<std::string> expected = {"!=", "==", "<<=", ">>=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "~"};
+    ASSERT_EQ(res.value.size(), expected.size());
+    for (size_t i = 0; i < expected.size(); ++i) {
+        EXPECT_EQ(res.value[i].t, eraxc::token::OPERATOR);
+        EXPECT_EQ(res.value[i].data, expected[i]);
+    }
+}
+
+TEST(TokenizerTest, SlashOperatorsVsComments) {
+    eraxc::tokenizer tokenizer;
+    // Ensure '//' starts comment, but '/=' is operator
+    auto r = tokenizer.tokenize("/= // this is comment\n*=");
+    ASSERT_EQ(r.error, "");
+    ASSERT_EQ(r.value.size(), 2);
+    EXPECT_EQ(r.value[0].data, "/=");
+    EXPECT_EQ(r.value[1].data, "*=");
+}
+
+TEST(TokenizerTest, NumberWithSuffixes) {
+    eraxc::tokenizer tokenizer;
+    auto r = tokenizer.tokenize("123u 456l 789i 10.5u");
+    ASSERT_EQ(r.error, "");
+    ASSERT_EQ(r.value.size(), 4);
+    EXPECT_EQ(r.value[0].data, "123u");
+    EXPECT_EQ(r.value[1].data, "456l");
+    EXPECT_EQ(r.value[2].data, "789i");
+    EXPECT_EQ(r.value[3].data, "10.5u"); // Note: your tokenizer allows suffixes on floats too
+    for (const auto& t : r.value) {
+        EXPECT_EQ(t.t, eraxc::token::INSTANT);
+    }
+}
+
+TEST(TokenizerTest, IdentifierStartsWithDigit) {
+    eraxc::tokenizer tokenizer;
+    // "123abc" -> "123" (INSTANT) + "abc" (IDENTIFIER)
+    auto r = tokenizer.tokenize("123abc");
+    ASSERT_EQ(r.error, "");
+    ASSERT_EQ(r.value.size(), 2);
+    EXPECT_EQ(r.value[0].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[0].data, "123");
+    EXPECT_EQ(r.value[1].t, eraxc::token::IDENTIFIER);
+    EXPECT_EQ(r.value[1].data, "abc");
+}
