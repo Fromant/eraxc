@@ -17,5 +17,5 @@ add_executable(eraxTests ${TEST_SOURCES})
 
 target_include_directories(eraxTests PRIVATE ../src)
 
-target_link_libraries(eraxTests PRIVATE GTest::gtest_main)
+target_link_libraries(eraxTests PRIVATE GTest::gtest_main eraxCore)
 

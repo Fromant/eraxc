@@ -12,6 +12,7 @@ add_library(eraxCore
         backend/JIR/CFG/CFG.cpp
         backend/JIR/ScopeManager.cpp
         backend/JIR/ScopeManager.h
+        frontend/lexic/preprocessor_tokenizer.cpp
 )
 target_include_directories(eraxCore PRIVATE ../src)
 
