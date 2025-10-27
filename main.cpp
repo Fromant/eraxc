@@ -5,11 +5,6 @@
 #include "src/frontend/lexic/preprocessor_tokenizer.h"
 #include "src/backend/codegen/asm_x86.h"
 
-#ifdef DEBUG
-#define TEST
-#include "tests/test_all.h"
-#endif
-
 using namespace eraxc;
 
 error::errable<void> compilation_pipeline(const std::string& filename) {
@@ -73,16 +68,10 @@ error::errable<void> compilation_pipeline(const std::string& filename) {
 }
 
 int main(int argc, char* argv[]) {
-    #ifdef DEBUG
-    std::cout << "DEBUG build. Running tests...\n";
-    if (!test_all()) return -1;
-    #endif
-
     auto err = compilation_pipeline("../examples/0.erx");
     if (!err) {
         std::cerr << err.error << std::endl;
         exit(-1);
     }
-
     return 0;
 }
