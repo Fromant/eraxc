@@ -45,11 +45,17 @@
 - [x] `return` keyword terminate all allocated variables
 - [x] `while` support
 - [x] integration tests
+- [x] CFG viewer tool
+- [ ] CFG exporting
+- [ ] store variables that are allocated inside cfg node and it's size inside cfg node.
+- [ ] ? store uses for each variable
+- [ ] split cfg edges to squash and extend edges (one extends stack, other squashes)
+- [ ] new while loop (example is in notebook page 2)
+- 
 - [ ] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
 - [ ] fix recursion
 - [ ] return inside if causes segfault
 - [ ] if branches with different stack size causes segfaults :(
-- [ ] count max stack sizes for each function.
 - [ ] `break` support
 - [ ] `for` support
 - [ ] `do` support (?)
