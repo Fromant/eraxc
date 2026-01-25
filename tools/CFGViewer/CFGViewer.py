@@ -1,4 +1,5 @@
 import argparse
+import os
 from graphviz import Digraph
 
 def parse_cfg_file(file_path):
@@ -54,12 +55,12 @@ def generate_cfg_image(edges, output_path="cfg_graph.png"):
                   graph_attr={
                       'rankdir': 'TB',       # Top-to-bottom layout
                       'fontsize': '12',
-                      'fontname': 'Helvetica',  # Clean modern font
-                      'splines': 'ortho',    # Orthogonal edges for readability
-                      'nodesep': '0.8',
-                      'ranksep': '1.0',
-                      'concentrate': 'true',  # Merge parallel edges
-                      'bgcolor': '#FFFFFF00'  # Transparent background
+                      'fontname': 'Helvetica',
+                      'splines': 'polyline', # Fixed: polyline handles labels in cycles
+                      'nodesep': '0.6',
+                      'ranksep': '0.8',
+                      'concentrate': 'false',  # Merge parallel edges
+                      'bgcolor': 'transparent'
                   },
                   node_attr={
                       'shape': 'circle',
@@ -90,13 +91,13 @@ def generate_cfg_image(edges, output_path="cfg_graph.png"):
         nodes.setdefault(dst, []).append(('in', edge_type))
 
         edge_info = {
-            0: ("squash", "#FF6B6B", "#FFA9A9"),  # Red tones for squash
-            1: ("extend", "#4ECDC4", "#A9E7E0")   # Teal tones for extend
+            0: ("squash", "#FF6B6B", "#C0392B"),  # Red tones for squash
+            1: ("extend", "#4ECDC4", "#1A5F5F")   # Teal tones for extend
         }
         label, color, fontcolor = edge_info[edge_type]
 
         dot.edge(src, dst,
-                 label=label,
+                 xlabel=label,
                  color=color,
                  fontcolor=fontcolor,
                  labelfontsize='10',
@@ -124,26 +125,35 @@ def generate_cfg_image(edges, output_path="cfg_graph.png"):
     all_froms = {str(e[0]) for e in edges}
     all_tos = {str(e[1]) for e in edges}
 
-    start_nodes = all_froms - all_tos
+    start_nodes = {'0'} if '0' in all_froms else all_froms - all_tos
     for node in start_nodes:
-        dot.node(node, node,
-                 shape='doublecircle',
-                 fillcolor='#C3F0CA',
-                 color='#2E7D32',
-                 penwidth='2.0')
+        if node in dot.body:
+            dot.node(node, node,
+                     shape='doublecircle',
+                     fillcolor='#C3F0CA',
+                     color='#2E7D32',
+                     penwidth='2.0')
 
-    # End nodes (only incoming edges)
-    end_nodes = all_tos - all_froms
+    max_node = str(max(int(n) for n in nodes.keys()))
+    end_nodes = {max_node} if max_node in all_tos else all_tos - all_froms
     for node in end_nodes:
-        dot.node(node, node,
-                 shape='doublecircle',
-                 fillcolor='#FFCCBC',
-                 color='#C62828',
-                 penwidth='2.0')
+        if node in dot.body:
+            dot.node(node, node,
+                     shape='doublecircle',
+                     fillcolor='#FFCCBC',
+                     color='#C62828',
+                     penwidth='2.0')
 
-    dot.render(output_path, cleanup=True)
-    print(f"Control Flow Graph saved to: {output_path}")
-    print(f"Generated from {len(edges)} edges connecting {len(nodes)} nodes")
+    try:
+        png_data = dot.pipe(format='png')
+        with open(output_path, 'wb') as f:
+            f.write(png_data)
+        print(f"Control Flow Graph saved to: {output_path}")
+        print(f"Generated from {len(edges)} edges connecting {len(nodes)} nodes")
+        return True
+    except Exception as e:
+        print(f"Rendering error: {str(e)}")
+        return None
 
 def main():
     parser = argparse.ArgumentParser(description='Generate CFG visualization from edge data')
@@ -155,13 +165,19 @@ def main():
 
     args = parser.parse_args()
 
+    output_dir = os.path.dirname(os.path.abspath(args.output))
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+
     try:
         edges = parse_cfg_file(args.input_file)
-        generate_cfg_image(edges, args.output)
+        success = generate_cfg_image(edges, args.output)
 
-        if args.view:
-            import os
-            os.startfile(args.output) if os.name == 'nt' else os.system(f'open {args.output}')
+        if success and args.view:
+            if os.name == 'nt':  # Windows
+                os.startfile(args.output)
+            elif os.name == 'posix':  # macOS/Linuxs
+                os.system(f'open "{args.output}"' if os.uname().sysname == 'Darwin' else f'xdg-open "{args.output}"')
 
     except Exception as e:
         print(f"Error: {str(e)}")
