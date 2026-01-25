@@ -222,17 +222,26 @@ namespace eraxc::x86 {
                     return print;
             }
 
-            //print subnodes
+            printed_nodes.insert(node_id);
+
             const auto& edges = cfg.get_edges().equal_range(node_id);
+            //print all the jumps
             for (auto i = edges.first; i != edges.second; ++i) {
-                os << ".l" << i->second << ":\n";
-                auto r1 = print_cfg_node(cfg, i->second, os);
+                print_JIR_node_asm(
+                    {i->second.jump_op, JIR::Operand {0, i->second.to_id, false, false}, JIR::Operand {}}, os);
+            }
+            //print subnodes
+            for (auto i = edges.first; i != edges.second; ++i) {
+                if (printed_nodes.contains(i->second.to_id)) {
+                    continue;
+                }
+                printed_nodes.emplace(i->second.to_id);
+                os << ".l" << i->second.to_id << ":\n";
+                auto r1 = print_cfg_node(cfg, i->second.to_id, os);
                 if (!r1)
                     return r1;
                 // os << "add rsp, 8\nret\n";
             }
-
-            printed_nodes.insert(node_id);
 
             return {""};
         }

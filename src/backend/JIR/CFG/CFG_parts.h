@@ -10,10 +10,15 @@ namespace eraxc::JIR {
         std::vector<JIRop> body;
     };
 
+    enum CFGEdgeType {
+        SQUASH, EXTEND
+    };
+
     struct CFG_Edge {
         size_t from_id;
         size_t id_to;
         size_t id_control_instruction;
+        CFGEdgeType type;
     };
 
     struct CFG_Func {

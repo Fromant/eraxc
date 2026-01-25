@@ -15,8 +15,14 @@ namespace eraxc::JIR {
     class CFG {
         std::vector<CFG_Node> nodes;
 
+        typedef struct {
+            size_t to_id;
+            CFGEdgeType type;
+            Operation jump_op = Operation::JUMP;
+        } CFGEdge;
+
         // multimap <int from_id, int to_id>. every JUMP is an edge
-        std::multimap<size_t, size_t> edges;
+        std::multimap<size_t, CFGEdge> edges;
 
         std::map<u64, CFG_Func> global_funcs;
         ScopeManager scopeManager;
@@ -69,6 +75,14 @@ namespace eraxc::JIR {
         const std::vector<CFG_Node>& get_nodes() const {
             return nodes;
         };
+
+        void print_to_file(const std::string& path) {
+            std::ofstream f(path);
+            for (const auto& edge : edges) {
+                f << edge.first << ", " << edge.second.to_id << ", " << edge.second.type << std::endl;
+            }
+            f.close();
+        }
 
         /// Eliminates all the nodes that aren't used from CFG
         void dead_code_elimination_pass();

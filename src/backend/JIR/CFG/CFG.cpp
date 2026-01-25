@@ -153,8 +153,8 @@ namespace eraxc::JIR {
         size_t negative_branch_id = nodes.size();
         nodes.emplace_back();
 
-        edges.emplace(node_id_before, node_id);
-        edges.emplace(node_id_before, negative_branch_id);
+        edges.emplace(node_id_before, CFGEdge {node_id, EXTEND});
+        edges.emplace(node_id_before, CFGEdge {negative_branch_id, EXTEND});
 
         //jump from last cfg node to negative leaving positive branch not executed
         nodes[node_id_before].body.emplace_back(jump_op, Operand {u64(-1), negative_branch_id, true, false},
@@ -169,7 +169,7 @@ namespace eraxc::JIR {
             scopeManager.push();
 
             // edges.emplace(node_id, new_branch_id);
-            edges.emplace(negative_branch_id, new_branch_id);
+            edges.emplace(negative_branch_id, CFGEdge {new_branch_id, SQUASH});
 
             //jump from positive to new branch leaving negative branch not executed
             nodes[node_id].body.emplace_back(Operation::JUMP, Operand {u64(-1), new_branch_id, true, false},
@@ -214,7 +214,9 @@ namespace eraxc::JIR {
         if (node_id_before == node_id)
             return {"Expected conditional expression inside of while()"};
 
-        // now node_id stands for while's body (see push_expr_stack() for clarification)
+        size_t condition_node = node_id;
+
+        // now node_id stands for while's  (see push_expr_stack() for clarification)
         if (nodes[node_id_before].body.back().op != Operation::CMP) {
             //?
             return {"WTF"};
@@ -225,16 +227,23 @@ namespace eraxc::JIR {
 
         std::swap(cmp_node.operand1, cmp_node.operand2);
 
-        size_t exit_node_id = nodes.size();
-        nodes.emplace_back();
-        nodes[exit_node_id].body.emplace_back(cmp_node);
-        nodes[node_id_before].body.emplace_back(Operation::JUMP, Operand {u64(-1), exit_node_id, true, false},
-                                                Operand {});
+        nodes[condition_node].body.emplace_back(cmp_node);
+
+        // size_t exit_node_id = nodes.size();
+        // nodes.emplace_back();
+        // nodes[exit_node_id].body.emplace_back(cmp_node);
+        // nodes[node_id_before].body.emplace_back(Operation::JUMP, Operand {u64(-1), exit_node_id, true, false},
+        //                                         Operand {});
 
         Operation jump_op = jump_ops.top();
         jump_ops.pop();
 
-        nodes[exit_node_id].body.emplace_back(jump_op, Operand {u64(-1), node_id, true, false}, Operand {});
+        // nodes[condition_node].body.emplace_back(jump_op, Operand {u64(-1), node_id, true, false}, Operand {});
+
+        size_t body_node_id = nodes.size();
+        nodes.emplace_back();
+
+        node_id = body_node_id;
 
         scopeManager.push();
 
@@ -250,12 +259,18 @@ namespace eraxc::JIR {
                 return body;
         }
 
-        scopeManager.pop(nodes[node_id].body);
+        scopeManager.pop(nodes[body_node_id].body);
 
-        edges.emplace(node_id_before, node_id);
-        edges.emplace(node_id, exit_node_id);
+        edges.emplace(node_id_before, CFGEdge {condition_node, EXTEND});
+        edges.emplace(condition_node, CFGEdge {body_node_id, EXTEND, jump_op});
+        edges.emplace(body_node_id, CFGEdge {condition_node, SQUASH});
 
-        node_id = exit_node_id;
+        size_t node_id_after = nodes.size();
+        nodes.emplace_back();
+
+        edges.emplace(condition_node, CFGEdge {node_id_after, SQUASH});
+
+        node_id = node_id_after;
 
         return {""};
     }

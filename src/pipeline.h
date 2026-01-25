@@ -31,6 +31,8 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
 
     cfg.print_nodes();
 
+    cfg.print_to_file("cfg.txt");
+
     t1 = std::chrono::high_resolution_clock::now();
     x86::asm_translator asmt {};
     auto asmtr = asmt.translate(cfg, "eraxc.asm");

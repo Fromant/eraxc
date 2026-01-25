@@ -114,6 +114,16 @@ namespace eraxc::JIR {
         return {Operation::ERR, Operation::ERR};
     }
 
+    constexpr Operation getInvertedJump(Operation jump) {
+        if (jump == Operation::JE) return Operation::JGE;
+        if (jump == Operation::JLE) return Operation::JG;
+        if (jump == Operation::JGE) return Operation::JL;
+        if (jump == Operation::JG) return Operation::JLE;
+
+
+        return Operation::ERR;
+    }
+
     /// Function to convert general syntax operation to JIR operation
     /// @param t token to convert from
     /// @return operation::ERR if prefix operation unsupported, operation otherwise

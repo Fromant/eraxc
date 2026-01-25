@@ -46,7 +46,9 @@
 - [x] `while` support
 - [x] integration tests
 - [x] CFG viewer tool
-- [ ] CFG exporting
+- [x] CFG exporting
+- [ ] redo if to new edges
+- [ ] redo allocations, scopes and ScopeManager
 - [ ] store variables that are allocated inside cfg node and it's size inside cfg node.
 - [ ] ? store uses for each variable
 - [ ] split cfg edges to squash and extend edges (one extends stack, other squashes)
