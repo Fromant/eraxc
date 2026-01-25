@@ -3,47 +3,16 @@
 #include <ostream>
 #include <set>
 
-#include "asm_translator.h"
 #include "asm_x86_mem.h"
+#include "backend/JIR/CFG/CFG.h"
 
-namespace eraxc {
-    template<>
-    struct asm_translator<X64> {
-
-        static std::string type(u64 type) {
-            if (type == syntax::i8 || type == syntax::u8) {
-                return "db";
-            }
-            if (type == syntax::i16 || type == syntax::u16) {
-                return "dw";
-            }
-            if (type == syntax::i32 || type == syntax::u32) {
-                return "dd";
-            }
-            if (type == syntax::i64 || type == syntax::u64) {
-                return "dq";
-            }
-            return {"ILLTYPE"};
-        }
-
-        static u64 size(u64 type) {
-            switch (type) {
-                case syntax::i8:
-                case syntax::u8: return 1;
-                case syntax::i16:
-                case syntax::u16: return 2;
-                case syntax::i32:
-                case syntax::u32: return 4;
-                case syntax::i64:
-                case syntax::u64: return 8;
-                default: return -1;
-            }
-        }
+namespace eraxc::x86 {
+    struct asm_translator {
 
         memory_state mem {};
         std::set<size_t> printed_nodes;
 
-        error::errable<void> print_JIR_node_asm(const JIR::Node& node, std::ostream& os) {
+        error::errable<void> print_JIR_node_asm(const JIR::JIRop& node, std::ostream& os) {
             if (node.op == JIR::Operation::NONE) {
                 return {""};
             }
@@ -149,9 +118,10 @@ namespace eraxc {
                 return {""};
             }
             if (node.op == JIR::Operation::DEALLOC) {
-                // auto assignee = mem.try_dealloc(size(node.operand1.type), node.operand1.value);
-                // if (!assignee) return {"Failed to deallocate stack space: " + assignee.error};
-                // os << assignee.value;
+                auto assignee = mem.try_dealloc(size(node.operand1.type), node.operand1.value);
+                if (!assignee)
+                    return {"Failed to deallocate stack space: " + assignee.error};
+                os << assignee.value;
                 return {""};
             }
 
@@ -172,7 +142,7 @@ namespace eraxc {
                     os << "mov " << op1.value << ", " << node.operand2.value << '\n';
                 } else {
                     //if move operand is located on stack, spill him to rax and then do move
-                    if (mem.stack_offsets.contains(node.operand2.value)) {
+                    if (mem.stack_offsets.contains(node.operand2.value) || mem.globals.contains(node.operand2.value)) {
                         std::string reg = reg_name(x86_reg::RAX, size(node.operand2.type));
                         os << "mov " << reg << ", " << op2.value << '\n';
                         os << "mov " << op1.value << ", " << reg << '\n';
@@ -276,9 +246,12 @@ namespace eraxc {
             file << "global main\nbits 64\nextern printf\nsection .data\n";
 
             //print globals
-            for (const auto& it : cfg.getScopeManager().top_allocations()) {
-                file << "var$" << it.value << ' ' << type(it.type) << " 0\n";
-                mem.globals.insert(it.value);
+            for (const auto& it : cfg.getScopeManager().top().identifiers) {
+                if (it.second.isFunc()) {
+                    continue;
+                }
+                file << "var$" << it.second.getId() << ' ' << type(it.second.getType()) << " 0\n";
+                mem.globals.insert(it.second.getId());
             }
 
             file << "DBG_PRINT: db \"{%d}: %d\", 0x0A, 0x00\n"

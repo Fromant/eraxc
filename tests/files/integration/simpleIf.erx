@@ -1,0 +1,10 @@
+int main() {
+    int i = 13i;
+    if(i<14i) {
+        i = 1i;
+    } else {
+        i = i;
+    }
+
+    return i;
+}

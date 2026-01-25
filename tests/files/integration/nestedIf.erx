@@ -1,0 +1,8 @@
+int main() {
+    if(2i>1i) {
+        if(3i>2i) {
+            return 2i;
+        }
+    }
+    return 1i;
+}

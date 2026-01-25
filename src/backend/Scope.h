@@ -41,6 +41,7 @@ namespace eraxc {
         u64 allocatedIds = 0;
         std::unordered_map<std::string, Declaration> identifiers {};
         std::unordered_map<std::string, size_t> typenames {};
+        std::vector<JIR::Operand> allocations{};
 
         Scope() = default;
     };

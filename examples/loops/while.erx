@@ -1,0 +1,11 @@
+
+
+
+int main() {
+    int i=0i;
+    while(i<17i) {
+        i++;
+    }
+
+    return i;
+}

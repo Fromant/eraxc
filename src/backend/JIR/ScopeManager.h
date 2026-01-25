@@ -1,26 +1,34 @@
 #pragma once
 
+#include <algorithm>
 #include <ranges>
+#include <stack>
 
-#include "Node.h"
+#include "JIRop.h"
 #include "Operand.h"
 #include "Operation.h"
 #include "backend/Scope.h"
+#include "backend/codegen/asm_x86_mem.h"
 #include "frontend/syntax/enums.h"
 
 namespace eraxc::JIR {
     class ScopeManager {
         std::vector<Scope> scopes;
 
-        std::vector<std::vector<Operand>> allocations;
+        using StackFrame = struct {
+            size_t allocationSize;
+            size_t topScopeId;
+        };
 
-        typedef std::vector<Node> Nodes;
+        std::stack<StackFrame> stackFrames;
+
+        using Nodes = std::vector<JIRop>;
 
     public:
         ScopeManager() {
-            scopes.emplace_back();
-            allocations.emplace_back();
             //init global scope with default types
+            scopes.emplace_back();
+            stackFrames.push({0, scopes.size() - 1});
             scopes.back().typenames = std::unordered_map<std::string, size_t> {
                 {"i8", syntax::i8},     {"i16", syntax::i16},   {"i32", syntax::i32},
                 {"i64", syntax::i64},   {"i128", syntax::i128}, {"i256", syntax::i256},
@@ -30,10 +38,6 @@ namespace eraxc::JIR {
 
                 {"int", syntax::i32},   {"long", syntax::i64},  {"char", syntax::i8},
                 {"bool", syntax::BOOL}, {"short", syntax::i16}, {"void", syntax::VOID}};
-        }
-
-        size_t size() {
-            return scopes.size();
         }
 
         u64 addType(const std::string& type) {
@@ -49,11 +53,9 @@ namespace eraxc::JIR {
         }
 
         bool containsTypeRecursive(const std::string& type) const {
-            for (const auto& scope : std::ranges::views::reverse(scopes)) {
-                if (scope.typenames.contains(type))
-                    return true;
-            }
-            return false;
+            return std::ranges::any_of(scopes, [type](const auto& scope) {
+                return scope.typenames.contains(type);
+            });
         }
 
         bool containsType(const std::string& type) const {
@@ -92,7 +94,7 @@ namespace eraxc::JIR {
 
         static inline const Scope::Declaration NOT_FOUND_DECL {NOT_FOUND, NOT_FOUND, false};
 
-        auto findDeclarationRecursive(const std::string& name) const {
+        auto& findDeclarationRecursive(const std::string& name) const {
             for (auto& scope : std::ranges::views::reverse(scopes)) {
                 if (auto it = scope.identifiers.find(name); it != scope.identifiers.end()) {
                     return it->second;
@@ -101,7 +103,7 @@ namespace eraxc::JIR {
             return NOT_FOUND_DECL;
         }
 
-        auto findDeclaration(const std::string& name) const {
+        auto& findDeclaration(const std::string& name) const {
             if (auto it = top().identifiers.find(name); it != top().identifiers.end()) {
                 return it->second;
             }
@@ -109,7 +111,13 @@ namespace eraxc::JIR {
         }
 
         void setDeclaration(const std::string& name, const Scope::Declaration& decl) {
-            top().identifiers[name] = decl;
+            for (auto& scope : std::ranges::views::reverse(scopes)) {
+                if (auto it = scope.identifiers.find(name); it != scope.identifiers.end()) {
+                    it->second = decl;
+                    return;
+                }
+            }
+            // top().identifiers[name] = decl;
         }
 
         u64 findTypeRecursive(const std::string& type) const {
@@ -137,12 +145,14 @@ namespace eraxc::JIR {
             top().identifiers.emplace(id, Scope::Declaration {type, top().allocatedIds, is_func});
             if (!is_func) {
                 Operand allocatee {type, top().allocatedIds, false, rValue};
-                allocations.back().emplace_back(allocatee);
                 nodes.emplace_back(Operation::ALLOC, allocatee, Operand {});
+                stackFrames.top().allocationSize += x86::size(type);
+                top().allocations.emplace_back(allocatee);
             }
             return top().allocatedIds++;
         }
 
+        //for already allocated ids (e.g. func args)
         size_t addIdWithoutAllocation(const std::string& id, size_t type, bool is_func, bool rValue = false) {
             top().identifiers.emplace(id, Scope::Declaration {type, top().allocatedIds, is_func});
             return top().allocatedIds++;
@@ -153,14 +163,15 @@ namespace eraxc::JIR {
             top().identifiers.emplace("$anonymous" + std::to_string(id), Scope::Declaration {type, id, is_func});
             if (!is_func) {
                 Operand allocatee {type, id, false, rValue};
-                allocations.back().emplace_back(allocatee);
                 nodes.emplace_back(Operation::ALLOC, allocatee, Operand {});
+                stackFrames.top().allocationSize += x86::size(type);
+                top().allocations.emplace_back(allocatee);
             }
             return id++;
         }
 
-        void addAllocation(const Operand& op) {
-            allocations.back().emplace_back(op);
+        size_t scopesCount() const {
+            return scopes.size();
         }
 
         Scope& top() {
@@ -170,46 +181,61 @@ namespace eraxc::JIR {
             return scopes.back();
         }
 
-        const auto& top_allocations() const {
-            return allocations.back();
+        const auto& topFrameSize() const {
+            return stackFrames.top().allocationSize;
+        }
+
+        void pushFrame() {
+            push();
+            stackFrames.push({0, scopes.size() - 1});
         }
 
         void push() {
             scopes.emplace_back();
-            allocations.emplace_back();
             if (scopes.size() > 1) {
                 scopes.back().allocatedIds = scopes[scopes.size() - 2].allocatedIds;
             }
         }
 
-        void dealloc_top(Nodes& nodes) {
-
-            auto& allocs = allocations.back();
-            for (auto& allocatee : std::views::reverse(allocs)) {
-                nodes.emplace_back(Operation::DEALLOC, allocatee, Operand {});
-            }
-
-            // auto& scope = scopes.back();
-
-            // for (auto& id : scope.identifiers) {
-            // if (id.second.isFunc()) continue;
-            // Operand dealloc {id.second.getType(), id.second.getId(), false, false};
-            // nodes.emplace_back(Operation::DEALLOC, dealloc, Operand {});
-            // }
+        void pop(Nodes& nodes) {
+            const auto& scope = scopes.back();
+            dealloc_scope(nodes, scope);
+            scopes.pop_back();
         }
 
-        void dealloc_all(Nodes& nodes) {
-            for (int i = allocations.size() - 1; i > 0; i--) {
-                auto& allocs = allocations[i];
-                for (auto& allocatee : std::views::reverse(allocs)) {
-                    nodes.emplace_back(Operation::DEALLOC, allocatee, Operand {});
+        void popFrame(Nodes& nodes, bool dealloc = true) {
+            const auto start_index = stackFrames.top().topScopeId;
+            const auto end_index = scopes.size();
+
+            if (dealloc) {
+                // [start, end) view
+                auto view = scopes | std::views::drop(start_index) | std::views::take(end_index - start_index) |
+                    std::views::reverse;
+                for (const auto& scope : view) {
+                    dealloc_scope(nodes, scope);
                 }
             }
+            scopes.erase(scopes.begin() + start_index, scopes.end());
+            stackFrames.pop();
         }
 
-        void pop() {
-            scopes.pop_back();
-            allocations.pop_back();
+        void deallocFrame(Nodes& nodes) {
+            const auto start_index = stackFrames.top().topScopeId;
+            const auto end_index = scopes.size();
+
+            // [start, end) view
+            auto view = scopes | std::views::drop(start_index) | std::views::take(end_index - start_index) |
+                std::views::reverse;
+            for (const auto& scope : view) {
+                dealloc_scope(nodes, scope);
+            }
+        }
+
+    private:
+        static void dealloc_scope(Nodes& nodes, const Scope& scope) {
+            for (auto& allocatee : std::views::reverse(scope.allocations)) {
+                nodes.emplace_back(Operation::DEALLOC, allocatee, Operand {});
+            }
         }
     };
 

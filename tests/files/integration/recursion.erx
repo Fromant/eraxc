@@ -1,0 +1,8 @@
+i32 factorial(i32 n) {
+    if (n <= 1i) return 1i;
+    return n * factorial(n - 1i);
+}
+
+i32 main() {
+    return factorial(5i); // 120
+}

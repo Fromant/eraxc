@@ -3,14 +3,14 @@
 #include <map>
 #include <stack>
 
-#include "../Node.h"
+#include "../JIRop.h"
 #include "CFG_parts.h"
 #include "backend/JIR/ScopeManager.h"
 
 
 namespace eraxc::JIR {
 
-    typedef std::vector<Node> Nodes;
+    typedef std::vector<JIRop> Nodes;
 
     class CFG {
         std::vector<CFG_Node> nodes;
@@ -29,9 +29,9 @@ namespace eraxc::JIR {
         error::errable<void> parse_statement(const std::vector<token>& tokens, int& i, size_t& node_id);
 
         error::errable<void> parse_if(const std::vector<token>& tokens, int& i, size_t& node_id);
-        error::errable<void> parse_do(const std::vector<token>& tokens, int& i, size_t node_id);
-        error::errable<void> parse_while(const std::vector<token>& tokens, int& i, size_t node_id);
-        error::errable<void> parse_for(const std::vector<token>& tokens, int& i, size_t node_id);
+        error::errable<void> parse_do(const std::vector<token>& tokens, int& i, size_t& node_id);
+        error::errable<void> parse_while(const std::vector<token>& tokens, int& i, size_t& node_id);
+        error::errable<void> parse_for(const std::vector<token>& tokens, int& i, size_t& node_id);
 
         error::errable<Operand> parse_instant(const token& t) const;
         error::errable<Operand> parse_expression(const std::vector<token>& tokens, int& i, size_t& node_id,

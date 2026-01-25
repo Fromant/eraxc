@@ -87,7 +87,7 @@ TEST(TokenizerTest, ParseSpecialSymbols) {
 
 TEST(TokenizerTest, GeneralTest) {
     eraxc::tokenizer tokenizer;
-    std::string filepath = "../../tests/preprocessor/files/tokenizer.erx";
+    std::string filepath = "../../tests/files/preprocessor/tokenizer.erx";
 
     const std::vector<eraxc::token> reference {
         {eraxc::token::IDENTIFIER, "unsigned"},

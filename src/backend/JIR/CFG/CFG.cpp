@@ -19,7 +19,7 @@ namespace eraxc::JIR {
                     //func decl
                     auto f = parse_function(tokens, i, global_node_id);
                     if (!f)
-                        return {"Error while parsing a function declaration:\n" + f.error};
+                        return {"Error while parsing a function:\n" + f.error};
                 } else {
                     //global var decl
                     auto f = parse_declaration(tokens, i, global_node_id);
@@ -30,8 +30,9 @@ namespace eraxc::JIR {
                 return {"Unknown statement: " + tokens[i].data};
         }
         //check for main() entrypoint
-        if (scopeManager.size() != 1) {
-            return {"Something went wrong during compilation. Scopes count: " + std::to_string(scopeManager.size())};
+        if (scopeManager.scopesCount() != 1) {
+            return {"Something went wrong during compilation. Scopes count: " +
+                    std::to_string(scopeManager.scopesCount())};
         }
         if (!scopeManager.containsIdRecursive("main"))
             return {NO_ENTRYPOINT_ERROR};
@@ -41,11 +42,9 @@ namespace eraxc::JIR {
         if (main_decl.getType() != scopeManager.findTypeRecursive("int"))
             return {NO_ENTRYPOINT_ERROR};
 
-        scopeManager.dealloc_top(nodes[global_node_id].body);
-
+        // scopeManager.popFrame(nodes[global_node_id].body);
         return {""};
     }
-
 
     error::errable<void> CFG::parse_function(const std::vector<token>& tokens, int& i, size_t& node_id) {
         if (!scopeManager.containsTypeRecursive(tokens[i].data))
@@ -55,12 +54,13 @@ namespace eraxc::JIR {
         if (scopeManager.containsId(tokens[i + 1].data))
             return {"Variable " + tokens[i + 1].data + " is already defined in this scope"};
 
-        const u64 func_id = scopeManager.addId(tokens[i + 1].data, return_type, true, nodes[node_id].body);
+        const u64 funcId = scopeManager.addId(tokens[i + 1].data, return_type, true, nodes[node_id].body);
 
-        size_t func_node_id = nodes.size();
+        size_t funcNodeId = nodes.size();
+        const size_t funcFirstNodeId = funcNodeId;
         nodes.emplace_back();
 
-        scopeManager.push();
+        scopeManager.pushFrame();
         std::vector<Operand> args {};
 
         i += 3;
@@ -89,30 +89,34 @@ namespace eraxc::JIR {
             i += 3;
         }
 
+        global_funcs[funcId] = CFG_Func {return_type, funcFirstNodeId, 0, args};
+
         i++;
         //parse function body
         if (tokens[i].t != token::L_F_BRACKET)
             return {"Expected function body '{' instead of " + tokens[i].data};
         i++;
 
-        global_funcs[func_id] = CFG_Func {return_type, func_node_id, args};
-
-        auto body = parse_statements(tokens, i, func_node_id);
+        auto body = parse_statements(tokens, i, funcNodeId);
         if (!body)
             return {body.error};
 
-        if (nodes[func_node_id].body.back().op != Operation::RET) {
-            scopeManager.dealloc_top(nodes[func_node_id].body);
-            nodes[func_node_id].body.emplace_back(Operation::RET, Operand {}, Operand {});
+        size_t stackSize = scopeManager.topFrameSize();
+        if (nodes[funcNodeId].body.size() == 0 | nodes[funcNodeId].body.back().op != Operation::RET) {
+            scopeManager.popFrame(nodes[funcNodeId].body);
+            nodes[funcNodeId].body.emplace_back(Operation::RET, Operand {}, Operand {});
+        } else {
+            scopeManager.popFrame(nodes[funcNodeId].body, false);
         }
-        scopeManager.pop();
+
+        global_funcs[funcId] = CFG_Func {return_type, funcFirstNodeId, stackSize, args};
 
         return {""};
     }
 
     error::errable<void> CFG::parse_if(const std::vector<token>& tokens, int& i, size_t& node_id) {
         if (tokens[i + 1].t != token::L_BRACKET)
-            return {"Expected left bracket after if: `if(cond) {body}`"};
+            return {"Expected left bracket after if: `if(condition expr) {body}`"};
         i += 2;
 
         size_t node_id_before = node_id;
@@ -140,8 +144,7 @@ namespace eraxc::JIR {
                 return body;
         }
 
-        scopeManager.dealloc_top(nodes[node_id].body);
-        scopeManager.pop();
+        scopeManager.pop(nodes[node_id].body);
 
         Operation jump_op = jump_ops.top();
         jump_ops.pop();
@@ -186,13 +189,73 @@ namespace eraxc::JIR {
                     return body;
             }
 
-            scopeManager.dealloc_top(nodes[new_branch_id].body);
-            scopeManager.pop();
+            scopeManager.pop(nodes[negative_branch_id].body);
 
             //shift current node to new branch
             node_id = new_branch_id;
-        } else
+        } else {
             node_id = negative_branch_id;
+        }
+
+        return {""};
+    }
+
+    error::errable<void> CFG::parse_while(const std::vector<token>& tokens, int& i, size_t& node_id) {
+        if (tokens[i + 1].t != token::L_BRACKET)
+            return {"Expected left bracket after `while`: `while(condition expr) {body}`"};
+        i += 2;
+
+        size_t node_id_before = node_id;
+
+        auto expr = parse_expression(tokens, i, node_id, {token::R_BRACKET});
+        if (!expr)
+            return {expr.error};
+
+        if (node_id_before == node_id)
+            return {"Expected conditional expression inside of while()"};
+
+        // now node_id stands for while's body (see push_expr_stack() for clarification)
+        if (nodes[node_id_before].body.back().op != Operation::CMP) {
+            //?
+            return {"WTF"};
+        }
+
+        auto cmp_node = nodes[node_id_before].body.back();
+        nodes[node_id_before].body.pop_back();
+
+        std::swap(cmp_node.operand1, cmp_node.operand2);
+
+        size_t exit_node_id = nodes.size();
+        nodes.emplace_back();
+        nodes[exit_node_id].body.emplace_back(cmp_node);
+        nodes[node_id_before].body.emplace_back(Operation::JUMP, Operand {u64(-1), exit_node_id, true, false},
+                                                Operand {});
+
+        Operation jump_op = jump_ops.top();
+        jump_ops.pop();
+
+        nodes[exit_node_id].body.emplace_back(jump_op, Operand {u64(-1), node_id, true, false}, Operand {});
+
+        scopeManager.push();
+
+        if (tokens[i].t == token::L_F_BRACKET) {
+            //body
+            auto body = parse_statements(tokens, i, node_id);
+            if (!body)
+                return body;
+        } else {
+            //single statement
+            auto body = parse_statement(tokens, i, node_id);
+            if (!body)
+                return body;
+        }
+
+        scopeManager.pop(nodes[node_id].body);
+
+        edges.emplace(node_id_before, node_id);
+        edges.emplace(node_id, exit_node_id);
+
+        node_id = exit_node_id;
 
         return {""};
     }
@@ -220,19 +283,23 @@ namespace eraxc::JIR {
                     return to_return.error;
 
                 auto& body = nodes[node_id].body;
-
                 body.emplace_back(Operation::PASS_RET, to_return.value, Operand {});
-                scopeManager.dealloc_all(body);
+                scopeManager.deallocFrame(body);
                 body.emplace_back(Operation::RET, Operand {}, Operand {});
             } else if (tokens[i].data == "if") {
                 //parse if
                 auto ifn = parse_if(tokens, i, node_id);
-                if (!ifn)
+                if (!ifn) {
                     return ifn;
+                }
+            } else if (tokens[i].data == "while") {
+                //parse while;
+                auto while_result = parse_while(tokens, i, node_id);
+                if (!while_result) {
+                    return while_result;
+                }
             } else if (tokens[i].data == "for") {
                 //parse for
-            } else if (tokens[i].data == "while") {
-                //parse while
             } else if (tokens[i].data == "do") {
                 //parse do
             } else {
@@ -248,8 +315,10 @@ namespace eraxc::JIR {
                 if (!expr)
                     return expr.error;
             }
-        } else
+        } else {
             return {"Expected statement instead of: " + tokens[i].data};
+        }
+
         return {""};
     }
 
@@ -273,9 +342,10 @@ namespace eraxc::JIR {
             if (!init)
                 return init.error;
 
-            if (scopeManager.top().allocatedIds == old_size) {
-                const u64 id = scopeManager.addId(name, type, false, nodes[node_id].body);
-            }
+            //wtf??
+            // if (scopeManager.top().allocatedIds == old_size) {
+            // const u64 id = scopeManager.addId(name, type, false, nodes[node_id].body);
+            // }
 
             return {""};
         }
@@ -329,8 +399,11 @@ namespace eraxc::JIR {
                 u64 args_passed = 0;
                 i++;
                 //parse args
-                while (tokens[i - 1].t != token::R_BRACKET) {
+                while (tokens[i].t != token::R_BRACKET) {
                     auto arg = parse_expression(tokens, i, node_id, {token::R_BRACKET, token::COMMA});
+                    if (tokens[i].t != token::COMMA) {
+                        --i;
+                    }
                     if (!arg)
                         return {"Error while parsing function call argument" + arg.error, {}};
 
@@ -353,6 +426,7 @@ namespace eraxc::JIR {
                 nodes[node_id].body.emplace_back(Operation::CALL, operand,
                                                  Operand {decl.getType(), call_result_id, false, true});
                 operand = Operand(decl.getType(), call_result_id, false, true);
+                i++;
                 continue;
             }
 
@@ -486,23 +560,15 @@ namespace eraxc::JIR {
             if (!assign_to)
                 return assign_to;
 
-            Operand tr {u64(-2), u64(-2), false, true};
-
             //DO i need this assign logic??
             if (!assign_to.value.is_rvalue && assign_op == Operation::MOVE) {
-                Operand new_assignee {
-                    assignee.getType(),
-                    // scopeManager.top().allocatedIds++,
-                    scopeManager.addAnonymousId(assignee.getType(), false, nodes[node_id].body, false), false, false};
-                // nodes[node_id].body.emplace_back(Operation::ALLOC, new_assignee, Operand {});
-                // scopeManager.addAllocation(new_assignee);
-                tr = new_assignee;
-                nodes[node_id].body.emplace_back(assign_op, new_assignee, assign_to.value);
-                scopeManager.setDeclaration(assignee_name, {assignee.getType(), new_assignee.value, false});
-            } else {
-                tr = Operand(assignee.getType(), assignee.getId(), false, false);
-                nodes[node_id].body.emplace_back(assign_op, tr, assign_to.value);
+                nodes[node_id].body.emplace_back(assign_op, assign_to.value, assign_to.value);
+                scopeManager.setDeclaration(assignee_name, {assignee.getType(), assign_to.value.value, false});
+                return {"", assign_to.value};
             }
+
+            auto tr = Operand(assignee.getType(), assignee.getId(), false, false);
+            nodes[node_id].body.emplace_back(assign_op, tr, assign_to.value);
             return {"", tr};
         }
 

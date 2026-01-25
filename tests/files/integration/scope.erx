@@ -1,0 +1,6 @@
+i32 x = 100i;
+
+i32 main() {
+    i32 x = 200i; // shadows global
+    return x;
+}

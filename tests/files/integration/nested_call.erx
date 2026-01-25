@@ -1,0 +1,11 @@
+i32 t() {
+    return 1i;
+}
+
+i32 double(i32 a) {
+    return a*2i;
+}
+
+i32 main() {
+    return double(t());
+}

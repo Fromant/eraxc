@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "CFG/CFG_parts.h"
-#include "Node.h"
+#include "JIRop.h"
 #include "Operand.h"
 
 namespace eraxc::JIR::utils {
@@ -24,7 +24,7 @@ namespace eraxc::JIR::utils {
         return result;
     }
 
-    inline void print_JIR_nodes(const std::vector<Node>& nodes) {
+    inline void print_JIR_nodes(const std::vector<JIRop>& nodes) {
         for (const auto& node : nodes) {
             if (node.op == Operation::MOVE) {
                 std::cout << "MOVE " << operand_to_string(node.operand1) << ' ' << operand_to_string(node.operand2)
@@ -99,6 +99,8 @@ namespace eraxc::JIR::utils {
                 std::cout << "ALLOC " << operand_to_string(node.operand1) << std::endl;
             } else if (node.op == Operation::DEALLOC) {
                 std::cout << "DEALLOC " << operand_to_string(node.operand1) << std::endl;
+            } else if (node.op == Operation::PASS_RET) {
+                std::cout << "PASS RET " << operand_to_string(node.operand1) << std::endl;
             }
         }
     }

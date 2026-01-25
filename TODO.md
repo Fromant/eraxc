@@ -20,6 +20,7 @@
 
 - [ ] preprocessor `#if` macro + tests
 - [ ] preprocessor `#else` macro + tests
+- [ ] #include search paths + tests + cycle tests
 
 # Lexer/Parser:
 
@@ -27,7 +28,6 @@
 
 # JIR/CFG:
 
-- [ ] Move all errors to separate file
 - [x] Control flow graph consisting of functions and codeblocks
 - [x] Types check
 - [x] Move all the allocation and deallocation logic inside cfg pass. Only allocate when needed. Maybe even move stack
@@ -43,12 +43,22 @@
 - [x] one expression blocks after if (without `{}`)
 - [x] `else` support
 - [x] `return` keyword terminate all allocated variables
-- [ ] `while` support
+- [x] `while` support
+- [x] integration tests
+- [ ] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
+- [ ] fix recursion
+- [ ] return inside if causes segfault
+- [ ] if branches with different stack size causes segfaults :(
+- [ ] count max stack sizes for each function.
+- [ ] `break` support
 - [ ] `for` support
 - [ ] `do` support (?)
 - [ ] `extern` keyword
 - [ ] `defer` keyword
-- [ ] Redo typenames (const, rvalue/lvalue, references and poitners)
+- [ ] Move all errors to separate file
+- [ ] Redo typenames (const, rvalue/lvalue, references and pointers, structs and classes)
+- [ ] struct method function call
+- [ ] Struct member deref
 - [ ] Type explicit casting (only explicit!)
 - [ ] 2 way scopes for namespaces
 - [ ] JIR() directive for direct JIR code input

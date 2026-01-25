@@ -7,8 +7,7 @@
 namespace eraxc::JIR {
 
     struct CFG_Node {
-        std::vector<Node> body;
-        // std::vector<Operand> allocations;
+        std::vector<JIRop> body;
     };
 
     struct CFG_Edge {
@@ -20,6 +19,7 @@ namespace eraxc::JIR {
     struct CFG_Func {
         u64 return_type;
         u64 node_id;
+        size_t max_stack_size;
         std::vector<Operand> params;
     };
 }
