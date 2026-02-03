@@ -6,6 +6,10 @@
 4. ` with ... as ... {}` paradigm (python like)
 5. Multi ARG subscript `operator[](int a, int b, int c);` `foo a[]; a[0,0,0]=0;` - for multidimensional containers
 
+How to distinguish const container from container with const elements and is it needed?
+const and non const functions duplicate code too much.
+
+
 # Global tasks:
 
 - [ ] booleans
@@ -21,6 +25,7 @@
 - [ ] preprocessor `#if` macro + tests
 - [ ] preprocessor `#else` macro + tests
 - [ ] #include search paths + tests + cycle tests
+- [ ] module system?
 
 # Lexer/Parser:
 
@@ -47,9 +52,15 @@
 - [x] integration tests
 - [x] CFG viewer tool
 - [x] CFG exporting
+- [x] New scopes and scopemanager rework
+- [x] Save scopes to CFG nodes
+- [x] redo scopes and ScopeManager
+- [x] store variables that are allocated inside cfg node and it's size inside cfg node.
+- [x] store max stack size
+- [ ] add a bunch of tests for stack size calculation add stuff on cfg node
+- [ ] CFG docs (using mermaid diagrams) and tests
 - [ ] redo if to new edges
-- [ ] redo allocations, scopes and ScopeManager
-- [ ] store variables that are allocated inside cfg node and it's size inside cfg node.
+- [ ] allocation manager
 - [ ] ? store uses for each variable
 - [ ] split cfg edges to squash and extend edges (one extends stack, other squashes)
 - [ ] new while loop (example is in notebook page 2)

@@ -255,7 +255,7 @@ namespace eraxc::x86 {
             file << "global main\nbits 64\nextern printf\nsection .data\n";
 
             //print globals
-            for (const auto& it : cfg.getScopeManager().top().identifiers) {
+            for (const auto& it : cfg.getScopeManager().top().getIdentifiers()) {
                 if (it.second.isFunc()) {
                     continue;
                 }
@@ -270,8 +270,8 @@ namespace eraxc::x86 {
                     "call $f_0\n";
             //TODO move global initialization to separate cfg node that is always presented
 
-            if (const auto main_id = cfg.getScopeManager().findIdRecursive("main"); main_id != 0) {
-                file << "call $f_" << main_id << '\n';
+            if (const auto main_id = cfg.getScopeManager().findIdRecursive("main"); main_id && main_id.value() != 0) {
+                file << "call $f_" << main_id.value() << '\n';
             }
 
             //now return rsp to where it's been before allocations

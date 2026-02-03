@@ -3,11 +3,20 @@
 #include <vector>
 
 #include "../../Scope.h"
+#include "backend/JIR/Operand.h"
+#include "backend/JIR/Operation.h"
 
 namespace eraxc::JIR {
 
+    struct JIRop {
+        Operation op = Operation::ERR;
+        Operand operand1;
+        Operand operand2;
+    };
+
     struct CFG_Node {
         std::vector<JIRop> body;
+        Scope scope;
     };
 
     enum CFGEdgeType {

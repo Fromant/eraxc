@@ -1,14 +1,20 @@
 #pragma once
 
+#include <optional>
+#include <ranges>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
+#include "codegen/x86/size.h"
 #include "util/common.h"
 
 namespace eraxc {
 
-    struct Scope {
+    class Scope {
 
+    public:
         struct Declaration {
         private:
             u64 type;
@@ -36,13 +42,129 @@ namespace eraxc {
             };
         };
 
+    private:
+        using Type = size_t;
+        using TypesMap = std::unordered_map<std::string, Type>;
+        using IdentifiersMap = std::unordered_map<std::string, Declaration>;
 
-        //number of allocations (including anonymous)
+        // number of allocations (including anonymous)
         u64 allocatedIds = 0;
-        std::unordered_map<std::string, Declaration> identifiers {};
-        std::unordered_map<std::string, size_t> typenames {};
-        std::vector<JIR::Operand> allocations{};
+        // size of all allocations
+        u64 allocatedSize = 0;
 
+        IdentifiersMap identifiers {};
+        TypesMap typenames {};
+
+        std::vector<Declaration> allocations;
+
+    public:
         Scope() = default;
+
+        explicit Scope(u64 allocatedIds) : allocatedIds(allocatedIds) {}
+
+        Scope(const IdentifiersMap& identifiers, TypesMap typenames) :
+            allocatedIds(identifiers.size()), identifiers(identifiers), typenames(std::move(typenames)) {}
+
+        Scope(Scope&& other) noexcept {
+            allocatedIds = other.allocatedIds;
+            identifiers.swap(other.identifiers);
+            typenames.swap(other.typenames);
+            allocatedSize = other.allocatedSize;
+            allocations.swap(other.allocations);
+            other.allocatedIds = 0;
+            other.allocatedSize = 0;
+        }
+
+        Scope& operator=(Scope&& other) noexcept {
+            if (&other == this) {
+                return *this;
+            }
+            allocatedIds = other.allocatedIds;
+            identifiers.swap(other.identifiers);
+            typenames.swap(other.typenames);
+            allocatedSize = other.allocatedSize;
+            allocations.swap(other.allocations);
+            other.allocatedIds = 0;
+            other.allocatedSize = 0;
+            return *this;
+        }
+
+        u64 getAllocatedIds() const {
+            return allocatedIds;
+        }
+
+        u64 getAllocatedSize() const {
+            return allocatedSize;
+        }
+
+        bool containsId(const std::string& id) const {
+            return identifiers.contains(id);
+        }
+
+        bool containsType(const std::string& type) const {
+            return typenames.contains(type);
+        }
+
+        auto getIdentifiers() const {
+            return std::views::all(identifiers);
+        }
+
+        auto getTypenames() const {
+            return std::views::all(typenames);
+        }
+
+        // already reversed
+        auto getAllocations() const {
+            return std::views::all(allocations) | std::views::reverse;
+        }
+
+        std::optional<Declaration> findId(const std::string& id) const {
+            const auto it = identifiers.find(id);
+            if (it != identifiers.end()) {
+                return it->second;
+            }
+            return std::nullopt;
+        }
+
+        std::optional<size_t> findType(const std::string& type) const {
+            const auto it = typenames.find(type);
+            if (it != typenames.end()) {
+                return it->second;
+            }
+            return std::nullopt;
+        }
+
+        std::optional<Declaration> addId(const std::string& id, u64 type, bool isFunc, bool doAllocate = true) {
+            auto r = identifiers.emplace(id, Declaration {type, allocatedIds++, isFunc});
+            if (!r.second) {
+                return std::nullopt;
+            }
+            if (doAllocate && !isFunc) {
+                allocatedSize += x86::size(type);
+                allocations.emplace_back(r.first->second);
+            }
+            return r.first->second;
+        }
+
+        Declaration& addAnonymousId(u64 type, bool isFunc, bool doAllocate = true) {
+            const auto name = "$anonimous" + std::to_string(allocatedIds);
+            auto r = identifiers.emplace(name, Declaration {type, allocatedIds++, isFunc});
+            if (!r.second) {
+                throw std::runtime_error("cannot add " + name + " to scope. Is it already allocated?");
+            }
+            if (doAllocate && !isFunc) {
+                allocatedSize += x86::size(type);
+                allocations.emplace_back(r.first->second);
+            }
+            return r.first->second;
+        }
+
+        std::optional<u64> addType(const std::string& type) {
+            auto r = typenames.emplace(type, typenames.size());
+            if (!r.second) {
+                return std::nullopt;
+            }
+            return r.first->second;
+        }
     };
 }

@@ -3,7 +3,6 @@
 #include <map>
 #include <stack>
 
-#include "../JIRop.h"
 #include "CFG_parts.h"
 #include "backend/JIR/ScopeManager.h"
 

@@ -34,12 +34,14 @@ namespace eraxc::JIR {
             return {"Something went wrong during compilation. Scopes count: " +
                     std::to_string(scopeManager.scopesCount())};
         }
-        if (!scopeManager.containsIdRecursive("main"))
-            return {NO_ENTRYPOINT_ERROR};
         auto main_decl = scopeManager.findDeclaration("main");
-        if (!main_decl.isFunc())
+        if (!main_decl) {
             return {NO_ENTRYPOINT_ERROR};
-        if (main_decl.getType() != scopeManager.findTypeRecursive("int"))
+        }
+        const auto main = main_decl.value();
+        if (!main.isFunc())
+            return {NO_ENTRYPOINT_ERROR};
+        if (main.getType() != scopeManager.findTypeRecursive("int"))
             return {NO_ENTRYPOINT_ERROR};
 
         // scopeManager.popFrame(nodes[global_node_id].body);
@@ -47,14 +49,15 @@ namespace eraxc::JIR {
     }
 
     error::errable<void> CFG::parse_function(const std::vector<token>& tokens, int& i, size_t& node_id) {
-        if (!scopeManager.containsTypeRecursive(tokens[i].data))
+        const auto return_type = scopeManager.findTypeRecursive(tokens[i].data);
+        if (!return_type) {
             return {"No such typename " + tokens[i].data};
-        const u64 return_type = scopeManager.findTypeRecursive(tokens[i].data);
+        }
 
-        if (scopeManager.containsId(tokens[i + 1].data))
-            return {"Variable " + tokens[i + 1].data + " is already defined in this scope"};
-
-        const u64 funcId = scopeManager.addId(tokens[i + 1].data, return_type, true, nodes[node_id].body);
+        const auto funcId = scopeManager.addId(tokens[i + 1].data, return_type.value(), true, nodes[node_id].body);
+        if (!funcId) {
+            return {"Identifier " + tokens[i + 1].data + " is already defined in this scope"};
+        }
 
         size_t funcNodeId = nodes.size();
         const size_t funcFirstNodeId = funcNodeId;
@@ -70,14 +73,17 @@ namespace eraxc::JIR {
             if (tokens[i].t == token::NONE)
                 return {"Unexpected EOF in arguments list"};
             if (tokens[i].t == token::IDENTIFIER) {
-                u64 arg_type = scopeManager.findTypeRecursive(tokens[i].data);
-                if (arg_type == ScopeManager::NOT_FOUND)
+                auto arg_type = scopeManager.findTypeRecursive(tokens[i].data);
+                if (!arg_type)
                     return {"No such typename " + tokens[i].data};
 
                 if (tokens[i + 1].t != token::IDENTIFIER)
                     return {"Expected variable name in arguments list instead of " + tokens[i + 1].data};
-                u64 arg_id = scopeManager.addIdWithoutAllocation(tokens[i + 1].data, arg_type, false);
-                args.emplace_back(arg_type, arg_id, false, false);
+                auto arg_id = scopeManager.addIdWithoutAllocation(tokens[i + 1].data, arg_type.value(), false);
+                if (!arg_id) {
+                    return {"Cannot allocate parameter somehow"};
+                }
+                args.emplace_back(arg_type.value(), arg_id.value(), false, false);
             } else
                 return {"Expected function variable list or end of function declaration instead of " + tokens[i].data};
             if (tokens[i + 2].t == token::R_BRACKET) {
@@ -89,7 +95,7 @@ namespace eraxc::JIR {
             i += 3;
         }
 
-        global_funcs[funcId] = CFG_Func {return_type, funcFirstNodeId, 0, args};
+        global_funcs[funcId.value()] = CFG_Func {return_type.value(), funcFirstNodeId, 0, args};
 
         i++;
         //parse function body
@@ -101,15 +107,20 @@ namespace eraxc::JIR {
         if (!body)
             return {body.error};
 
-        size_t stackSize = scopeManager.topFrameSize();
+        size_t stackSize = 0;
+
         if (nodes[funcNodeId].body.size() == 0 | nodes[funcNodeId].body.back().op != Operation::RET) {
-            scopeManager.popFrame(nodes[funcNodeId].body);
+            // no return at the end
+            // TODO add type check, allow no return only for void fns
+            stackSize = scopeManager.popFrame(nodes[funcNodeId]);
             nodes[funcNodeId].body.emplace_back(Operation::RET, Operand {}, Operand {});
         } else {
-            scopeManager.popFrame(nodes[funcNodeId].body, false);
+            stackSize = scopeManager.popFrame(nodes[funcNodeId], false);
         }
 
-        global_funcs[funcId] = CFG_Func {return_type, funcFirstNodeId, stackSize, args};
+        std::cout << "function stack size: " << stackSize << std::endl;
+
+        global_funcs[funcId.value()] = CFG_Func {return_type.value(), funcFirstNodeId, stackSize, args};
 
         return {""};
     }
@@ -144,7 +155,7 @@ namespace eraxc::JIR {
                 return body;
         }
 
-        scopeManager.pop(nodes[node_id].body);
+        scopeManager.pop(nodes[node_id]);
 
         Operation jump_op = jump_ops.top();
         jump_ops.pop();
@@ -189,7 +200,7 @@ namespace eraxc::JIR {
                     return body;
             }
 
-            scopeManager.pop(nodes[negative_branch_id].body);
+            scopeManager.pop(nodes[negative_branch_id]);
 
             //shift current node to new branch
             node_id = new_branch_id;
@@ -259,7 +270,7 @@ namespace eraxc::JIR {
                 return body;
         }
 
-        scopeManager.pop(nodes[body_node_id].body);
+        scopeManager.pop(nodes[body_node_id]);
 
         edges.emplace(node_id_before, CFGEdge {condition_node, EXTEND});
         edges.emplace(condition_node, CFGEdge {body_node_id, EXTEND, jump_op});
@@ -299,7 +310,10 @@ namespace eraxc::JIR {
 
                 auto& body = nodes[node_id].body;
                 body.emplace_back(Operation::PASS_RET, to_return.value, Operand {});
+                // just dealloc because scope and frame will be popped later on '}' symbol
+                // should call all the destructors or something
                 scopeManager.deallocFrame(body);
+                // stack alignment would be done later, on allocation pass
                 body.emplace_back(Operation::RET, Operand {}, Operand {});
             } else if (tokens[i].data == "if") {
                 //parse if
@@ -338,26 +352,28 @@ namespace eraxc::JIR {
     }
 
     error::errable<void> CFG::parse_declaration(const std::vector<token>& tokens, int& i, size_t node_id) {
-        if (!scopeManager.containsTypeRecursive(tokens[i].data))
+        const auto typeOpt = scopeManager.findTypeRecursive(tokens[i].data);
+        if (!typeOpt) {
             return {"Unknown type identifier: " + tokens[i].data};
-        if (scopeManager.containsId(tokens[i + 1].data))
+        }
+
+        const u64 type = typeOpt.value();
+
+        if (const auto decl = scopeManager.addId(tokens[i + 1].data, type, false, nodes[node_id].body); !decl) {
             return {"This identifier is already defined: " + tokens[i + 1].data};
-
-        const u64 type = scopeManager.findTypeRecursive(tokens[i].data);
-
-        scopeManager.addId(tokens[i + 1].data, type, false, nodes[node_id].body);
+        }
 
         if (tokens[i + 2].t == token::OPERATOR) {
             std::string name = tokens[i + 1].data;
             //parsing initialization
-            size_t old_size = scopeManager.top().allocatedIds;
+            // size_t old_size = scopeManager.top().allocatedIds;
             i++;
             auto init = parse_expression(tokens, i, node_id);
 
             if (!init)
                 return init.error;
 
-            //wtf??
+            // TODO wtf??
             // if (scopeManager.top().allocatedIds == old_size) {
             // const u64 id = scopeManager.addId(name, type, false, nodes[node_id].body);
             // }
@@ -365,7 +381,8 @@ namespace eraxc::JIR {
             return {""};
         }
 
-        const u64 id = scopeManager.addId(tokens[i + 1].data, type, false, nodes[node_id].body);
+        // TODO wtf?
+        scopeManager.addId(tokens[i + 1].data, type, false, nodes[node_id].body);
 
         if (tokens[i + 2].t != token::SEMICOLON)
             return {"Expected semicolon after declaration instead of: " + tokens[i + 3].data};
@@ -394,9 +411,11 @@ namespace eraxc::JIR {
         if (tokens[i].t != token::IDENTIFIER)
             return {"Expected identifier in expression operand instead of: " + tokens[i].data, {}};
 
-        auto decl = scopeManager.findDeclarationRecursive(tokens[i].data);
-        if (decl.getId() == -1 && decl.getType() == -1)
+        auto declOpt = scopeManager.findDeclarationRecursive(tokens[i].data);
+        if (!declOpt) {
             return {"Unknown identifier in this scope: " + tokens[i].data, {}};
+        }
+        const auto& decl = declOpt.value();
         i++;
 
         Operand operand {decl.getType(), decl.getId(), false, false};
@@ -520,28 +539,28 @@ namespace eraxc::JIR {
         if (t.data[t.data.size() - 2] == 'u') {
             if (t.data.back() == 'l') {
                 //unsigned long, u64
-                tr = {scopeManager.findTypeRecursive("u64"), u64(std::stoull(t.data.substr(0, t.data.size() - 2))),
-                      true, true};
+                tr = {scopeManager.findTypeRecursive("u64").value(),
+                      u64(std::stoull(t.data.substr(0, t.data.size() - 2))), true, true};
             } else if (t.data.back() == 'i') {
                 //unsigned integer instant, u32
-                tr = {scopeManager.findTypeRecursive("u32"), u64(std::stol(t.data.substr(0, t.data.size() - 2))), true,
-                      true};
+                tr = {scopeManager.findTypeRecursive("u32").value(),
+                      u64(std::stol(t.data.substr(0, t.data.size() - 2))), true, true};
             } else {
                 return {"Non-explicit or unknown constant type\nMake constant type explicit: e.g. `16i`", tr};
             }
         } else {
             if (t.data.back() == 'l') {
                 //long, i64
-                tr = {scopeManager.findTypeRecursive("i64"), u64(std::stol(t.data.substr(0, t.data.size() - 1))), true,
-                      true};
+                tr = {scopeManager.findTypeRecursive("i64").value(),
+                      u64(std::stol(t.data.substr(0, t.data.size() - 1))), true, true};
             } else if (t.data.back() == 'i') {
                 //integer instant, i32
-                tr = {scopeManager.findTypeRecursive("i32"), u64(std::stoi(t.data.substr(0, t.data.size() - 1))), true,
-                      true};
+                tr = {scopeManager.findTypeRecursive("i32").value(),
+                      u64(std::stoi(t.data.substr(0, t.data.size() - 1))), true, true};
             } else {
                 //if none is present, stick to i32
-                tr = {scopeManager.findTypeRecursive("i32"), u64(std::stoi(t.data.substr(0, t.data.size() - 1))), true,
-                      true};
+                tr = {scopeManager.findTypeRecursive("i32").value(),
+                      u64(std::stoi(t.data.substr(0, t.data.size() - 1))), true, true};
             }
         }
         return {"", tr};
@@ -558,9 +577,10 @@ namespace eraxc::JIR {
             if (tokens[i].t != token::IDENTIFIER)
                 return {"Expected variable on the left side of assign operator", Operand {}};
 
-            const auto& assignee = scopeManager.findDeclarationRecursive(tokens[i].data);
-            if (assignee == ScopeManager::NOT_FOUND_DECL)
+            const auto& assigneeOpt = scopeManager.findDeclarationRecursive(tokens[i].data);
+            if (!assigneeOpt)
                 return {"Unknown identifier in assignee: " + tokens[i].data, Operand {}};
+            const auto& assignee = assigneeOpt.value();
             const std::string& assignee_name = tokens[i].data;
 
             //parse assign operation

@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "CFG/CFG_parts.h"
-#include "JIRop.h"
 #include "Operand.h"
 
 namespace eraxc::JIR::utils {
