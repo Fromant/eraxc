@@ -157,8 +157,8 @@ void ScopeManager::pushFrame() {
 }
 
 void ScopeManager::push() {
-    if (scopes.size() > 1) {
-        scopes.emplace_back(scopes[scopes.size() - 2].getAllocatedIds());
+    if (!scopes.empty()) {
+        scopes.emplace_back(scopes[scopes.size() - 1].getAllocatedIds());
     } else {
         scopes.emplace_back();
     }

@@ -240,6 +240,13 @@ namespace eraxc::x86 {
 
                 // Iterate through edges
                 for (auto i = start; i != end; ++i) {
+                    if (i->second.type == JIR::SQUASH) {
+                        // dealloc stack
+                        const auto r = mem.try_dealloc_stack_space(node.scope.getAllocatedSize());
+                        if (!r) {
+                            return r.error;
+                        }
+                    }
                     auto jump_print = print_JIR_node_asm(
                         {i->second.jump_op, JIR::Operand {0, i->second.to_id, false, false}, JIR::Operand {}}, os);
                     if (!jump_print) {

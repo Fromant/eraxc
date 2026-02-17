@@ -133,13 +133,27 @@ namespace eraxc::JIR {
         size_t node_id_before = node_id;
 
         auto expr = parse_expression(tokens, i, node_id, {token::R_BRACKET});
-        if (!expr)
+        if (!expr) {
             return {expr.error};
+        }
 
-        if (node_id_before == node_id)
+        if (node_id_before == node_id) {
             return {"Expected conditional expression inside of if()"};
+        }
 
-        // now node_id stands for positive branch (see fpush_expr_stack() for clarification)
+        // now node_id stands for positive branch (see push_expr_stack() for clarification)
+
+        Operation jump_op = jump_ops.top();
+        jump_ops.pop();
+
+        //create negative cfg branch node
+        size_t negative_branch_id = nodes.size();
+        nodes.emplace_back();
+
+        // compare branch to positive branch
+        edges.emplace(node_id_before, CFGEdge {node_id, EXTEND, jump_op});
+        // compare branch to negative branch
+        edges.emplace(node_id_before, CFGEdge {negative_branch_id, EXTEND});
 
         scopeManager.push();
 
@@ -156,18 +170,6 @@ namespace eraxc::JIR {
         }
 
         scopeManager.pop(nodes[node_id]);
-
-        Operation jump_op = jump_ops.top();
-        jump_ops.pop();
-
-        //create negative cfg branch node
-        size_t negative_branch_id = nodes.size();
-        nodes.emplace_back();
-
-        // compare branch to positive branch
-        edges.emplace(node_id_before, CFGEdge {node_id, EXTEND, jump_op});
-        // compare branch to negative branch
-        edges.emplace(node_id_before, CFGEdge {negative_branch_id, EXTEND});
 
         if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "else") {
             //else branch

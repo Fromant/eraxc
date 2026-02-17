@@ -121,19 +121,43 @@ namespace eraxc::x86 {
                 return {"", ""};
             }
             if (stack_offsets.contains(var)) {
-                return try_dealloc_stack_space(size, var);
+                return try_dealloc_stack_var(size, var);
             }
             return {"Variable " + std::to_string(var) + " is not allocated", ""};
         }
 
-        error::errable<std::string> try_dealloc_stack_space(const size_t size, const u64 var) {
-            if (stack_offsets[var] + size != used_stack_space) {
-                //is not top stack element => cannot dealloc
-                return {"Variable $" + std::to_string(var) + " is not on top of stack", ""};
+    private:
+        error::errable<std::string> try_dealloc_stack_var(const size_t size, const u64 var) {
+            // if (stack_offsets[var] + size != used_stack_space) {
+            //is not top stack element => cannot dealloc
+            // return {"Variable $" + std::to_string(var) + " is not on top of stack", ""};
+            // }
+            // used_stack_space = stack_offsets[var];
+            // stack_offsets.erase(var);
+            // return {"", "add rsp, " + JIR::utils::int_to_hex(size) + "; dealloc $" + std::to_string(var) + '\n'};
+            return {"", "; dealloc $" + std::to_string(var) + '\n'};
+        }
+
+    public:
+        error::errable<std::string> try_dealloc_stack_space(const size_t size) {
+            const size_t endRemoved = used_stack_space - size;
+            std::vector<u64> removed_vars {};
+            for (const auto& [var, offset] : stack_offsets) {
+                if (offset >= endRemoved) {
+                    //var is deleted
+                    removed_vars.emplace_back(var);
+                }
             }
-            used_stack_space = stack_offsets[var];
-            stack_offsets.erase(var);
-            return {"", "add rsp, " + JIR::utils::int_to_hex(size) + "; dealloc $" + std::to_string(var) + '\n'};
+            std::stringstream deallocated_vars;
+            for (const auto& var : removed_vars) {
+                stack_offsets.erase(var);
+                deallocated_vars << "$" << var << ", ";
+            }
+            auto s = deallocated_vars.str();
+            if (!s.empty()) {
+                s.erase(s.length() - 2, 2);
+            }
+            return {"", "add rsp, " + std::to_string(size) + "; dealloc " + s};
         }
 
         bool is_allocated(u64 var) const {
