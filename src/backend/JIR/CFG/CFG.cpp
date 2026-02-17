@@ -48,7 +48,7 @@ namespace eraxc::JIR {
         return {""};
     }
 
-    error::errable<void> CFG::parse_function(const std::vector<token>& tokens, int& i, size_t& node_id) {
+    error::errable<void> CFG::parse_function(const std::vector<token>& tokens, int& i, const size_t& node_id) {
         const auto return_type = scopeManager.findTypeRecursive(tokens[i].data);
         if (!return_type) {
             return {"No such typename " + tokens[i].data};
@@ -109,7 +109,7 @@ namespace eraxc::JIR {
 
         size_t stackSize = 0;
 
-        if (nodes[funcNodeId].body.size() == 0 | nodes[funcNodeId].body.back().op != Operation::RET) {
+        if (nodes[funcNodeId].body.empty() || nodes[funcNodeId].body.back().op != Operation::RET) {
             // no return at the end
             // TODO add type check, allow no return only for void fns
             stackSize = scopeManager.popFrame(nodes[funcNodeId]);
@@ -139,7 +139,7 @@ namespace eraxc::JIR {
         if (node_id_before == node_id)
             return {"Expected conditional expression inside of if()"};
 
-        // now node_id stands for positive branch (see push_expr_stack() for clarification)
+        // now node_id stands for positive branch (see fpush_expr_stack() for clarification)
 
         scopeManager.push();
 
@@ -164,12 +164,10 @@ namespace eraxc::JIR {
         size_t negative_branch_id = nodes.size();
         nodes.emplace_back();
 
-        edges.emplace(node_id_before, CFGEdge {node_id, EXTEND});
+        // compare branch to positive branch
+        edges.emplace(node_id_before, CFGEdge {node_id, EXTEND, jump_op});
+        // compare branch to negative branch
         edges.emplace(node_id_before, CFGEdge {negative_branch_id, EXTEND});
-
-        //jump from last cfg node to negative leaving positive branch not executed
-        nodes[node_id_before].body.emplace_back(jump_op, Operand {u64(-1), negative_branch_id, true, false},
-                                                Operand {});
 
         if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "else") {
             //else branch
@@ -179,12 +177,10 @@ namespace eraxc::JIR {
             nodes.emplace_back();
             scopeManager.push();
 
-            // edges.emplace(node_id, new_branch_id);
+            //positive to exit
+            edges.emplace(node_id, CFGEdge {new_branch_id, SQUASH});
+            //negative to exit
             edges.emplace(negative_branch_id, CFGEdge {new_branch_id, SQUASH});
-
-            //jump from positive to new branch leaving negative branch not executed
-            nodes[node_id].body.emplace_back(Operation::JUMP, Operand {u64(-1), new_branch_id, true, false},
-                                             Operand {});
 
             //parse else body
             i++;
@@ -205,6 +201,8 @@ namespace eraxc::JIR {
             //shift current node to new branch
             node_id = new_branch_id;
         } else {
+            // positive to negative edge
+            edges.emplace(node_id, CFGEdge {negative_branch_id, SQUASH});
             node_id = negative_branch_id;
         }
 
@@ -235,9 +233,6 @@ namespace eraxc::JIR {
 
         auto cmp_node = nodes[node_id_before].body.back();
         nodes[node_id_before].body.pop_back();
-
-        std::swap(cmp_node.operand1, cmp_node.operand2);
-
         nodes[condition_node].body.emplace_back(cmp_node);
 
         // size_t exit_node_id = nodes.size();
@@ -505,7 +500,8 @@ namespace eraxc::JIR {
             nodes[node_id].body.emplace_back(Operation::MOVE, result, operand1);
         }
 
-        nodes[node_id].body.emplace_back(to_add.first, result, operand2);
+        // nodes[node_id].body.emplace_back(to_add.first, result, operand2);
+        nodes[node_id].body.emplace_back(to_add.first, operand2, result);
         if (to_add.second != Operation::NONE) {
             // conditional expression (like a>b)
 
@@ -595,7 +591,7 @@ namespace eraxc::JIR {
             if (!assign_to)
                 return assign_to;
 
-            //DO i need this assign logic??
+            //DO I need this assign logic??
             if (!assign_to.value.is_rvalue && assign_op == Operation::MOVE) {
                 nodes[node_id].body.emplace_back(assign_op, assign_to.value, assign_to.value);
                 scopeManager.setDeclaration(assignee_name, {assignee.getType(), assign_to.value.value, false});
@@ -615,7 +611,7 @@ namespace eraxc::JIR {
         while (tokens[i].t == token::IDENTIFIER || tokens[i].t == token::L_BRACKET || tokens[i].t == token::OPERATOR ||
                tokens[i].t == token::INSTANT) {
 
-            Operand operand;
+            Operand operand {};
 
             if (tokens[i].t == token::L_BRACKET) {
                 //recursive parse
@@ -681,27 +677,28 @@ namespace eraxc::JIR {
     }
 
     void CFG::print_nodes() const {
+        std::cout << "CFG NODES" << std::endl;
         for (int i = 0; i < nodes.size(); i++) {
             std::cout << '_' << i << ":\n";
             utils::print_JIR_nodes(nodes[i].body);
+            std::cout << "$TOTAL STACK SIZE$=" << nodes[i].scope.getAllocatedSize() << std::endl;
         }
     }
 
     void CFG::print_functions() const {
-        for (auto func : global_funcs) {
-            std::cout << func.second.return_type << " $" << func.second.node_id << " (";
-            const size_t args_size = func.second.params.size();
+        for (auto val : global_funcs | std::views::values) {
+            std::cout << val.return_type << " $" << val.node_id << " (";
+            const size_t args_size = val.params.size();
             if (args_size > 0) {
                 for (int i = 0; i < args_size - 1; i++) {
-                    const auto& decl = func.second.params[i];
+                    const auto& decl = val.params[i];
                     std::cout << decl.type << " $" << decl.value << ", ";
                 }
-                std::cout << func.second.params[args_size - 1].type << " $" << func.second.params[args_size - 1].value
-                          << ") {\n";
+                std::cout << val.params[args_size - 1].type << " $" << val.params[args_size - 1].value << ") {\n";
             } else
                 std::cout << ") {\n";
 
-            utils::print_JIR_nodes(nodes[func.second.node_id].body);
+            utils::print_JIR_nodes(nodes[val.node_id].body);
 
             std::cout << "}\n";
         }

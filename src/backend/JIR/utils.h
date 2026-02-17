@@ -9,7 +9,7 @@
 
 namespace eraxc::JIR::utils {
 
-    inline std::string int_to_hex(int i) {
+    inline std::string int_to_hex(const size_t i) {
         std::stringstream ss;
         ss << std::hex << i;
         return ss.str();

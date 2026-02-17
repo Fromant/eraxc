@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ostream>
+#include <queue>
 #include <set>
 
 #include "asm_x86_mem.h"
@@ -210,37 +211,47 @@ namespace eraxc::x86 {
 
 
         error::errable<void> print_cfg_node(const JIR::CFG& cfg, size_t node_id, std::ostream& os) {
-
-            // if (printed_nodes.contains(node_id)) return {""};
-
-            const JIR::CFG_Node& node = cfg.get_cfg_node(node_id);
-
-            //body
-            for (const auto& JIR_node : node.body) {
-                auto print = print_JIR_node_asm(JIR_node, os);
-                if (!print)
-                    return print;
+            // insert and check
+            auto [it, inserted] = printed_nodes.emplace(node_id);
+            if (!inserted) {
+                return {""};
             }
 
-            printed_nodes.insert(node_id);
+            // BFS queue
+            std::queue<size_t> q;
+            q.push(node_id);
 
-            const auto& edges = cfg.get_edges().equal_range(node_id);
-            //print all the jumps
-            for (auto i = edges.first; i != edges.second; ++i) {
-                print_JIR_node_asm(
-                    {i->second.jump_op, JIR::Operand {0, i->second.to_id, false, false}, JIR::Operand {}}, os);
-            }
-            //print subnodes
-            for (auto i = edges.first; i != edges.second; ++i) {
-                if (printed_nodes.contains(i->second.to_id)) {
-                    continue;
+            while (!q.empty()) {
+                size_t current_id = q.front();
+                q.pop();
+
+                const JIR::CFG_Node& node = cfg.get_cfg_node(current_id);
+
+                // Print body
+                os << ".l" << current_id << ":\n";
+                for (const auto& JIR_node : node.body) {
+                    auto print = print_JIR_node_asm(JIR_node, os);
+                    if (!print) {
+                        return print;
+                    }
                 }
-                printed_nodes.emplace(i->second.to_id);
-                os << ".l" << i->second.to_id << ":\n";
-                auto r1 = print_cfg_node(cfg, i->second.to_id, os);
-                if (!r1)
-                    return r1;
-                // os << "add rsp, 8\nret\n";
+
+                const auto& [start, end] = cfg.get_edges().equal_range(current_id);
+
+                // Iterate through edges
+                for (auto i = start; i != end; ++i) {
+                    auto jump_print = print_JIR_node_asm(
+                        {i->second.jump_op, JIR::Operand {0, i->second.to_id, false, false}, JIR::Operand {}}, os);
+                    if (!jump_print) {
+                        return jump_print;
+                    }
+
+                    // Add to queue if not visited
+                    auto [child_it, child_inserted] = printed_nodes.emplace(i->second.to_id);
+                    if (child_inserted) {
+                        q.push(i->second.to_id);
+                    }
+                }
             }
 
             return {""};

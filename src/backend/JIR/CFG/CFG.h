@@ -29,7 +29,7 @@ namespace eraxc::JIR {
         std::stack<Operation> jump_ops;
 
         error::errable<void> parse_declaration(const std::vector<token>& tokens, int& i, size_t node_id);
-        error::errable<void> parse_function(const std::vector<token>& tokens, int& i, size_t& node_id);
+        error::errable<void> parse_function(const std::vector<token>& tokens, int& i, const size_t& node_id);
         error::errable<void> parse_statements(const std::vector<token>& tokens, int& i, size_t& node_id);
         error::errable<void> parse_statement(const std::vector<token>& tokens, int& i, size_t& node_id);
 
@@ -75,7 +75,7 @@ namespace eraxc::JIR {
             return nodes;
         };
 
-        void print_to_file(const std::string& path) {
+        void print_to_file(const std::string& path) const {
             std::ofstream f(path);
             for (const auto& edge : edges) {
                 f << edge.first << ", " << edge.second.to_id << ", " << edge.second.type << std::endl;

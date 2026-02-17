@@ -104,7 +104,7 @@ namespace eraxc::x86 {
             return {"Variable " + std::to_string(var) + " is not allocated", ""};
         }
 
-        error::errable<std::string> allocate_stack_space(int size, u64 var) {
+        error::errable<std::string> allocate_stack_space(const size_t size, const u64 var) {
 #ifdef DEBUG  //some spare check
             if (stack_offsets.contains(var) || used_regs.contains(var)) {
                 return {"Variable $" + std::to_string(var) + " is already allocated\n", ""};
@@ -115,7 +115,7 @@ namespace eraxc::x86 {
             return {"", "sub rsp, " + std::to_string(size) + "; allocate $" + std::to_string(var) + '\n'};
         }
 
-        error::errable<std::string> try_dealloc(int size, u64 var) {
+        error::errable<std::string> try_dealloc(const size_t size, const u64 var) {
             if (used_regs.contains(var)) {
                 used_regs.erase(var);
                 return {"", ""};
@@ -126,7 +126,7 @@ namespace eraxc::x86 {
             return {"Variable " + std::to_string(var) + " is not allocated", ""};
         }
 
-        error::errable<std::string> try_dealloc_stack_space(int size, u64 var) {
+        error::errable<std::string> try_dealloc_stack_space(const size_t size, const u64 var) {
             if (stack_offsets[var] + size != used_stack_space) {
                 //is not top stack element => cannot dealloc
                 return {"Variable $" + std::to_string(var) + " is not on top of stack", ""};

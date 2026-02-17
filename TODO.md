@@ -57,9 +57,12 @@ const and non const functions duplicate code too much.
 - [x] redo scopes and ScopeManager
 - [x] store variables that are allocated inside cfg node and it's size inside cfg node.
 - [x] store max stack size
+- [x] redo if to new edges
+- [x] codegen dfs to bfs
+- [ ] fix `weird.erx` test
+- [ ] disable integration tests on gitlab as they're windows only
 - [ ] add a bunch of tests for stack size calculation add stuff on cfg node
 - [ ] CFG docs (using mermaid diagrams) and tests
-- [ ] redo if to new edges
 - [ ] allocation manager
 - [ ] ? store uses for each variable
 - [ ] split cfg edges to squash and extend edges (one extends stack, other squashes)

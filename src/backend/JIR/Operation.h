@@ -94,9 +94,9 @@ namespace eraxc::JIR {
         if (op == syntax::GREATER_EQ)
             return {Operation::CMP, Operation::JGE};
         if (op == syntax::EQUAL)
-            return {Operation::CMP, Operation::JNE};
-        if (op == syntax::NOT_EQUAL)
             return {Operation::CMP, Operation::JE};
+        if (op == syntax::NOT_EQUAL)
+            return {Operation::CMP, Operation::JNE};
 
         // if (op==syntax::ASSIGN) return {Operation::MOVE, Operation::NONE};
         // if (op==syntax::ADD_ASSIGN) return {Operation::ADD, Operation::NONE};
