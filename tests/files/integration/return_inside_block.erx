@@ -1,0 +1,8 @@
+int main() {
+    i32 a=2i;
+    if(a>0i) {
+        return 4i;
+    }
+    return a;
+
+}

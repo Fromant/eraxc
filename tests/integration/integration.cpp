@@ -31,14 +31,15 @@ TEST_P(DynamicTest, integrationTest) {
 }
 
 std::vector<TestData> tests = {
-    {"simpleWhile.erx", 17},
-    {"simpleIf.erx", 1},
-    {"nestedIf.erx", 2},
-    {"if_else.erx", 14},
-    {"recursion.erx", 120},
     {"call.erx", 2},
+    {"if_else.erx", 14},
     {"nested_call.erx", 2},
+    {"nestedIf.erx", 2},
+    {"recursion.erx", 120},
+    {"return_inside_block.erx", 4},
     {"scope.erx", 200},
+    {"simpleIf.erx", 1},
+    {"simpleWhile.erx", 17},
     {"weird.erx", 102},
 };
 

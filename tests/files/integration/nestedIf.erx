@@ -1,8 +1,9 @@
 int main() {
+    i32 a = 0i;
     if(2i>1i) {
         if(3i>2i) {
-            return 2i;
+            a=2i;
         }
     }
-    return 1i;
+    return a;
 }

@@ -681,7 +681,6 @@ namespace eraxc::JIR {
         for (int i = 0; i < nodes.size(); i++) {
             std::cout << '_' << i << ":\n";
             utils::print_JIR_nodes(nodes[i].body);
-            std::cout << "$TOTAL STACK SIZE$=" << nodes[i].scope.getAllocatedSize() << std::endl;
         }
     }
 
