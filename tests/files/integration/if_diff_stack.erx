@@ -1,0 +1,11 @@
+int main() {
+    u64 c3 = 2ul;
+    if(c3 <= 13ul) {
+        u64 c4 = 3ul;
+        c3 += c4;
+    } else {
+        c3 -= c3;
+    }
+
+    return c3;
+}

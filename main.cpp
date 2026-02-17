@@ -12,6 +12,7 @@ int main(int argc, char* argv[]) {
     // auto err = compilation_pipeline("../tests/files/integration/call.erx");
     // auto err = compilation_pipeline("../tests/files/integration/weird.erx");
     auto err = compilation_pipeline("../tests/files/integration/nestedIf.erx");
+    // auto err = compilation_pipeline("../tests/files/integration/if_diff_stack.erx");
     if (!err) {
         std::cerr << err.error << std::endl;
         exit(-1);

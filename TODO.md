@@ -62,15 +62,15 @@ const and non const functions duplicate code too much.
 - [x] disable integration tests on gitlab as they're windows only
 - [x] split cfg edges to squash and extend edges (one extends stack, other squashes)
 - [x] new while loop (example is in notebook page 2)
+- [x] return inside if causes segfault
+- [x] if branches with different stack size causes segfaults :(
 - [ ] allocation manager
+- [ ] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
 - [ ] fix `weird.erx` integration test
 - [ ] add a bunch of tests for stack size calculation add stuff on cfg node
 - [ ] CFG docs (using mermaid diagrams) and tests
 - [ ] ? store uses for each variable
-- [ ] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
 - [ ] fix recursion
-- [ ] return inside if causes segfault
-- [ ] if branches with different stack size causes segfaults :(
 - [ ] `break` support
 - [ ] `for` support
 - [ ] `do` support (?)

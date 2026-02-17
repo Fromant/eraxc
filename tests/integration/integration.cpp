@@ -32,6 +32,7 @@ TEST_P(DynamicTest, integrationTest) {
 
 std::vector<TestData> tests = {
     {"call.erx", 2},
+    {"if_diff_stack.erx", 5},
     {"if_else.erx", 14},
     {"nested_call.erx", 2},
     {"nestedIf.erx", 2},

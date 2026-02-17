@@ -42,7 +42,7 @@ namespace eraxc::x86 {
                 return {""};
             }
             if (node.op == JIR::Operation::RET) {
-                os << "add rsp, " << mem.used_stack_space + 0x08 << '\n';
+                os << "add rsp, " << mem.used_stack_space + 8 << '\n';
                 os << "ret" << std::endl;
                 return {""};
             }
@@ -249,6 +249,7 @@ namespace eraxc::x86 {
                         if (!r) {
                             return r.error;
                         }
+                        os << r.value;
                     }
                     auto jump_print = print_JIR_node_asm(
                         {edge.jump_op, JIR::Operand {0, edge.to_id, false, false}, JIR::Operand {}}, os);

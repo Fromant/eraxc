@@ -140,6 +140,9 @@ namespace eraxc::x86 {
 
     public:
         error::errable<std::string> try_dealloc_stack_space(const size_t size) {
+            if (size == 0) {
+                return {"", ""};
+            }
             const size_t endRemoved = used_stack_space - size;
             std::vector<u64> removed_vars {};
             for (const auto& [var, offset] : stack_offsets) {
@@ -158,7 +161,7 @@ namespace eraxc::x86 {
                 s.erase(s.length() - 2, 2);
             }
             used_stack_space -= size;
-            return {"", "add rsp, " + std::to_string(size) + "; dealloc " + s};
+            return {"", "add rsp, " + std::to_string(size) + "; dealloc " + s + '\n'};
         }
 
         bool is_allocated(u64 var) const {
