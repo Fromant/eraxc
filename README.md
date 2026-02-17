@@ -1,7 +1,7 @@
 # Eraxc - simple & fancy profiler for erax-lang
 
-### see all the documentation [here](docs)
-### see all of examples [here](examples)
+### see documentation [here](docs)
+### see all examples [here](examples)
 
 Project currently is in WIP state, almost nothing is ready
 
@@ -20,7 +20,7 @@ Erax is a joy (at least for now) successor / replacer of C/C++ lang with a bunch
 5. in std lib would be a lot: graphics, network, async io, etc. everything boost lib fixes in C++ 
 6. Integration with linux, windows, bsd, risc-V, arm, x86-64; built-in cross-compilation
 7. built-in LinkTimeOptimisation (LTO)
-8. Very fast compilation time, a lot of compile-time optimisations (everything that can be executed at compile time would)
+8. Very fast compilation time, a lot of compile-time optimizations (everything that can be executed at compile time would)
 9. Even built-in packet manager for dependencies, fast, reliable, cached build system
 10. Maybe built-in version control system
 

@@ -52,7 +52,7 @@ const and non const functions duplicate code too much.
 - [x] integration tests
 - [x] CFG viewer tool
 - [x] CFG exporting
-- [x] New scopes and scopemanager rework
+- [x] New scopes and scope manager rework
 - [x] Save scopes to CFG nodes
 - [x] redo scopes and ScopeManager
 - [x] store variables that are allocated inside cfg node and it's size inside cfg node.
