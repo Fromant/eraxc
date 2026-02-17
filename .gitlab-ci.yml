@@ -41,7 +41,7 @@ unit-test: # This job runs in the test stage.
   script:
     - echo "Running unit tests... This will take about 60 seconds."
     - cd ./build/tests
-    - ./eraxTests --gtest_filter=-IntegrationTests.* --gtest_output="xml:test_results.xml"
+    - ./eraxTests --gtest_filter=-IntegrationTests* --gtest_output="xml:test_results.xml"
   artifacts:
     reports:
       junit: build/tests/test_results.xml

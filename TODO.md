@@ -59,11 +59,11 @@ const and non const functions duplicate code too much.
 - [x] store max stack size
 - [x] redo if to new edges
 - [x] codegen dfs to bfs
-- [ ] fix `weird.erx` test
-- [ ] disable integration tests on gitlab as they're windows only
+- [x] disable integration tests on gitlab as they're windows only
+- [ ] allocation manager
+- [ ] fix `weird.erx` integration test
 - [ ] add a bunch of tests for stack size calculation add stuff on cfg node
 - [ ] CFG docs (using mermaid diagrams) and tests
-- [ ] allocation manager
 - [ ] ? store uses for each variable
 - [ ] split cfg edges to squash and extend edges (one extends stack, other squashes)
 - [ ] new while loop (example is in notebook page 2)
