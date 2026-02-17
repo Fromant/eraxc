@@ -42,7 +42,8 @@ namespace eraxc::x86 {
                 return {""};
             }
             if (node.op == JIR::Operation::RET) {
-                os << "add rsp, " << mem.used_stack_space << '\n';
+                os << "add rsp, " << mem.used_stack_space + 0x08 << '\n';
+                os << "ret" << std::endl;
                 return {""};
             }
             if (node.op == JIR::Operation::PASS) {
@@ -236,11 +237,13 @@ namespace eraxc::x86 {
                     }
                 }
 
-                const auto& [start, end] = cfg.get_edges().equal_range(current_id);
-
+                const auto edges = cfg.get_edges().find(current_id);
+                if (edges == cfg.get_edges().end()) {
+                    continue;
+                }
                 // Iterate through edges
-                for (auto i = start; i != end; ++i) {
-                    if (i->second.type == JIR::SQUASH) {
+                for (const auto& edge : edges->second) {
+                    if (edge.type == JIR::SQUASH) {
                         // dealloc stack
                         const auto r = mem.try_dealloc_stack_space(node.scope.getAllocatedSize());
                         if (!r) {
@@ -248,15 +251,15 @@ namespace eraxc::x86 {
                         }
                     }
                     auto jump_print = print_JIR_node_asm(
-                        {i->second.jump_op, JIR::Operand {0, i->second.to_id, false, false}, JIR::Operand {}}, os);
+                        {edge.jump_op, JIR::Operand {0, edge.to_id, false, false}, JIR::Operand {}}, os);
                     if (!jump_print) {
                         return jump_print;
                     }
 
                     // Add to queue if not visited
-                    auto [child_it, child_inserted] = printed_nodes.emplace(i->second.to_id);
+                    auto [child_it, child_inserted] = printed_nodes.emplace(edge.to_id);
                     if (child_inserted) {
-                        q.push(i->second.to_id);
+                        q.push(edge.to_id);
                     }
                 }
             }
@@ -320,7 +323,7 @@ namespace eraxc::x86 {
 
                 file << "$f_" << func.first << ":\nsub rsp, 8\n";
                 auto r = print_cfg_node(cfg, func.second.node_id, file);
-                file << "add rsp, 8\nret\n";
+                // file << "add rsp, 8\nret\n";
 
                 if (!r)
                     return r;

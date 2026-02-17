@@ -14,14 +14,21 @@ namespace eraxc::JIR {
     class CFG {
         std::vector<CFG_Node> nodes;
 
-        typedef struct {
+        struct CFGEdge {
             size_t to_id;
             CFGEdgeType type;
             Operation jump_op = Operation::JUMP;
-        } CFGEdge;
+        };
 
-        // multimap <int from_id, int to_id>. every JUMP is an edge
-        std::multimap<size_t, CFGEdge> edges;
+        std::unordered_map<size_t, std::vector<CFGEdge>> edges;
+
+        void appendEdge(size_t from, CFGEdge edge) {
+            if (const auto it = edges.find(from); it == edges.end()) {
+                edges.emplace(from, std::vector {edge});
+            } else {
+                it->second.push_back(edge);
+            }
+        }
 
         std::map<u64, CFG_Func> global_funcs;
         ScopeManager scopeManager;
@@ -77,8 +84,10 @@ namespace eraxc::JIR {
 
         void print_to_file(const std::string& path) const {
             std::ofstream f(path);
-            for (const auto& edge : edges) {
-                f << edge.first << ", " << edge.second.to_id << ", " << edge.second.type << std::endl;
+            for (const auto& node_edges : edges) {
+                for (const auto& edge : node_edges.second) {
+                    f << node_edges.first << ", " << edge.to_id << ", " << edge.type << std::endl;
+                }
             }
             f.close();
         }

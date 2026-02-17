@@ -157,6 +157,7 @@ namespace eraxc::x86 {
             if (!s.empty()) {
                 s.erase(s.length() - 2, 2);
             }
+            used_stack_space -= size;
             return {"", "add rsp, " + std::to_string(size) + "; dealloc " + s};
         }
 

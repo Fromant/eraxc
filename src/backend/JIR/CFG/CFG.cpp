@@ -151,9 +151,8 @@ namespace eraxc::JIR {
         nodes.emplace_back();
 
         // compare branch to positive branch
-        edges.emplace(node_id_before, CFGEdge {node_id, EXTEND, jump_op});
-        // compare branch to negative branch
-        edges.emplace(node_id_before, CFGEdge {negative_branch_id, EXTEND});
+        appendEdge(node_id_before, CFGEdge {node_id, EXTEND, jump_op});
+        const size_t negative_branch_id_copy = negative_branch_id;
 
         scopeManager.push();
 
@@ -180,9 +179,9 @@ namespace eraxc::JIR {
             scopeManager.push();
 
             //positive to exit
-            edges.emplace(node_id, CFGEdge {new_branch_id, SQUASH});
+            appendEdge(node_id, CFGEdge {new_branch_id, SQUASH});
             //negative to exit
-            edges.emplace(negative_branch_id, CFGEdge {new_branch_id, SQUASH});
+            appendEdge(negative_branch_id, CFGEdge {new_branch_id, SQUASH});
 
             //parse else body
             i++;
@@ -204,9 +203,10 @@ namespace eraxc::JIR {
             node_id = new_branch_id;
         } else {
             // positive to negative edge
-            edges.emplace(node_id, CFGEdge {negative_branch_id, SQUASH});
+            appendEdge(node_id, CFGEdge {negative_branch_id, SQUASH});
             node_id = negative_branch_id;
         }
+        appendEdge(node_id_before, CFGEdge {negative_branch_id_copy, EXTEND});
 
         return {""};
     }
@@ -269,14 +269,14 @@ namespace eraxc::JIR {
 
         scopeManager.pop(nodes[body_node_id]);
 
-        edges.emplace(node_id_before, CFGEdge {condition_node, EXTEND});
-        edges.emplace(condition_node, CFGEdge {body_node_id, EXTEND, jump_op});
-        edges.emplace(body_node_id, CFGEdge {condition_node, SQUASH});
+        appendEdge(node_id_before, CFGEdge {condition_node, EXTEND});
+        appendEdge(condition_node, CFGEdge {body_node_id, EXTEND, jump_op});
+        appendEdge(body_node_id, CFGEdge {condition_node, SQUASH});
 
         size_t node_id_after = nodes.size();
         nodes.emplace_back();
 
-        edges.emplace(condition_node, CFGEdge {node_id_after, SQUASH});
+        appendEdge(condition_node, CFGEdge {node_id_after, SQUASH});
 
         node_id = node_id_after;
 
