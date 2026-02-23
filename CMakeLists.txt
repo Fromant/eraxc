@@ -14,5 +14,5 @@ target_include_directories(eraxc PRIVATE src/)
 
 add_subdirectory(tests)
 
-add_dependencies(eraxc eraxTests)
+#add_dependencies(eraxc eraxTests)
 

@@ -54,7 +54,7 @@ namespace eraxc::JIR {
             return {"No such typename " + tokens[i].data};
         }
 
-        const auto funcId = scopeManager.addId(tokens[i + 1].data, return_type.value(), true, nodes[node_id].body);
+        const auto funcId = scopeManager.addId(tokens[i + 1].data, return_type.value(), true, nodes[node_id]);
         if (!funcId) {
             return {"Identifier " + tokens[i + 1].data + " is already defined in this scope"};
         }
@@ -112,10 +112,10 @@ namespace eraxc::JIR {
         if (nodes[funcNodeId].body.empty() || nodes[funcNodeId].body.back().op != Operation::RET) {
             // no return at the end
             // TODO add type check, allow no return only for void fns
-            stackSize = scopeManager.popFrame(nodes[funcNodeId]);
+            stackSize = scopeManager.popFrame(nodes[funcFirstNodeId]);
             nodes[funcNodeId].body.emplace_back(Operation::RET, Operand {}, Operand {});
         } else {
-            stackSize = scopeManager.popFrame(nodes[funcNodeId], false);
+            stackSize = scopeManager.popFrame(nodes[funcFirstNodeId], false);
         }
 
         std::cout << "function stack size: " << stackSize << std::endl;
@@ -146,14 +146,10 @@ namespace eraxc::JIR {
         Operation jump_op = jump_ops.top();
         jump_ops.pop();
 
-        //create negative cfg branch node
-        size_t negative_branch_id = nodes.size();
-        nodes.emplace_back();
-
         // compare branch to positive branch
         appendEdge(node_id_before, CFGEdge {node_id, EXTEND, jump_op});
-        const size_t negative_branch_id_copy = negative_branch_id;
-
+        // scope for positive branch
+        const size_t positive_branch_id = node_id;
         scopeManager.push();
 
         if (tokens[i].t == token::L_F_BRACKET) {
@@ -168,22 +164,21 @@ namespace eraxc::JIR {
                 return body;
         }
 
-        scopeManager.pop(nodes[node_id]);
+        // end of scope of positive branch
+        scopeManager.pop(nodes[positive_branch_id]);
+
+        //create negative cfg branch node
+        size_t negative_branch_id = nodes.size();
+        nodes.emplace_back();
+        // scope for negative branch
+        scopeManager.push();
+
+        const size_t negative_branch_id_copy = negative_branch_id;
 
         if (tokens[i].t == token::IDENTIFIER && tokens[i].data == "else") {
-            //else branch
+            // else branch
 
-            //create cfg node that comes after else body
-            size_t new_branch_id = nodes.size();
-            nodes.emplace_back();
-            scopeManager.push();
-
-            //positive to exit
-            appendEdge(node_id, CFGEdge {new_branch_id, SQUASH});
-            //negative to exit
-            appendEdge(negative_branch_id, CFGEdge {new_branch_id, SQUASH});
-
-            //parse else body
+            // parse else body
             i++;
             if (tokens[i].t == token::L_F_BRACKET) {
                 //body
@@ -197,15 +192,27 @@ namespace eraxc::JIR {
                     return body;
             }
 
+            // end of else scope
             scopeManager.pop(nodes[negative_branch_id]);
 
-            //shift current node to new branch
+            //create cfg node that comes after else body
+            size_t new_branch_id = nodes.size();
+            nodes.emplace_back();
+            scopeManager.push();
+
+            // if body to exit
+            appendEdge(node_id, CFGEdge {new_branch_id, SQUASH});
+            // else body to exit
+            appendEdge(negative_branch_id, CFGEdge {new_branch_id, SQUASH});
+
+            // shift current node to new branch
             node_id = new_branch_id;
         } else {
-            // positive to negative edge
+            // if body to after
             appendEdge(node_id, CFGEdge {negative_branch_id, SQUASH});
             node_id = negative_branch_id;
         }
+        // cmp branch to negative branch
         appendEdge(node_id_before, CFGEdge {negative_branch_id_copy, EXTEND});
 
         return {""};
@@ -356,7 +363,7 @@ namespace eraxc::JIR {
 
         const u64 type = typeOpt.value();
 
-        if (const auto decl = scopeManager.addId(tokens[i + 1].data, type, false, nodes[node_id].body); !decl) {
+        if (const auto decl = scopeManager.addId(tokens[i + 1].data, type, false, nodes[node_id]); !decl) {
             return {"This identifier is already defined: " + tokens[i + 1].data};
         }
 
@@ -377,9 +384,6 @@ namespace eraxc::JIR {
 
             return {""};
         }
-
-        // TODO wtf?
-        scopeManager.addId(tokens[i + 1].data, type, false, nodes[node_id].body);
 
         if (tokens[i + 2].t != token::SEMICOLON)
             return {"Expected semicolon after declaration instead of: " + tokens[i + 3].data};
@@ -453,7 +457,7 @@ namespace eraxc::JIR {
                     return {"Not enough arguments for function: $" + std::to_string(decl.getId()), {}};
                 }
 
-                u64 call_result_id = scopeManager.addAnonymousId(decl.getType(), false, nodes[node_id].body);
+                u64 call_result_id = scopeManager.addAnonymousId(decl.getType(), false, nodes[node_id]);
                 nodes[node_id].body.emplace_back(Operation::CALL, operand,
                                                  Operand {decl.getType(), call_result_id, false, true});
                 operand = Operand(decl.getType(), call_result_id, false, true);
@@ -494,7 +498,7 @@ namespace eraxc::JIR {
         result.is_rvalue = true;
 
         if (operand1.is_instant || !operand1.is_rvalue) {
-            u64 result_id = scopeManager.addAnonymousId(result.type, false, nodes[node_id].body, true);
+            u64 result_id = scopeManager.addAnonymousId(result.type, false, nodes[node_id], true);
             result.value = result_id;
             result.is_instant = false;
             // nodes[node_id].allocations.emplace_back(result);

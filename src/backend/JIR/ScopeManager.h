@@ -78,13 +78,13 @@ namespace eraxc::JIR {
         /// \param is_func is this identifier a function
         /// \param nodes nodes list where allocation operation will be added
         /// \return the index of declaration
-        std::optional<size_t> addId(const std::string& id, size_t type, bool is_func, Nodes& nodes,
+        std::optional<size_t> addId(const std::string& id, size_t type, bool is_func, CFG_Node& node,
                                     bool rValue = false);
 
         //for already allocated ids (e.g. func args)
         std::optional<size_t> addIdWithoutAllocation(const std::string& id, size_t type, bool is_func);
 
-        size_t addAnonymousId(const u64 type, bool is_func, Nodes& nodes, bool rValue = false);
+        size_t addAnonymousId(const u64 type, bool is_func, CFG_Node& node, bool rValue = false);
 
         size_t scopesCount() const;
 

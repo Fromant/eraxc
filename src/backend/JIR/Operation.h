@@ -40,6 +40,7 @@ namespace eraxc::JIR {
         PASS_RET,
         ALLOC,
         STACKALLOC,
+        STACKDEALLOC,
         DEALLOC,
         STORE,
 

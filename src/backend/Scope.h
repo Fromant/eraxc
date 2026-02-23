@@ -65,6 +65,14 @@ namespace eraxc {
         Scope(const IdentifiersMap& identifiers, TypesMap typenames) :
             allocatedIds(identifiers.size()), identifiers(identifiers), typenames(std::move(typenames)) {}
 
+        Scope(const Scope& other) {
+            allocatedIds = other.allocatedIds;
+            identifiers = other.identifiers;
+            typenames = other.typenames;
+            allocatedSize = other.allocatedSize;
+            allocations = other.allocations;
+        }
+
         Scope(Scope&& other) noexcept {
             allocatedIds = other.allocatedIds;
             identifiers.swap(other.identifiers);
@@ -86,6 +94,18 @@ namespace eraxc {
             allocations.swap(other.allocations);
             other.allocatedIds = 0;
             other.allocatedSize = 0;
+            return *this;
+        }
+
+        Scope& operator=(const Scope& other) noexcept {
+            if (&other == this) {
+                return *this;
+            }
+            allocatedIds = other.allocatedIds;
+            identifiers = other.identifiers;
+            typenames = other.typenames;
+            allocatedSize = other.allocatedSize;
+            allocations = other.allocations;
             return *this;
         }
 

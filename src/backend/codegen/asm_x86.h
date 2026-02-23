@@ -245,11 +245,11 @@ namespace eraxc::x86 {
                 for (const auto& edge : edges->second) {
                     if (edge.type == JIR::SQUASH) {
                         // dealloc stack
-                        const auto r = mem.try_dealloc_stack_space(node.scope.getAllocatedSize());
-                        if (!r) {
-                            return r.error;
-                        }
-                        os << r.value;
+                        // const auto r = mem.try_dealloc_stack_space(node.scope.getAllocatedSize());
+                        // if (!r) {
+                            // return r.error;
+                        // }
+                        // os << r.value;
                     }
                     auto jump_print = print_JIR_node_asm(
                         {edge.jump_op, JIR::Operand {0, edge.to_id, false, false}, JIR::Operand {}}, os);
@@ -309,8 +309,6 @@ namespace eraxc::x86 {
                 if (!r)
                     return r;
                 file << "add rsp, " << 8 + mem.used_stack_space << "\nret\n";
-                mem.used_stack_space = 0;
-                // file << "add rsp, 8\nret\n";
                 mem.reset();
             }
 
@@ -322,6 +320,9 @@ namespace eraxc::x86 {
                 }
                 mem.args_in_registers_count = 0;
 
+                // size_t allocated_stack = 8 + func.second.max_stack_size;
+                // file << "$f_" << func.first << ":\nsub rsp, " << allocated_stack << "\n";
+                //TODO remove down line and add up line
                 file << "$f_" << func.first << ":\nsub rsp, 8\n";
                 auto r = print_cfg_node(cfg, func.second.node_id, file);
                 // file << "add rsp, 8\nret\n";

@@ -85,6 +85,12 @@ namespace eraxc::JIR::Allocated {
         const EdgesMap& edgesMap;
 
         error::errable<OperandAllocated> operandToAllocated(const Operand& operand) {
+
+            if (operand.value == -1 && operand.type == -1 && operand.is_instant == false &&
+                operand.is_rvalue == false) {
+                return {"", {}};
+            }
+
             if (operand.is_instant) {
                 const OperandAllocated op {operand.type, operand.value, false, true};
                 return error::errable {op};
@@ -103,53 +109,60 @@ namespace eraxc::JIR::Allocated {
             return {"Operand $" + std::to_string(operand.value) + " is not allocated", {}};
         }
 
-        error::errable<void> deallocVar(const JIRop& op) {
-            const u64 size = x86::size(op.operand1.type);
+        error::errable<void> deallocVar(u64 type, u64 id) {
+            const u64 size = x86::size(type);
 
-            if (used_regs.erase(op.operand1.value)) {
+            if (used_regs.erase(id)) {
                 return "";
             }
 
-            const auto stack_it = stack_offsets.find(op.operand1.value);
+            const auto stack_it = stack_offsets.find(id);
             if (stack_it == stack_offsets.end()) {
-                return "Error while deallocating $" + std::to_string(op.operand1.value) + ": Variable is not allocated";
+                return "Error while deallocating $" + std::to_string(id) + ": Variable is not allocated";
             }
 
             if (stack_it->second + size != used_stack_space) {
-                return "Error while deallocating $" + std::to_string(op.operand1.value) +
-                    ": Variable is not on top of stack";
+                return "Error while deallocating $" + std::to_string(id) + ": Variable is not on top of stack";
             }
 
             stack_offsets.erase(stack_it);
 
-            return "Error while deallocating $" + std::to_string(op.operand1.value) + ": Variable is not allocated";
+            return "Error while deallocating $" + std::to_string(id) + ": Variable is not allocated";
         }
 
-        error::errable<void> allocVar(const JIRop& op) {
-            const u64 size = x86::size(op.operand1.type);
-            if (stack_offsets.contains(op.operand1.value)) {
-                return {"Variable $" + std::to_string(op.operand1.value) + " is already allocated"};
+        error::errable<void> allocVar(u64 type, u64 id) {
+            const u64 size = x86::size(type);
+            if (stack_offsets.contains(id)) {
+                return {"Variable $" + std::to_string(id) + " is already allocated"};
             }
-            stack_offsets.emplace(op.operand1.value, used_stack_space);
+            stack_offsets.emplace(id, used_stack_space);
             used_stack_space += size;
             return {""};
         }
 
         error::errable<void> CFGNodeToCFGANode(const CFG_Node& old_node, CFGA_Node& node) {
             node.body.reserve(old_node.body.size());
+
             for (const auto& op : old_node.body) {
-                // handle alloc and dealloc differently
-                if (op.op == Operation::ALLOC) {
-                    if (auto r = allocVar(op); !r) {
-                        return r;
-                    }
+                // skip alloc and dealloc
+                if (op.op == Operation::ALLOC || op.op == Operation::DEALLOC) {
                     continue;
                 }
 
-                if (op.op == Operation::DEALLOC) {
-                    if (auto r = deallocVar(op); !r) {
-                        return r;
+                if (op.op == Operation::CALL) {
+                    // second operand is a result of call
+                    auto op2 = operandToAllocated(op.operand2);
+                    if (!op2) {
+                        return {op2.error};
                     }
+                    used_regs.emplace(op2.value.value, x86_reg::RAX);
+                    return {""};
+                }
+
+                if (op.op == Operation::RET) {
+                    node.body.emplace_back(Operation::STACKDEALLOC,
+                                           OperandAllocated {0, used_stack_space, false, false}, OperandAllocated {});
+                    node.body.emplace_back(Operation::RET, OperandAllocated {}, OperandAllocated {});
                     continue;
                 }
 
@@ -185,6 +198,11 @@ namespace eraxc::JIR::Allocated {
 
                 const CFG_Node& old_node = old_nodes[current_id];
                 CFGA_Node& new_node = nodes[current_id];
+
+                for (const auto& [type, id] : old_node.allocatedIds) {
+                    allocVar(type, id);
+                }
+
                 if (const auto& err = CFGNodeToCFGANode(old_node, new_node); !err) {
                     return err;
                 }
@@ -197,6 +215,9 @@ namespace eraxc::JIR::Allocated {
                 for (const auto& edge : edges->second) {
                     if (edge.type == SQUASH) {
                         // dealloc stack
+                        for (const auto& [type, id] : old_node.allocatedIds | std::views::reverse) {
+                            deallocVar(type, id);
+                        }
                     }
 
                     // Add to queue if not visited
@@ -209,15 +230,31 @@ namespace eraxc::JIR::Allocated {
             return {""};
         }
 
+        void clear() {
+            stack_offsets.clear();
+            used_regs.clear();
+            used_stack_space = 0;
+            allocated_nodes.clear();
+        }
+
     public:
         // allocate cfg func
-        AllocationManager(const CFG_Func& f, std::vector<CFGA_Node>& nodes, const std::vector<CFG_Node>& old_nodes,
+        AllocationManager(std::vector<CFGA_Node>& nodes, const std::vector<CFG_Node>& old_nodes,
                           const EdgesMap& edges) :
-            nodes(nodes), old_nodes(old_nodes), edgesMap(edges) {
+            nodes(nodes), old_nodes(old_nodes), edgesMap(edges) {}
+
+
+        error::errable<void> create(const CFG_Func& f) {
+            // allocate parameters
+            size_t args_in_registers_count = 0;
+            for (const auto& param : f.params) {
+                used_regs.emplace(param.value, pass_ABI[args_in_registers_count++]);
+            }
+
             nodes[f.node_id].body.emplace_back(Operation::STACKALLOC, OperandAllocated {0, f.max_stack_size, false},
                                                OperandAllocated {});
-
-            allocatedCfgNode(f.node_id);
+            const auto r = allocatedCfgNode(f.node_id);
+            return r;
         }
     };
 }

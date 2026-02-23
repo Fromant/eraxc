@@ -68,8 +68,7 @@ std::optional<u64> ScopeManager::findIdRecursive(const std::string& id) const {
     return std::nullopt;
 }
 
-std::optional<eraxc::Scope::Declaration> ScopeManager::findDeclarationRecursive(
-    const std::string& name) const {
+std::optional<eraxc::Scope::Declaration> ScopeManager::findDeclarationRecursive(const std::string& name) const {
     for (const auto& scope : std::ranges::views::reverse(scopes)) {
         if (const auto decl = scope.findId(name)) {
             return decl;
@@ -109,12 +108,12 @@ std::optional<u64> ScopeManager::findType(const std::string& type) const {
     return std::nullopt;
 }
 
-std::optional<size_t> ScopeManager::addId(const std::string& id, size_t type, bool is_func, Nodes& nodes,
-                                                      bool rValue) {
+std::optional<size_t> ScopeManager::addId(const std::string& id, size_t type, bool is_func, CFG_Node& node, bool rValue) {
     const auto opt = top().addId(id, type, is_func);
     if (opt && !is_func) {
         Operand allocatee {type, opt.value().getId(), false, rValue};
-        nodes.emplace_back(Operation::ALLOC, allocatee, Operand {});
+        node.body.emplace_back(Operation::ALLOC, allocatee, Operand {});
+        node.allocatedIds.emplace_back(type, opt.value().getId());
     }
     if (opt) {
         return opt.value().getId();
@@ -122,19 +121,19 @@ std::optional<size_t> ScopeManager::addId(const std::string& id, size_t type, bo
     return std::nullopt;
 }
 
-std::optional<size_t> ScopeManager::addIdWithoutAllocation(const std::string& id, size_t type,
-                                                                       bool is_func) {
+std::optional<size_t> ScopeManager::addIdWithoutAllocation(const std::string& id, size_t type, bool is_func) {
     if (const auto res = top().addId(id, type, is_func, false)) {
         return res.value().getId();
     }
     return std::nullopt;
 }
 
-size_t ScopeManager::addAnonymousId(const u64 type, bool is_func, Nodes& nodes, bool rValue) {
+size_t ScopeManager::addAnonymousId(const u64 type, bool is_func, CFG_Node& node, bool rValue) {
     auto& id = top().addAnonymousId(type, is_func);
     if (!is_func) {
         Operand allocatee {type, id.getId(), false, rValue};
-        nodes.emplace_back(Operation::ALLOC, allocatee, Operand {});
+        node.body.emplace_back(Operation::ALLOC, allocatee, Operand {});
+        node.allocatedIds.emplace_back(type, id.getId());
     }
     return id.getId();
 }
@@ -168,7 +167,6 @@ void ScopeManager::pop(CFG_Node& node) {
     auto& scope = scopes.back();
     dealloc_scope(node.body, scope);
     stackFrames.top().addSize(scope.getAllocatedSize());
-    node.scope = std::move(scope);
     scopes.pop_back();
 }
 
@@ -185,8 +183,8 @@ u64 ScopeManager::popFrame(CFG_Node& node, bool dealloc) {
     }
 
     if (dealloc) {
-        for (const auto& scope : view) {
-            dealloc_scope(node.body, scope);  //TODO set scope? all scopes collide? what to do
+        for (auto& scope : view) {
+            dealloc_scope(node.body, scope);
         }
     }
     scopes.erase(scopes.begin() + start_index, scopes.end());

@@ -12,6 +12,16 @@ namespace eraxc::JIR {
         u64 value;
         bool is_instant;
         bool is_rvalue;
+
+        Operand() {
+            is_instant = false;
+            is_rvalue = false;
+            type = -1;
+            value = -1;
+        }
+
+        Operand(u64 type, u64 value, bool is_instant, bool is_rvalue) :
+            type(type), value(value), is_instant(is_instant), is_rvalue(is_rvalue) {}
     };
 
     struct JIRop {
@@ -22,7 +32,8 @@ namespace eraxc::JIR {
 
     struct CFG_Node {
         std::vector<JIRop> body;
-        Scope scope;
+        // {type, id}
+        std::vector<std::pair<u64, u64>> allocatedIds;
     };
 
     enum CFGEdgeType {

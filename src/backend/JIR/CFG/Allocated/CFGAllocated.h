@@ -21,7 +21,11 @@ namespace eraxc::JIR::Allocated {
             nodes.resize(cfg.get_nodes().size());
 
             for (const auto& func : funcs | std::views::values) {
-                AllocationManager a(func, nodes, cfg.get_nodes(), cfg.get_edges());
+                AllocationManager a(nodes, cfg.get_nodes(), cfg.get_edges());
+                auto r = a.create(func);
+                if (!r) {
+                    throw std::runtime_error("Could not create node allocation manager: " + r.error);
+                }
             }
         }
     };
