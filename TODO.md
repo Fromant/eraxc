@@ -64,39 +64,45 @@ const and non const functions duplicate code too much.
 - [x] new while loop (example is in notebook page 2)
 - [x] return inside if causes segfault
 - [x] if branches with different stack size causes segfaults :(
-- [ ] allocation manager
-- [ ] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
-- [ ] fix `weird.erx` integration test
-- [ ] add a bunch of tests for stack size calculation add stuff on cfg node
+- [x] allocation manager & Allocated Control Flow Graph (CFGA)
+- [x] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
+- [ ] move codegen to CFGA
+- [ ] fix recursion - codegen side problem - will fix `recursion.erx`
+- [ ] fix globals initialization - will fix `weird.erx` test
 - [ ] CFG docs (using mermaid diagrams) and tests
-- [ ] ? store uses for each variable
-- [ ] fix recursion
+- [ ] bunch of CFG tests
+- [ ] bunch of CFGA tests
+- [ ] add a bunch of tests for stack size calculation add stuff on cfg node
 - [ ] `break` support
-- [ ] `for` support
 - [ ] `do` support (?)
+- [ ] `for` support
 - [ ] `extern` keyword
 - [ ] `defer` keyword
 - [ ] Move all errors to separate file
 - [ ] Redo typenames (const, rvalue/lvalue, references and pointers, structs and classes)
-- [ ] struct method function call
-- [ ] Struct member deref
+- [ ] ? store uses for each variable
+- [ ] `const` types, other keywords maybe
+- [ ] namespaces (2 way scopes for namespaces)
+- [ ] anon codeblocks
+- [ ] array, pointers, references, derederences
 - [ ] Type explicit casting (only explicit!)
-- [ ] 2 way scopes for namespaces
 - [ ] JIR() directive for direct JIR code input
 - [ ] Tests
 - [ ] Optimisations
 - [ ] Optimisations tests
 - [ ] Structures, classes
+- - [ ] struct method function call
+- [ ] Struct member deref
 
 # ASM gen:
 
-- [x] Actually initiate globals!
-- [ ] compress all `sub rsp n` to just one `sub rsp` per function
 - [ ] return structures, large structures support
-- [ ] codegen registers alloc
-- [ ] asm translation x86-64 split for linux and windows
-- [ ] A monstrous amount of tests
 - [ ] Write JIR form in comments for easier debug or smth (should be an option)
+- [ ] `gdb` support
+- [ ] codegen registers alloc
+- [ ] A monstrous amount of tests
+- [ ] asm translation x86-64 split for linux and windows
+- [ ] asm translations for other cpus/platforms
 - [ ] Platform-driven optimisations
 
 # Tests:
