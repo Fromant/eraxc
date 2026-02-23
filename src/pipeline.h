@@ -1,4 +1,5 @@
 #pragma once
+#include "backend/JIR/CFG/Allocated/CFGAllocated.h"
 #include "backend/JIR/CFG/CFG.h"
 #include "backend/codegen/asm_x86.h"
 
@@ -62,6 +63,8 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
     total_time += dur;
 
     std::cout << "\nCompilation completed successfully in " << total_time << "ms\n";
+
+    JIR::Allocated::CFGAllocated cfg_allocated(cfg);
 
     return {""};
 }

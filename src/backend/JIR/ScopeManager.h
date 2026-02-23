@@ -2,13 +2,10 @@
 
 #include <algorithm>
 #include <iostream>
-#include <ranges>
 #include <stack>
 
 #include "CFG/CFG_parts.h"
-#include "Operand.h"
 #include "Operation.h"
-#include "frontend/syntax/enums.h"
 
 namespace eraxc::JIR {
     class ScopeManager {

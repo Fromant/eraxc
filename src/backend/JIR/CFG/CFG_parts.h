@@ -3,10 +3,16 @@
 #include <vector>
 
 #include "../../Scope.h"
-#include "backend/JIR/Operand.h"
 #include "backend/JIR/Operation.h"
 
 namespace eraxc::JIR {
+
+    struct Operand {
+        u64 type;
+        u64 value;
+        bool is_instant;
+        bool is_rvalue;
+    };
 
     struct JIRop {
         Operation op = Operation::ERR;
@@ -20,14 +26,14 @@ namespace eraxc::JIR {
     };
 
     enum CFGEdgeType {
-        SQUASH, EXTEND
+        SQUASH,
+        EXTEND
     };
 
-    struct CFG_Edge {
-        size_t from_id;
-        size_t id_to;
-        size_t id_control_instruction;
+    struct CFGEdge {
+        size_t to_id;
         CFGEdgeType type;
+        Operation jump_op = Operation::JUMP;
     };
 
     struct CFG_Func {

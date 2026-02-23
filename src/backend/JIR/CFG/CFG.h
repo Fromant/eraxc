@@ -9,18 +9,13 @@
 
 namespace eraxc::JIR {
 
-    typedef std::vector<JIRop> Nodes;
+    using Nodes = std::vector<JIRop>;
+    using EdgesMap = std::unordered_map<size_t, std::vector<CFGEdge>>;
 
     class CFG {
         std::vector<CFG_Node> nodes;
 
-        struct CFGEdge {
-            size_t to_id;
-            CFGEdgeType type;
-            Operation jump_op = Operation::JUMP;
-        };
-
-        std::unordered_map<size_t, std::vector<CFGEdge>> edges;
+        EdgesMap edges;
 
         void appendEdge(size_t from, CFGEdge edge) {
             if (const auto it = edges.find(from); it == edges.end()) {
