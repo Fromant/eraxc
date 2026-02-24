@@ -67,6 +67,7 @@ const and non const functions duplicate code too much.
 - [x] allocation manager & Allocated Control Flow Graph (CFGA)
 - [x] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
 - [x] move codegen to CFGA
+- [ ] Cfg rvalue - what is it? declare behavior and implement it. Function parameters may be overwritten while implementing
 - [ ] CFGA globals support & codegen globals redo
 - [ ] globals and static init to separate function. Fully redo it.
 - [ ] CFGA do not allocate instants, rvalues, etc

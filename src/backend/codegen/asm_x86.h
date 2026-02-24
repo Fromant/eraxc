@@ -151,12 +151,13 @@ namespace eraxc::x86 {
                     os << "mov " << op1.value << ", " << node.operand2.value << '\n';
                 } else {
                     //if move operand is located on stack, spill him to rax and then do move
+                    // os << "mov " << op1.value << ", " << op2.value << '\n';
                     if (node.operand2.is_stack_allocated /*TODO || is global*/) {
                         std::string reg = reg_name(x86_reg::RAX, size(node.operand2.type));
                         os << "mov " << reg << ", " << op2.value << '\n';
                         os << "mov " << op1.value << ", " << reg << '\n';
                     } else {
-                        //move operand contained in register
+                        // move operand contained in register
                         os << "mov " << op1.value << ", " << op2.value << '\n';
                     }
                 }

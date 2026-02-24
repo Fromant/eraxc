@@ -67,6 +67,7 @@ namespace eraxc::JIR {
         std::optional<Scope::Declaration> findDeclaration(const std::string& name);
 
         void setDeclaration(const std::string& name, const Scope::Declaration& decl);
+        void setDeclaration(u64 id, const Scope::Declaration& decl);
 
         std::optional<u64> findTypeRecursive(const std::string& type) const;
 

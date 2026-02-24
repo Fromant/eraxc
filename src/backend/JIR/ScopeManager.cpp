@@ -86,8 +86,16 @@ std::optional<eraxc::Scope::Declaration> ScopeManager::findDeclaration(const std
 
 void ScopeManager::setDeclaration(const std::string& name, const Scope::Declaration& decl) {
     for (auto& scope : std::ranges::views::reverse(scopes)) {
-        if (auto id = scope.findId(name)) {
-            id.value() = decl;
+        if (scope.setDeclaration(name, decl)) {
+            return;
+        }
+    }
+}
+
+void ScopeManager::setDeclaration(u64 id, const Scope::Declaration& decl) {
+    for (auto& scope : std::ranges::views::reverse(scopes)) {
+        if (scope.setDeclaration(id, decl)) {
+            return;
         }
     }
 }

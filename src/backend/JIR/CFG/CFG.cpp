@@ -488,26 +488,29 @@ namespace eraxc::JIR {
             return {"Invalid operation encountered."};
         operations.pop();
         //operands are on stack in backwards order so flip em
-        Operand operand1 = operands.top();
-        operands.pop();
         Operand operand2 = operands.top();
+        operands.pop();
+        Operand operand1 = operands.top();
         operands.pop();
 
         // temporary: resulting type is always evaluated as the top operands stack element type
         Operand result {operand1};
         result.is_rvalue = true;
 
-        if (operand1.is_instant || !operand1.is_rvalue) {
+        if (!operand1.is_instant && operand1.is_rvalue) {
+            nodes[node_id].body.emplace_back(to_add.first, operand1, operand2);
+            result.value = operand1.value;
+            result.is_instant = operand1.is_instant;
+        } else {
             u64 result_id = scopeManager.addAnonymousId(result.type, false, nodes[node_id], true);
             result.value = result_id;
             result.is_instant = false;
-            // nodes[node_id].allocations.emplace_back(result);
-            // nodes[node_id].body.emplace_back(Operation::ALLOC, result, Operand {});
+            //copy operand1
             nodes[node_id].body.emplace_back(Operation::MOVE, result, operand1);
+            nodes[node_id].body.emplace_back(to_add.first, result, operand2);
+            scopeManager.setDeclaration(operand1.value, Scope::Declaration {operand1.type, result.value, false});
         }
 
-        // nodes[node_id].body.emplace_back(to_add.first, result, operand2);
-        nodes[node_id].body.emplace_back(to_add.first, operand2, result);
         if (to_add.second != Operation::NONE) {
             // conditional expression (like a>b)
 
@@ -668,8 +671,9 @@ namespace eraxc::JIR {
 
         while (operands.size() > 1) {
             auto push_result = push_expr_stack(operations, operands, node_id);
-            if (!push_result)
+            if (!push_result) {
                 return {push_result.error, Operand {}};
+            }
         }
         for (auto postfix : postfix_ops) {
             nodes[node_id].body.emplace_back(postfix);

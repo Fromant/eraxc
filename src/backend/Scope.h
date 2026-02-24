@@ -146,6 +146,25 @@ namespace eraxc {
             return std::nullopt;
         }
 
+        bool setDeclaration(const std::string& id, const Declaration& decl) {
+            if (const auto it = identifiers.find(id); it != identifiers.end()) {
+                it->second = decl;
+                return true;
+            }
+            return false;
+        }
+
+        bool setDeclaration(u64 id, const Declaration& decl) {
+            const auto it = std::ranges::find_if(identifiers, [&](const auto& p) {
+                return p.second.getId() == id;
+            });
+            if (it != identifiers.end()) {
+                it->second = decl;
+                return true;
+            }
+            return false;
+        }
+
         std::optional<size_t> findType(const std::string& type) const {
             const auto it = typenames.find(type);
             if (it != typenames.end()) {
