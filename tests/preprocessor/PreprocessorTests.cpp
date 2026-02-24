@@ -1,7 +1,7 @@
 
 #include <gtest/gtest.h>
 
-#include "frontend/lexic/preprocessor_tokenizer.h"
+#include "frontend/lexic/preprocessor_tokenizer.hpp"
 
 auto compare_tokens = [](const eraxc::token& a, const eraxc::token& b) {
     if (a.t == b.t && a.data == b.data) {

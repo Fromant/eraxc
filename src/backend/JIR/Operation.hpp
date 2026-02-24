@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../frontend/lexic/preprocessor_tokenizer.h"
-#include "../../frontend/syntax/enums.h"
+#include "../../frontend/lexic/preprocessor_tokenizer.hpp"
+#include "../../frontend/syntax/enums.hpp"
 
 namespace eraxc::JIR {
 

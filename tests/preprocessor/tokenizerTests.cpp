@@ -1,7 +1,7 @@
 
 #include <gtest/gtest.h>
 
-#include "frontend/lexic/preprocessor_tokenizer.h"
+#include "frontend/lexic/preprocessor_tokenizer.hpp"
 
 TEST(TokenizerTest, ParseNumbers) {
     eraxc::tokenizer tokenizer;

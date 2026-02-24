@@ -1,7 +1,7 @@
 #pragma once
 
-#include "backend/JIR/CFG/Allocated/CFGAllocated.h"
-#include "backend/JIR/CFG/Allocated/CFGTypes.h"
+#include "backend/JIR/CFG/Allocated/CFGAllocated.hpp"
+#include "backend/JIR/CFG/Allocated/CFGTypes.hpp"
 
 namespace eraxc::x64 {
     class asm_translator {

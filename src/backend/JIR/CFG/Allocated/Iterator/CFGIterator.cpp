@@ -1,4 +1,4 @@
-#include "CFGIterator.h"
+#include "CFGIterator.hpp"
 
 eraxc::JIR::CFGIterator::CFGIterator(const Allocated::CFGAllocated& cfg, size_t node_id) : cfg(cfg) {
     q.push(node_id);

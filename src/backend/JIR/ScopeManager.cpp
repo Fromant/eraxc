@@ -1,4 +1,4 @@
-#include "ScopeManager.h"
+#include "ScopeManager.hpp"
 
 using namespace eraxc::JIR;
 

@@ -1,6 +1,6 @@
 #pragma once
-#include "backend/JIR/Operation.h"
-#include "util/common.h"
+#include "backend/JIR/Operation.hpp"
+#include "util/common.hpp"
 
 namespace eraxc::JIR::Allocated {
     // stack or register allocated variable

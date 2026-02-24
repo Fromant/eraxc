@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../../codegen/x64/asm_x64_mem.h"
-#include "CFGTypes.h"
-#include "backend/JIR/CFG/CFG.h"
-#include "backend/JIR/CFG/CFG_parts.h"
+#include "../../../codegen/x64/asm_x64_mem.hpp"
+#include "CFGTypes.hpp"
+#include "backend/JIR/CFG/CFG.hpp"
+#include "backend/JIR/CFG/CFG_parts.hpp"
 
 using namespace eraxc::x64;
 

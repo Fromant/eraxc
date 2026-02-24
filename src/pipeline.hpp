@@ -1,7 +1,7 @@
 #pragma once
-#include "backend/JIR/CFG/Allocated/CFGAllocated.h"
-#include "backend/JIR/CFG/CFG.h"
-#include "backend/codegen/x64/asm_x64.h"
+#include "backend/JIR/CFG/Allocated/CFGAllocated.hpp"
+#include "backend/JIR/CFG/CFG.hpp"
+#include "backend/codegen/x64/asm_x64.hpp"
 
 using namespace eraxc;
 

@@ -1,10 +1,10 @@
-#include "CFG.h"
+#include "CFG.hpp"
 
 #include <iostream>
 
-#include "../../Scope.h"
-#include "../utils.h"
-#include "errors.h"
+#include "../../Scope.hpp"
+#include "../utils.hpp"
+#include "errors.hpp"
 
 namespace eraxc::JIR {
 

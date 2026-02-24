@@ -4,8 +4,8 @@
 #include <iostream>
 #include <stack>
 
-#include "CFG/CFG_parts.h"
-#include "Operation.h"
+#include "CFG/CFG_parts.hpp"
+#include "Operation.hpp"
 
 namespace eraxc::JIR {
     class ScopeManager {

@@ -1,7 +1,7 @@
 #pragma once
 #include <queue>
 
-#include "../CFGAllocated.h"
+#include "../CFGAllocated.hpp"
 
 namespace eraxc::JIR {
 

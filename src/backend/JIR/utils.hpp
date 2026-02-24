@@ -4,15 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "CFG/CFG_parts.h"
+#include "CFG/CFG_parts.hpp"
 
 namespace eraxc::JIR::utils {
-
-    inline std::string int_to_hex(const size_t i) {
-        std::stringstream ss;
-        ss << std::hex << i;
-        return ss.str();
-    }
 
     inline std::string operand_to_string(const Operand& op) {
         std::string result {};

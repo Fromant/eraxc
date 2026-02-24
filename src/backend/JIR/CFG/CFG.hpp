@@ -3,8 +3,8 @@
 #include <map>
 #include <stack>
 
-#include "CFG_parts.h"
-#include "backend/JIR/ScopeManager.h"
+#include "CFG_parts.hpp"
+#include "backend/JIR/ScopeManager.hpp"
 
 
 namespace eraxc::JIR {

@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "../../Scope.h"
-#include "backend/JIR/Operation.h"
+#include "../../Scope.hpp"
+#include "backend/JIR/Operation.hpp"
 
 namespace eraxc::JIR {
 

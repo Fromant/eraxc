@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "pipeline.h"
+#include "pipeline.hpp"
 
 int executeProgramSimple(const std::string& program_path) {
     return std::system((program_path).c_str());

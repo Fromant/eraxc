@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../../util/error.h"
+#include "../../util/error.hpp"
 
 namespace eraxc {
     struct token {

@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 
-#include "util/common.h"
-#include "frontend/syntax/enums.h"
+#include "util/common.hpp"
+#include "frontend/syntax/enums.hpp"
 
 namespace eraxc::x64 {
 

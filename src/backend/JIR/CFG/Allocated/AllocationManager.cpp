@@ -1,8 +1,8 @@
-#include "AllocationManager.h"
+#include "AllocationManager.hpp"
 
 #include <queue>
 
-#include "CFGTypes.h"
+#include "CFGTypes.hpp"
 
 error::errable<eraxc::JIR::Allocated::OperandAllocated> eraxc::JIR::Allocated::AllocationManager::operandToAllocated(
     const Operand& operand) {

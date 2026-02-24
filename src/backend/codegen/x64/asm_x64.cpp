@@ -1,5 +1,5 @@
-#include "asm_x64.h"
-#include "backend/JIR/CFG/Allocated/Iterator/CFGIterator.h"
+#include "asm_x64.hpp"
+#include "backend/JIR/CFG/Allocated/Iterator/CFGIterator.hpp"
 
 
 error::errable<std::string> asm_translator::get_operand(const JIR::Allocated::OperandAllocated& op) {

@@ -3,10 +3,10 @@
 #include <stack>
 #include <vector>
 
-#include "Operand.h"
-#include "frontend/lexic/preprocessor_tokenizer.h"
-#include "frontend/syntax/enums.h"
-#include "util/error.h"
+#include "Operand.hpp"
+#include "frontend/lexic/preprocessor_tokenizer.hpp"
+#include "frontend/syntax/enums.hpp"
+#include "util/error.hpp"
 
 
 namespace eraxc::JIR {

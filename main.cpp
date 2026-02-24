@@ -1,8 +1,8 @@
 #include <chrono>
 #include <iostream>
 
-#include "src/frontend/lexic/preprocessor_tokenizer.h"
-#include "src/pipeline.h"
+#include "src/frontend/lexic/preprocessor_tokenizer.hpp"
+#include "src/pipeline.hpp"
 
 int main(int argc, char* argv[]) {
     // auto err = compilation_pipeline("../examples/0.erx");

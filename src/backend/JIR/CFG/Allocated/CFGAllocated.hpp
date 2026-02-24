@@ -3,10 +3,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "CFGTypes.h"
-#include "backend/JIR/CFG/Allocated/AllocationManager.h"
-#include "backend/JIR/CFG/CFG.h"
-#include "backend/JIR/CFG/CFG_parts.h"
+#include "CFGTypes.hpp"
+#include "backend/JIR/CFG/Allocated/AllocationManager.hpp"
+#include "backend/JIR/CFG/CFG.hpp"
+#include "backend/JIR/CFG/CFG_parts.hpp"
 
 namespace eraxc::JIR::Allocated {
 

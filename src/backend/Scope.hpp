@@ -6,9 +6,10 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
-#include "codegen/x64/asm_x64_mem.h"
-#include "util/common.h"
+#include "codegen/x64/asm_x64_mem.hpp"
+#include "util/common.hpp"
 
 namespace eraxc {
 
