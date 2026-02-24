@@ -1,7 +1,7 @@
 #pragma once
 #include "backend/JIR/CFG/Allocated/CFGAllocated.h"
 #include "backend/JIR/CFG/CFG.h"
-#include "backend/codegen/asm_x86.h"
+#include "backend/codegen/x64/asm_x64.h"
 
 using namespace eraxc;
 
@@ -38,7 +38,7 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
 
     JIR::Allocated::CFGAllocated cfg_allocated(cfg);
 
-    auto asmtr = x86::asm_translator::translate(cfg_allocated, "eraxc.asm");
+    auto asmtr = x64::asm_translator::translate(cfg_allocated, "eraxc.asm");
     t2 = std::chrono::high_resolution_clock::now();
     if (!asmtr) {
         return {"Failed to translate to ASM. Error:\n" + asmtr.error};

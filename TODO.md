@@ -83,6 +83,7 @@ const and non const functions duplicate code too much.
 - [ ] `for` support
 - [ ] `extern` keyword
 - [ ] `defer` keyword
+- [ ] early exit on logic expressions ( `false && f()` => don't call `f`)
 - [ ] Move all errors to separate file
 - [ ] Redo typenames (const, rvalue/lvalue, references and pointers, structs and classes)
 - [ ] ? store uses for each variable

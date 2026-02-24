@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "codegen/x86/size.h"
+#include "codegen/x64/asm_x64_mem.h"
 #include "util/common.h"
 
 namespace eraxc {
@@ -179,7 +179,7 @@ namespace eraxc {
                 return std::nullopt;
             }
             if (doAllocate && !isFunc) {
-                allocatedSize += x86::size(type);
+                allocatedSize += x64::size(type);
                 allocations.emplace_back(r.first->second);
             }
             return r.first->second;
@@ -192,7 +192,7 @@ namespace eraxc {
                 throw std::runtime_error("cannot add " + name + " to scope. Is it already allocated?");
             }
             if (doAllocate && !isFunc) {
-                allocatedSize += x86::size(type);
+                allocatedSize += x64::size(type);
                 allocations.emplace_back(r.first->second);
             }
             return r.first->second;
