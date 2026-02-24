@@ -35,8 +35,10 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
     cfg.print_to_file("cfg.txt");
 
     t1 = std::chrono::high_resolution_clock::now();
-    x86::asm_translator asmt {};
-    auto asmtr = asmt.translate(cfg, "eraxc.asm");
+
+    JIR::Allocated::CFGAllocated cfg_allocated(cfg);
+
+    auto asmtr = x86::asm_translator::translate(cfg_allocated, "eraxc.asm");
     t2 = std::chrono::high_resolution_clock::now();
     if (!asmtr) {
         return {"Failed to translate to ASM. Error:\n" + asmtr.error};
@@ -64,7 +66,6 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
 
     std::cout << "\nCompilation completed successfully in " << total_time << "ms\n";
 
-    JIR::Allocated::CFGAllocated cfg_allocated(cfg);
 
     return {""};
 }

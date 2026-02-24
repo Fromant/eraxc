@@ -1,19 +1,44 @@
 #pragma once
 
 #include <ostream>
-#include <queue>
-#include <set>
 
 #include "asm_x86_mem.h"
 #include "backend/JIR/CFG/CFG.h"
+#include "backend/JIR/CFG/CFGIterator.h"
 
 namespace eraxc::x86 {
-    struct asm_translator {
+    class asm_translator {
 
-        memory_state mem {};
-        std::set<size_t> printed_nodes;
+        static error::errable<std::string> get_operand(const JIR::Allocated::OperandAllocated& op) {
+            const size_t type_size = size(op.type);
+            // if global, TODO size
+            // return {"", "QWORD[rel var$" + std::to_string(op.value) + "]"};
 
-        error::errable<void> print_JIR_node_asm(const JIR::JIRop& node, std::ostream& os) {
+            if (op.is_instant) {
+                return {"", std::to_string(op.value)};
+            }
+            if (op.is_stack_allocated) {
+                u64 offset = op.value;
+                if (offset == 0) {
+                    if (type_size == 8) {
+                        return {"", "QWORD[rsp]"};
+                    }
+                    if (type_size == 4) {
+                        return {"", "DWORD[rsp]"};
+                    }
+                    return {"Unsupported size", {}};
+                }
+                if (type_size == 8)
+                    return {"", "QWORD[rsp+" + std::to_string(offset) + ']'};
+                if (type_size == 4)
+                    return {"", "DWORD[rsp+" + std::to_string(offset) + ']'};
+                return {"Unsupported size", {}};
+            }
+            return {"", reg_name((x86_reg)op.value, type_size)};
+        }
+
+        static error::errable<void> print_JIR_node_asm(const JIR::Allocated::JIRAOp& node, std::ostream& os,
+                                                       size_t stackSize) {
             if (node.op == JIR::Operation::NONE) {
                 return {""};
             }
@@ -25,41 +50,25 @@ namespace eraxc::x86 {
 
             if (node.op == JIR::Operation::INC) {
                 auto op1 = get_operand(node.operand1);
-                if (!op1)
+                if (!op1) {
                     return {op1.error};
-
+                }
                 os << "inc " << op1.value << '\n';
-
                 return {""};
             }
             if (node.op == JIR::Operation::DEC) {
                 auto op1 = get_operand(node.operand1);
-                if (!op1)
+                if (!op1) {
                     return {op1.error};
+                }
 
                 os << "dec " << op1.value << '\n';
 
                 return {""};
             }
             if (node.op == JIR::Operation::RET) {
-                os << "add rsp, " << mem.used_stack_space + 8 << '\n';
+                os << "add rsp, " << stackSize << '\n';
                 os << "ret" << std::endl;
-                return {""};
-            }
-            if (node.op == JIR::Operation::PASS) {
-                //pass arguments
-                auto op1 = get_operand(node.operand1);
-                if (!op1)
-                    return {op1.error};
-                os << "mov " << reg_name(pass_ABI[mem.args_in_registers_count++], size(node.operand1.type)) << ", "
-                   << op1.value << '\n';
-                return {""};
-            }
-            if (node.op == JIR::Operation::PASS_RET) {
-                auto op1 = get_operand(node.operand1);
-                if (!op1)
-                    return {op1.error};
-                os << "mov " << reg_name(x86_reg::RAX, size(node.operand1.type)) << ", " << op1.value << '\n';
                 return {""};
             }
             if (node.op == JIR::Operation::JUMP) {
@@ -98,33 +107,29 @@ namespace eraxc::x86 {
                 return {""};
             }
             if (node.op == JIR::Operation::CALL) {
-                auto op2 = mem.get_var(node.operand2.value, size(node.operand2.type));
-                if (!op2)
-                    return {op2.error};
-                const auto diff = (mem.used_stack_space + 8) % 16;
-                if (diff != 0)
+                const auto diff = stackSize % 16;
+                if (diff != 0) {
                     os << "sub rsp, " << 16 - diff << '\n';
+                }
                 os << "call $f_" << node.operand1.value << '\n';
-                if (diff != 0)
+                if (diff != 0) {
                     os << "add rsp, " << 16 - diff << '\n';
-                std::string reg = reg_name(x86_reg::RAX, size(node.operand1.type));
-                os << "mov " << op2.value << ", " << reg << '\n';
-                mem.args_in_registers_count = 0;
+                }
                 return {""};
             }
             if (node.op == JIR::Operation::ALLOC) {
-                auto assignee = mem.allocate_stack_space(size(node.operand1.type), node.operand1.value);
-                if (!assignee)
-                    return {"Failed to allocate stack space: " + assignee.error};
-                os << assignee.value;
-                return {""};
+                return {"ERROR: How alloc cmd is here?"};
             }
             if (node.op == JIR::Operation::DEALLOC) {
-                auto assignee = mem.try_dealloc(size(node.operand1.type), node.operand1.value);
-                if (!assignee)
-                    return {"Failed to deallocate stack space: " + assignee.error};
-                os << assignee.value;
-                return {""};
+                return {"ERROR: How dealloc cmd is here?"};
+            }
+            if (node.op == JIR::Operation::STACKALLOC) {
+                // return {"ERROR: How STACKALLOC cmd is here?"};
+                return "";
+            }
+            if (node.op == JIR::Operation::STACKDEALLOC) {
+                // return {"ERROR: How STACKDEALLOC cmd is here?"};
+                return "";
             }
 
             //TODO choose instruction better. Check if instant.
@@ -133,18 +138,20 @@ namespace eraxc::x86 {
             // if (node.operand2.is_instant)
 
             auto op1 = get_operand(node.operand1);
-            auto op2 = get_operand(node.operand2);
-            if (!op1)
+            if (!op1) {
                 return {op1.error};
-            if (!op2)
+            }
+            auto op2 = get_operand(node.operand2);
+            if (!op2) {
                 return {op2.error};
+            }
 
             if (node.op == JIR::Operation::MOVE) {
                 if (node.operand2.is_instant) {
                     os << "mov " << op1.value << ", " << node.operand2.value << '\n';
                 } else {
                     //if move operand is located on stack, spill him to rax and then do move
-                    if (mem.stack_offsets.contains(node.operand2.value) || mem.globals.contains(node.operand2.value)) {
+                    if (node.operand2.is_stack_allocated /*TODO || is global*/) {
                         std::string reg = reg_name(x86_reg::RAX, size(node.operand2.type));
                         os << "mov " << reg << ", " << op2.value << '\n';
                         os << "mov " << op1.value << ", " << reg << '\n';
@@ -156,10 +163,11 @@ namespace eraxc::x86 {
                 return {""};
             }
 
-            //mov op1 to rax
-            //TODO if already in register there's no need in this
             std::string reg = reg_name(x86_reg::RAX, size(node.operand1.type));
+            //mov op1 to rax
+            // if (!node.operand1.is_stack_allocated /*&& ! is global*/) {
             os << "mov " << reg << ", " << op1.value << '\n';
+            // }
 
             if (node.op == JIR::Operation::ADD) {
                 os << "add " << reg << ", " << op2.value << '\n';
@@ -203,134 +211,72 @@ namespace eraxc::x86 {
             return {""};
         }
 
-        error::errable<std::string> get_operand(const JIR::Operand& op) {
-            if (op.is_instant) {
-                return {"", std::to_string(op.value)};
-            }
-            return mem.get_var(op.value, size(op.type));
-        }
+        static error::errable<void> print_cfg_node(const JIR::Allocated::CFGAllocated& cfg, size_t node_id,
+                                                   std::ostream& os, size_t stackSize) {
+            auto iter = JIR::CFGIterator {cfg, node_id};
+            while (iter) {
+                const JIR::Allocated::CFGA_Node& node = *iter;
 
-
-        error::errable<void> print_cfg_node(const JIR::CFG& cfg, size_t node_id, std::ostream& os) {
-            // insert and check
-            auto [it, inserted] = printed_nodes.emplace(node_id);
-            if (!inserted) {
-                return {""};
-            }
-
-            // BFS queue
-            std::queue<size_t> q;
-            q.push(node_id);
-
-            while (!q.empty()) {
-                size_t current_id = q.front();
-                q.pop();
-
-                const JIR::CFG_Node& node = cfg.get_cfg_node(current_id);
-
-                // Print body
-                os << ".l" << current_id << ":\n";
+                os << ".l" << iter.nodeId() << ":\n";
                 for (const auto& JIR_node : node.body) {
-                    auto print = print_JIR_node_asm(JIR_node, os);
+                    auto print = print_JIR_node_asm(JIR_node, os, stackSize);
                     if (!print) {
                         return print;
                     }
                 }
-
-                const auto edges = cfg.get_edges().find(current_id);
-                if (edges == cfg.get_edges().end()) {
-                    continue;
-                }
-                // Iterate through edges
-                for (const auto& edge : edges->second) {
-                    if (edge.type == JIR::SQUASH) {
-                        // dealloc stack
-                        // const auto r = mem.try_dealloc_stack_space(node.scope.getAllocatedSize());
-                        // if (!r) {
-                            // return r.error;
-                        // }
-                        // os << r.value;
-                    }
+                for (const auto& edge : iter.getEdges()) {
                     auto jump_print = print_JIR_node_asm(
-                        {edge.jump_op, JIR::Operand {0, edge.to_id, false, false}, JIR::Operand {}}, os);
+                        {edge.jump_op, JIR::Allocated::OperandAllocated {0, edge.to_id, false, false},
+                         JIR::Allocated::OperandAllocated {}},
+                        os, stackSize);
                     if (!jump_print) {
                         return jump_print;
                     }
-
-                    // Add to queue if not visited
-                    auto [child_it, child_inserted] = printed_nodes.emplace(edge.to_id);
-                    if (child_inserted) {
-                        q.push(edge.to_id);
-                    }
                 }
+                ++iter;
             }
-
-            return {""};
+            return "";
         }
 
-        error::errable<void> translate(const JIR::CFG& cfg, const std::string& o_filename) {
+    public:
+        static error::errable<void> translate(const JIR::Allocated::CFGAllocated& cfg, const std::string& o_filename) {
             std::ofstream file {o_filename};
 
-            if (!file)
+            if (!file) {
                 return {"Failed to open output file " + o_filename};
+            }
 
             file << "global main\nbits 64\nextern printf\nsection .data\n";
 
             //print globals
-            for (const auto& it : cfg.getScopeManager().top().getIdentifiers()) {
-                if (it.second.isFunc()) {
-                    continue;
-                }
-                file << "var$" << it.second.getId() << ' ' << type(it.second.getType()) << " 0\n";
-                mem.globals.insert(it.second.getId());
-            }
+            // for (const auto& it : cfg.getScopeManager().top().getIdentifiers()) {
+            //     if (it.second.isFunc()) {
+            //         continue;
+            //     }
+            //     file << "var$" << it.second.getId() << ' ' << type(it.second.getType()) << " 0\n";
+            // }
 
             file << "DBG_PRINT: db \"{%d}: %d\", 0x0A, 0x00\n"
                     "section .text\n"
                     "main:\n"
-                    "sub rsp, 0x28\n"
-                    "call $f_0\n";
-            //TODO move global initialization to separate cfg node that is always presented
-
-            if (const auto main_id = cfg.getScopeManager().findIdRecursive("main"); main_id && main_id.value() != 0) {
+                    "sub rsp, 0x28\n";
+            if (const auto main_id = cfg.getScopeManager().findIdRecursive("main"); main_id) {
                 file << "call $f_" << main_id.value() << '\n';
+            } else {
+                return "Can't find entrypoint `main()`";
             }
-
-            //now return rsp to where it's been before allocations
-            file << "add rsp, 0x" << std::hex << mem.used_stack_space + 0x28 << std::dec << '\n';
-            mem.reset();
-
+            file << "add rsp, 0x28\n";
             file << "ret;\n";
 
-            //print global init
-            if (!cfg.get_nodes()[0].body.empty()) {
-                file << "$f_0:\nsub rsp, 8\n";
-                auto r = print_cfg_node(cfg, 0, file);
-                if (!r)
+            // print all functions
+            for (const auto& [id, func] : cfg.getFuncs()) {
+                size_t allocated_stack = 8 + func.max_stack_size;
+                file << "$f_" << id << ":\nsub rsp, " << allocated_stack << "\n";
+                auto r = print_cfg_node(cfg, func.node_id, file, allocated_stack);
+                file << "add rsp, " << allocated_stack << "\nret\n";
+                if (!r) {
                     return r;
-                file << "add rsp, " << 8 + mem.used_stack_space << "\nret\n";
-                mem.reset();
-            }
-
-            //now print all functions
-            for (const auto& func : cfg.get_funcs()) {
-                //TODO handle args pass correctly (only 4 params would fit in ABI)
-                for (const auto& param : func.second.params) {
-                    mem.used_regs.emplace(param.value, pass_ABI[mem.args_in_registers_count++]);
                 }
-                mem.args_in_registers_count = 0;
-
-                // size_t allocated_stack = 8 + func.second.max_stack_size;
-                // file << "$f_" << func.first << ":\nsub rsp, " << allocated_stack << "\n";
-                //TODO remove down line and add up line
-                file << "$f_" << func.first << ":\nsub rsp, 8\n";
-                auto r = print_cfg_node(cfg, func.second.node_id, file);
-                // file << "add rsp, 8\nret\n";
-
-                if (!r)
-                    return r;
-
-                mem.reset();
             }
             return {""};
         }

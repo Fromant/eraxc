@@ -15,9 +15,10 @@ namespace eraxc::JIR::Allocated {
         EdgesMap edges;
         std::vector<CFGA_Node> nodes;
         std::map<u64, CFG_Func> funcs;
+        ScopeManager scope;
 
     public:
-        explicit CFGAllocated(const CFG& cfg) : edges(cfg.get_edges()), funcs(cfg.get_funcs()) {
+        explicit CFGAllocated(const CFG& cfg) : edges(cfg.get_edges()), funcs(cfg.get_funcs()), scope(cfg.getScopeManager()) {
             nodes.resize(cfg.get_nodes().size());
 
             for (const auto& func : funcs | std::views::values) {
@@ -27,6 +28,22 @@ namespace eraxc::JIR::Allocated {
                     throw std::runtime_error("Could not create node allocation manager: " + r.error);
                 }
             }
+        }
+
+        const ScopeManager& getScopeManager() const {
+            return scope;
+        }
+
+        const auto& getFuncs() const {
+            return funcs;
+        }
+
+        const auto& getCfgNode(size_t node_id) const {
+            return nodes[node_id];
+        }
+
+        const auto& getEdges() const {
+            return edges;
         }
     };
 }

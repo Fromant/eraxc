@@ -66,7 +66,11 @@ const and non const functions duplicate code too much.
 - [x] if branches with different stack size causes segfaults :(
 - [x] allocation manager & Allocated Control Flow Graph (CFGA)
 - [x] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
-- [ ] move codegen to CFGA
+- [x] move codegen to CFGA
+- [ ] CFGA globals support & codegen globals redo
+- [ ] globals and static init to separate function. Fully redo it.
+- [ ] CFGA do not allocate instants, rvalues, etc
+- [ ] Codegen remove registers mangling `mov rax, rax`, etc
 - [ ] fix recursion - codegen side problem - will fix `recursion.erx`
 - [ ] fix globals initialization - will fix `weird.erx` test
 - [ ] CFG docs (using mermaid diagrams) and tests

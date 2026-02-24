@@ -72,6 +72,7 @@ namespace eraxc::JIR::Allocated {
         std::unordered_map<u64, x86_reg> used_regs {};
 
         u64 used_stack_space = 0;
+        u64 total_stack_space = 0;
 
         //For mapping used vars to stack
         std::unordered_map<u64, u64> stack_offsets {};
@@ -135,8 +136,11 @@ namespace eraxc::JIR::Allocated {
             if (stack_offsets.contains(id)) {
                 return {"Variable $" + std::to_string(id) + " is already allocated"};
             }
-            stack_offsets.emplace(id, used_stack_space);
-            used_stack_space += size;
+            stack_offsets.emplace(id, total_stack_space);
+            total_stack_space -= size;
+            if (total_stack_space < 0) {
+                return {"Internal error: exceeding stack size"};
+            }
             return {""};
         }
 
@@ -145,18 +149,48 @@ namespace eraxc::JIR::Allocated {
 
             for (const auto& op : old_node.body) {
                 // skip alloc and dealloc
-                if (op.op == Operation::ALLOC || op.op == Operation::DEALLOC) {
+                if (op.op == Operation::ALLOC || op.op == Operation::DEALLOC || op.op == Operation::STACKDEALLOC ||
+                    op.op == Operation::STACKALLOC) {
+                    continue;
+                }
+
+                if (op.op == Operation::PASS_RET) {
+                    const auto returnable = operandToAllocated(op.operand1);
+                    if (!returnable) {
+                        return returnable.error;
+                    }
+                    node.body.emplace_back(Operation::MOVE,
+                                           OperandAllocated {returnable.value.type, (u64)x86_reg::RAX, false, false},
+                                           returnable.value);
+                    continue;
+                }
+
+                if (op.op == Operation::PASS) {
+                    const auto passed = operandToAllocated(op.operand1);
+                    if (!passed) {
+                        return passed.error;
+                    }
+                    node.body.emplace_back(
+                        Operation::MOVE,
+                        OperandAllocated {passed.value.type, (u64)pass_ABI[args_in_registers_count++], false, false},
+                        passed.value);
                     continue;
                 }
 
                 if (op.op == Operation::CALL) {
+                    args_in_registers_count = 0;
                     // second operand is a result of call
                     auto op2 = operandToAllocated(op.operand2);
                     if (!op2) {
                         return {op2.error};
                     }
-                    used_regs.emplace(op2.value.value, x86_reg::RAX);
-                    return {""};
+                    node.body.emplace_back(Operation::CALL,
+                                           OperandAllocated {(u64)-1, op.operand1.value, false, op.operand1.is_instant},
+                                           OperandAllocated {});
+
+                    node.body.emplace_back(Operation::MOVE, op2.value,
+                                           OperandAllocated {op2.value.type, (u64)x86_reg::RAX, false, false});
+                    continue;
                 }
 
                 if (op.op == Operation::RET) {
@@ -237,6 +271,8 @@ namespace eraxc::JIR::Allocated {
             allocated_nodes.clear();
         }
 
+        size_t args_in_registers_count = 0;
+
     public:
         // allocate cfg func
         AllocationManager(std::vector<CFGA_Node>& nodes, const std::vector<CFG_Node>& old_nodes,
@@ -246,10 +282,11 @@ namespace eraxc::JIR::Allocated {
 
         error::errable<void> create(const CFG_Func& f) {
             // allocate parameters
-            size_t args_in_registers_count = 0;
             for (const auto& param : f.params) {
                 used_regs.emplace(param.value, pass_ABI[args_in_registers_count++]);
             }
+            args_in_registers_count = 0;
+            total_stack_space = f.max_stack_size;
 
             nodes[f.node_id].body.emplace_back(Operation::STACKALLOC, OperandAllocated {0, f.max_stack_size, false},
                                                OperandAllocated {});
