@@ -1,0 +1,10 @@
+i32 TEST = 123;
+
+void t() {
+    TEST += 12;
+}
+
+int main() {
+    t();
+    return TEST + 13;
+}

@@ -1,0 +1,5 @@
+i32 TEST = 123;
+
+int main() {
+    return TEST + 13;
+}
