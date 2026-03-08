@@ -10,7 +10,7 @@ namespace eraxc::JIR {
 
     error::errable<void> CFG::create(const std::vector<token>& tokens) {
         int i = 0;
-        size_t global_node_id = nodes.size();
+        global_node_id = nodes.size();
         nodes.emplace_back();
 
         while (i < tokens.size()) {
@@ -367,6 +367,14 @@ namespace eraxc::JIR {
             return {"This identifier is already defined: " + tokens[i + 1].data};
         }
 
+        if (node_id == global_node_id) {
+            const auto& decl = scopeManager.findDeclarationRecursive(tokens[i + 1].data);
+            if (!decl) {
+                return {"CFG: cannot find just created global declaration: " + tokens[i + 1].data};
+            }
+            global_decls.emplace_back(decl.value());
+        }
+
         if (tokens[i + 2].t == token::OPERATOR) {
             std::string name = tokens[i + 1].data;
             //parsing initialization
@@ -374,8 +382,9 @@ namespace eraxc::JIR {
             i++;
             auto init = parse_expression(tokens, i, node_id);
 
-            if (!init)
+            if (!init) {
                 return init.error;
+            }
 
             // TODO wtf??
             // if (scopeManager.top().allocatedIds == old_size) {

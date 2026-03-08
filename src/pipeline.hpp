@@ -51,14 +51,16 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
 
     //autorun compilation to .exe
     t1 = std::chrono::high_resolution_clock::now();
-    system("nasm -f win64 eraxc.asm -o eraxc.obj");
+    // system("nasm -f win64 eraxc.asm -o eraxc.obj");
+    system("D:/programs/SASM/Windows/NASM/nasm.exe -f win64 eraxc.asm -o eraxc.obj");
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     std::cout << "nasm compiler done in: " << dur << "ms\n";
     total_time += dur;
 
     t1 = std::chrono::high_resolution_clock::now();
-    system("gcc eraxc.obj -o a.exe");
+    system("D:/programs/SASM/Windows/MinGW64/bin/gcc.exe eraxc.obj -o a.exe -m64 -g");
+    // system("gcc eraxc.obj -o a.exe -m64 -g");
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     std::cout << "gcc linker done in: " << dur << "ms\n";

@@ -3,12 +3,19 @@
 #include "util/common.hpp"
 
 namespace eraxc::JIR::Allocated {
-    // stack or register allocated variable
+
+
+    // allocated variable
     struct OperandAllocated {
+        enum AllocPlace {
+            STACK,
+            REGISTER,
+            GLOBAL,
+            INSTANT
+        };
         u64 type;
         u64 value;  //stack offset or register ID
-        bool is_stack_allocated;
-        bool is_instant;
+        AllocPlace place;  //where operand is allocated
     };
 
     struct JIRAOp {

@@ -1,5 +1,5 @@
-i32 TEST = 123;
+i32 TEST = 123i;
 
 int main() {
-    return TEST + 13;
+    return TEST + 13i;
 }

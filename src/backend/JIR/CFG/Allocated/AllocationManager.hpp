@@ -52,9 +52,13 @@ namespace eraxc::JIR::Allocated {
 
     public:
         // allocate cfg func
-        AllocationManager(std::vector<CFGA_Node>& nodes, const std::vector<CFG_Node>& old_nodes,
-                          const EdgesMap& edges) :
-            nodes(nodes), old_nodes(old_nodes), edgesMap(edges) {}
+        AllocationManager(std::vector<CFGA_Node>& nodes, const std::vector<CFG_Node>& old_nodes, const EdgesMap& edges,
+                          const std::vector<Scope::Declaration>& globals) :
+            nodes(nodes), old_nodes(old_nodes), edgesMap(edges) {
+            for (const auto& decl : globals) {
+                this->globals.emplace(decl.getId());
+            }
+        }
 
 
         error::errable<void> create(const CFG_Func& f);

@@ -12,18 +12,23 @@ error::errable<eraxc::JIR::Allocated::OperandAllocated> eraxc::JIR::Allocated::A
     }
 
     if (operand.is_instant) {
-        const OperandAllocated op {operand.type, operand.value, false, true};
+        const OperandAllocated op {operand.type, operand.value, OperandAllocated::INSTANT};
         return error::errable {op};
+    }
+
+    if (const auto globals_it = globals.find(operand.value); globals_it != globals.end()) {
+        // value = global id
+        return error::errable {OperandAllocated {operand.type, operand.value, OperandAllocated::GLOBAL}};
     }
 
     if (const auto regs_it = used_regs.find(operand.value); regs_it != used_regs.end()) {
         // value = register id
-        return error::errable {OperandAllocated {operand.type, (u64)regs_it->second, false, false}};
+        return error::errable {OperandAllocated {operand.type, (u64)regs_it->second, OperandAllocated::REGISTER}};
     }
 
     if (const auto stack_it = stack_offsets.find(operand.value); stack_it != stack_offsets.end()) {
         // value = offset
-        return error::errable {OperandAllocated {operand.type, stack_it->second, true, false}};
+        return error::errable {OperandAllocated {operand.type, stack_it->second, OperandAllocated::STACK}};
     }
 
     return {"Operand $" + std::to_string(operand.value) + " is not allocated", {}};
@@ -76,9 +81,10 @@ error::errable<void> eraxc::JIR::Allocated::AllocationManager::CFGNodeToCFGANode
             if (!returnable) {
                 return returnable.error;
             }
-            node.body.emplace_back(Operation::MOVE,
-                                   OperandAllocated {returnable.value.type, (u64)x86_reg::RAX, false, false},
-                                   returnable.value);
+            node.body.emplace_back(
+                Operation::MOVE,
+                OperandAllocated {returnable.value.type, (u64)x86_reg::RAX, OperandAllocated::REGISTER},
+                returnable.value);
             continue;
         }
 
@@ -87,31 +93,36 @@ error::errable<void> eraxc::JIR::Allocated::AllocationManager::CFGNodeToCFGANode
             if (!passed) {
                 return passed.error;
             }
-            node.body.emplace_back(
-                Operation::MOVE,
-                OperandAllocated {passed.value.type, (u64)pass_ABI[args_in_registers_count++], false, false},
-                passed.value);
+            node.body.emplace_back(Operation::MOVE,
+                                   OperandAllocated {passed.value.type, (u64)pass_ABI[args_in_registers_count++],
+                                                     OperandAllocated::REGISTER},
+                                   passed.value);
             continue;
         }
 
         if (op.op == Operation::CALL) {
             args_in_registers_count = 0;
-            // second operand is a result of call
-            auto op2 = operandToAllocated(op.operand2);
-            if (!op2) {
-                return {op2.error};
-            }
+
             node.body.emplace_back(Operation::CALL,
-                                   OperandAllocated {(u64)-1, op.operand1.value, false, op.operand1.is_instant},
+                                   OperandAllocated {(u64)-1, op.operand1.value, OperandAllocated::INSTANT},
                                    OperandAllocated {});
 
-            node.body.emplace_back(Operation::MOVE, op2.value,
-                                   OperandAllocated {op2.value.type, (u64)x86_reg::RAX, false, false});
+            if (op.operand2.type != syntax::VOID) {
+                // second operand is a result of call
+                auto op2 = operandToAllocated(op.operand2);
+                if (!op2) {
+                    return {op2.error};
+                }
+                node.body.emplace_back(
+                    Operation::MOVE, op2.value,
+                    OperandAllocated {op2.value.type, (u64)x86_reg::RAX, OperandAllocated::REGISTER});
+            }
             continue;
         }
 
         if (op.op == Operation::RET) {
-            node.body.emplace_back(Operation::STACKDEALLOC, OperandAllocated {0, used_stack_space, false, false},
+            node.body.emplace_back(Operation::STACKDEALLOC,
+                                   OperandAllocated {0, used_stack_space, OperandAllocated::INSTANT},
                                    OperandAllocated {});
             node.body.emplace_back(Operation::RET, OperandAllocated {}, OperandAllocated {});
             continue;
@@ -192,8 +203,6 @@ error::errable<void> eraxc::JIR::Allocated::AllocationManager::create(const CFG_
     args_in_registers_count = 0;
     total_stack_space = f.max_stack_size;
 
-    nodes[f.node_id].body.emplace_back(Operation::STACKALLOC, OperandAllocated {0, f.max_stack_size, false},
-                                       OperandAllocated {});
     const auto r = allocatedCfgNode(f.node_id);
     return r;
 }

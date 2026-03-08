@@ -1,10 +1,10 @@
-i32 TEST = 123;
+i32 TEST = 123i;
 
 void t() {
-    TEST += 12;
+    TEST += 12i;
 }
 
 int main() {
     t();
-    return TEST + 13;
+    return TEST + 13i;
 }

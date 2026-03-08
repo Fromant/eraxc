@@ -1,33 +1,48 @@
 #include "asm_x64.hpp"
+
 #include "backend/JIR/CFG/Allocated/Iterator/CFGIterator.hpp"
 
 
+error::errable<std::string> get_asm_size_from_type_size(size_t type_size) {
+    if (type_size == 8) {
+        return {"", "QWORD"};
+    }
+    if (type_size == 4) {
+        return {"", "DWORD"};
+    }
+    return {"Codegen: unsupported type size " + std::to_string(type_size), ""};
+}
+
 error::errable<std::string> asm_translator::get_operand(const JIR::Allocated::OperandAllocated& op) {
     const size_t type_size = size(op.type);
-    // if global, TODO size
-    // return {"", "QWORD[rel var$" + std::to_string(op.value) + "]"};
 
-    if (op.is_instant) {
+    if (op.place == JIR::Allocated::OperandAllocated::INSTANT) {
         return {"", std::to_string(op.value)};
     }
-    if (op.is_stack_allocated) {
+
+    if (op.place == JIR::Allocated::OperandAllocated::REGISTER) {
+        return {"", reg_name((x86_reg)op.value, type_size)};
+    }
+
+    auto size_errable = get_asm_size_from_type_size(type_size);
+    if (!size_errable) {
+        return size_errable;
+    }
+    const std::string size = size_errable.value;
+
+    if (op.place == JIR::Allocated::OperandAllocated::STACK) {
         u64 offset = op.value;
         if (offset == 0) {
-            if (type_size == 8) {
-                return {"", "QWORD[rsp]"};
-            }
-            if (type_size == 4) {
-                return {"", "DWORD[rsp]"};
-            }
-            return {"Unsupported size", {}};
+            return {"", size + "[rsp]"};
         }
-        if (type_size == 8)
-            return {"", "QWORD[rsp+" + std::to_string(offset) + ']'};
-        if (type_size == 4)
-            return {"", "DWORD[rsp+" + std::to_string(offset) + ']'};
-        return {"Unsupported size", {}};
+        return {"", size + "[rsp+" + std::to_string(offset) + ']'};
     }
-    return {"", reg_name((x86_reg)op.value, type_size)};
+
+    if (op.place == JIR::Allocated::OperandAllocated::GLOBAL) {
+        return {"", size + "[rel global$" + std::to_string(op.value) + "]"};
+    }
+
+    return {"Codegen: unknown place of operand: " + std::to_string(op.place), {}};
 }
 error::errable<void> asm_translator::print_JIR_node_asm(const JIR::Allocated::JIRAOp& node, std::ostream& os,
                                                         size_t stackSize) {
@@ -139,20 +154,64 @@ error::errable<void> asm_translator::print_JIR_node_asm(const JIR::Allocated::JI
     }
 
     if (node.op == JIR::Operation::MOVE) {
-        if (node.operand2.is_instant) {
+        if (node.operand2.place == JIR::Allocated::OperandAllocated::INSTANT) {
             os << "mov " << op1.value << ", " << node.operand2.value << '\n';
-        } else {
-            //if move operand is located on stack, spill him to rax and then do move
-            // os << "mov " << op1.value << ", " << op2.value << '\n';
-            if (node.operand2.is_stack_allocated /*TODO || is global*/) {
-                std::string reg = reg_name(x86_reg::RAX, size(node.operand2.type));
-                os << "mov " << reg << ", " << op2.value << '\n';
-                os << "mov " << op1.value << ", " << reg << '\n';
-            } else {
-                // move operand contained in register
-                os << "mov " << op1.value << ", " << op2.value << '\n';
-            }
+            return {""};
         }
+
+        // in x64 all move ops with moffs (global reg, like DWORD[rel global$0]) can only be through RAX reg
+        if (node.operand1.place == JIR::Allocated::OperandAllocated::GLOBAL &&
+            node.operand2.place == JIR::Allocated::OperandAllocated::GLOBAL) {
+            //global to global case
+            std::string regA = reg_name(x86_reg::RAX, size(node.operand1.type));
+            // os << "push rax\n";
+            os << "mov " << regA << ", " << op2.value << '\n';
+            os << "mov " << op1.value << ", " << regA << '\n';
+            // os << "pop rax\n";
+            return {""};
+        }
+        if (node.operand1.place == JIR::Allocated::OperandAllocated::GLOBAL) {
+            if (node.operand2.place == JIR::Allocated::OperandAllocated::REGISTER &&
+                node.operand2.value == (u64)x86_reg::RAX) {
+                // already in rax
+                os << "mov " << op1.value << ", " << op2.value << '\n';
+                return {""};
+            }
+            std::string regA = reg_name(x86_reg::RAX, size(node.operand1.type));
+            // os << "push rax\n";
+            os << "mov " << regA << ", " << op2.value << '\n';
+            os << "mov " << op1.value << ", " << regA << "\n";
+            // os << "pop rax\n";
+            return {""};
+        }
+        if (node.operand2.place == JIR::Allocated::OperandAllocated::GLOBAL) {
+            if (node.operand1.place == JIR::Allocated::OperandAllocated::REGISTER &&
+                node.operand1.value == (u64)x86_reg::RAX) {
+                // already in rax
+                os << "mov " << op1.value << ", " << op2.value << '\n';
+                return {""};
+            }
+            std::string regA = reg_name(x86_reg::RAX, size(node.operand1.type));
+            // os << "push rax\n";
+            os << "mov " << regA << ", " << op2.value << '\n';
+            os << "mov " << op1.value << ", " << regA << "\n";
+            // os << "pop rax\n";
+            return {""};
+        }
+
+        // move between two memory is not allowed
+        if (node.operand1.place == JIR::Allocated::OperandAllocated::STACK &&
+            node.operand2.place == JIR::Allocated::OperandAllocated::STACK) {
+            std::string regA = reg_name(x86_reg::RAX, size(node.operand1.type));
+            // os << "push rax\n";
+            os << "mov " << regA << ", " << op2.value << '\n';
+            os << "mov " << op1.value << ", " << regA << '\n';
+            // os << "pop rax\n";
+            return {""};
+        }
+
+        // move between (reg, mem) or (mem, reg)
+        os << "mov " << op1.value << ", " << op2.value << '\n';
         return {""};
     }
 
@@ -217,10 +276,11 @@ error::errable<void> asm_translator::print_cfg_node(const JIR::Allocated::CFGAll
             }
         }
         for (const auto& edge : iter.getEdges()) {
-            auto jump_print =
-                print_JIR_node_asm({edge.jump_op, JIR::Allocated::OperandAllocated {0, edge.to_id, false, false},
-                                    JIR::Allocated::OperandAllocated {}},
-                                   os, stackSize);
+            auto jump_print = print_JIR_node_asm(
+                {edge.jump_op,
+                 JIR::Allocated::OperandAllocated {0, edge.to_id, JIR::Allocated::OperandAllocated::INSTANT},
+                 JIR::Allocated::OperandAllocated {}},
+                os, stackSize);
             if (!jump_print) {
                 return jump_print;
             }
@@ -239,24 +299,46 @@ error::errable<void> asm_translator::translate(const JIR::Allocated::CFGAllocate
     file << "global main\nbits 64\nextern printf\nsection .data\n";
 
     //print globals
-    // for (const auto& it : cfg.getScopeManager().top().getIdentifiers()) {
-    //     if (it.second.isFunc()) {
-    //         continue;
-    //     }
-    //     file << "var$" << it.second.getId() << ' ' << type(it.second.getType()) << " 0\n";
-    // }
+    for (const auto& decl : cfg.getGlobals()) {
+        if (decl.isFunc()) {
+            continue;
+        }
+        file << "global$" << decl.getId() << ' ' << type(decl.getType()) << " 0\n";
+    }
 
+    const auto& main_id = cfg.getScopeManager().findIdRecursive("main");
+    if (!main_id) {
+        return "Codegen: Can't find entrypoint `main()`";
+    }
     file << "DBG_PRINT: db \"{%d}: %d\", 0x0A, 0x00\n"
             "section .text\n"
             "main:\n"
             "sub rsp, 0x28\n";
-    if (const auto main_id = cfg.getScopeManager().findIdRecursive("main"); main_id) {
-        file << "call $f_" << main_id.value() << '\n';
-    } else {
-        return "Can't find entrypoint `main()`";
+    if (main_id.value() != 0 && !cfg.getCfgNode(0).body.empty()) {
+        // init globals
+        file << "call $f_0\n";
     }
+    file << "call $f_" << main_id.value() << '\n';
     file << "add rsp, 0x28\n";
     file << "ret;\n";
+
+    const auto& print_globals = [&file, &cfg]() {
+        file << "$f_0:\n";
+        const auto allocatedStack = cfg.getScopeManager().top().getAllocatedSize();
+        file << "sub rsp, " << allocatedStack << '\n';
+        auto r = print_cfg_node(cfg, 0, file, allocatedStack);
+        file << "add rsp, " << allocatedStack << '\n';
+        file << "ret\n";
+        return r;
+    };
+
+    if (main_id.value() != 0 && !cfg.getCfgNode(0).body.empty()) {
+        // print global allocation
+        auto global_err = print_globals();
+        if (!global_err) {
+            return global_err;
+        }
+    }
 
     // print all functions
     for (const auto& [id, func] : cfg.getFuncs()) {

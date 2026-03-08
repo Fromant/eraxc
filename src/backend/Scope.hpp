@@ -49,7 +49,7 @@ namespace eraxc {
         using IdentifiersMap = std::unordered_map<std::string, Declaration>;
 
         // number of allocations (including anonymous)
-        u64 allocatedIds = 0;
+        u64 allocatedIds = 1;  // reserved 0 for globals allocation function
         // size of all allocations
         u64 allocatedSize = 0;
 
@@ -64,7 +64,7 @@ namespace eraxc {
         explicit Scope(u64 allocatedIds) : allocatedIds(allocatedIds) {}
 
         Scope(const IdentifiersMap& identifiers, TypesMap typenames) :
-            allocatedIds(identifiers.size()), identifiers(identifiers), typenames(std::move(typenames)) {}
+            allocatedIds(identifiers.size() + 1), identifiers(identifiers), typenames(std::move(typenames)) {}
 
         Scope(const Scope& other) {
             allocatedIds = other.allocatedIds;

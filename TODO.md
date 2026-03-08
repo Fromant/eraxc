@@ -67,13 +67,14 @@ const and non const functions duplicate code too much.
 - [x] allocation manager & Allocated Control Flow Graph (CFGA)
 - [x] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
 - [x] move codegen to CFGA
+- [x] fix recursion - codegen side problem - will fix `recursion.erx`
+- [ ] fix global init cfg 0 id reservation thing
 - [ ] Cfg rvalue - what is it? declare behavior and implement it. Function parameters may be overwritten while implementing
-- [ ] CFGA globals support & codegen globals redo
-- [ ] globals and static init to separate function. Fully redo it.
+- [ ] CFGA globals support & codegen globals
+- [ ] identifiers ids jump because of rvalues. carefully redo
+- [ ] bundle `gcc` and `nasm` for everything to compile properly
 - [ ] CFGA do not allocate instants, rvalues, etc
 - [ ] Codegen remove registers mangling `mov rax, rax`, etc
-- [ ] fix recursion - codegen side problem - will fix `recursion.erx`
-- [ ] fix globals initialization - will fix `weird.erx` test
 - [ ] CFG docs (using mermaid diagrams) and tests
 - [ ] bunch of CFG tests
 - [ ] bunch of CFGA tests

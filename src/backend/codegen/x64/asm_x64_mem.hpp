@@ -24,6 +24,8 @@ namespace eraxc::x64 {
 
     static constexpr u64 size(u64 type) {
         switch (type) {
+            case syntax::VOID:
+                return 0;
             case syntax::i8:
             case syntax::u8: return 1;
             case syntax::i16:

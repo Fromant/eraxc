@@ -8,12 +8,13 @@
 
 
 namespace eraxc::JIR {
-
     using Nodes = std::vector<JIRop>;
     using EdgesMap = std::unordered_map<size_t, std::vector<CFGEdge>>;
 
     class CFG {
         std::vector<CFG_Node> nodes;
+        size_t global_node_id = 0;
+        std::vector<Scope::Declaration> global_decls;
 
         EdgesMap edges;
 
@@ -67,6 +68,10 @@ namespace eraxc::JIR {
 
         const ScopeManager& getScopeManager() const {
             return scopeManager;
+        }
+
+        const auto& getGlobals() const {
+            return global_decls;
         }
 
         void print_functions() const;

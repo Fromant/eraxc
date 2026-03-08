@@ -116,7 +116,8 @@ std::optional<u64> ScopeManager::findType(const std::string& type) const {
     return std::nullopt;
 }
 
-std::optional<size_t> ScopeManager::addId(const std::string& id, size_t type, bool is_func, CFG_Node& node, bool rValue) {
+std::optional<size_t> ScopeManager::addId(const std::string& id, size_t type, bool is_func, CFG_Node& node,
+                                          bool rValue) {
     const auto opt = top().addId(id, type, is_func);
     if (opt && !is_func) {
         Operand allocatee {type, opt.value().getId(), false, rValue};
