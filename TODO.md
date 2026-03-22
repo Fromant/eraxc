@@ -5,8 +5,10 @@
 3. Token stream
 4. ` with ... as ... {}` paradigm (python like)
 5. Multi ARG subscript `operator[](int a, int b, int c);` `foo a[]; a[0,0,0]=0;` - for multidimensional containers
+6. fixed point numbers
 
-How to distinguish const container from container with const elements and is it needed?
+# Problems:
+- How to distinguish const container from container with const elements and is it needed? 
 const and non const functions duplicate code too much.
 
 
@@ -68,9 +70,10 @@ const and non const functions duplicate code too much.
 - [x] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
 - [x] move codegen to CFGA
 - [x] fix recursion - codegen side problem - will fix `recursion.erx`
-- [ ] fix global init cfg 0 id reservation thing
+- [ ] new nice architecture
+- [ ] type conversion 
 - [ ] Cfg rvalue - what is it? declare behavior and implement it. Function parameters may be overwritten while implementing
-- [ ] CFGA globals support & codegen globals
+- [ ] new allocator
 - [ ] identifiers ids jump because of rvalues. carefully redo
 - [ ] bundle `gcc` and `nasm` for everything to compile properly
 - [ ] CFGA do not allocate instants, rvalues, etc
@@ -98,7 +101,7 @@ const and non const functions duplicate code too much.
 - [ ] Optimisations
 - [ ] Optimisations tests
 - [ ] Structures, classes
-- - [ ] struct method function call
+- [ ] struct method function call
 - [ ] Struct member deref
 
 # ASM gen:

@@ -1,9 +1,11 @@
 
 #include <gtest/gtest.h>
 
-#include "frontend/lexic/preprocessor_tokenizer.hpp"
+#include "frontend/lexic/PreprocessorTokenizer.hpp"
 
-auto compare_tokens = [](const eraxc::token& a, const eraxc::token& b) {
+using namespace eraxc::frontend;
+
+auto compare_tokens = [](const Token& a, const Token& b) {
     if (a.t == b.t && a.data == b.data) {
         return testing::AssertionSuccess();
     }
@@ -17,9 +19,9 @@ TEST(PreprocessorTest, define_ifdef_ifndef) {
                       "#ifndef test\n321\n#endif\n"
                       "#ifndef test1\ntest11\n#endif\n";
 
-    const std::vector<eraxc::token> ref {{eraxc::token::INSTANT, "123"}, {eraxc::token::IDENTIFIER, "test11"}};
+    const std::vector<Token> ref {{Token::INSTANT, "123"}, {Token::IDENTIFIER, "test11"}};
 
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto res = tokenizer.tokenize(src);
     ASSERT_EQ(res.error, "");
     ASSERT_EQ(res.value.size(), ref.size());
@@ -34,12 +36,12 @@ TEST(PreprocessorTest, define_change_all_occurences) {
                       "#ifdef jle\njle\n#endif\n"
                       "jle1 jle 1jle jle_";
 
-    const std::vector<eraxc::token> ref {
-        {eraxc::token::IDENTIFIER, "jg"}, {eraxc::token::IDENTIFIER, "jle1"}, {eraxc::token::IDENTIFIER, "jg"},
-        {eraxc::token::INSTANT, "1"},     {eraxc::token::IDENTIFIER, "jg"},   {eraxc::token::IDENTIFIER, "jle_"},
+    const std::vector<Token> ref {
+        {Token::IDENTIFIER, "jg"}, {Token::IDENTIFIER, "jle1"}, {Token::IDENTIFIER, "jg"},
+        {Token::INSTANT, "1"},     {Token::IDENTIFIER, "jg"},   {Token::IDENTIFIER, "jle_"},
     };
 
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto res = tokenizer.tokenize(src);
     ASSERT_EQ(res.error, "");
     ASSERT_EQ(res.value.size(), ref.size());
@@ -51,23 +53,23 @@ TEST(PreprocessorTest, define_change_all_occurences) {
 
 TEST(PreprocessorTest, DefineWithoutValue) {
     std::string src = "#define FLAG\n#ifdef FLAG\nx\n#endif";
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto res = tokenizer.tokenize(src);
     ASSERT_EQ(res.error, "");
     ASSERT_EQ(res.value.size(), 1);
-    EXPECT_EQ(res.value[0].t, eraxc::token::IDENTIFIER);
+    EXPECT_EQ(res.value[0].t, Token::IDENTIFIER);
     EXPECT_EQ(res.value[0].data, "x");
 }
 
 TEST(PreprocessorTest, MacroSubstitutionFullMatchOnly) {
     std::string src = "#define A B\nA AA A1 _A";
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto res = tokenizer.tokenize(src);
     ASSERT_EQ(res.error, "");
-    std::vector<eraxc::token> expected = {{eraxc::token::IDENTIFIER, "B"},
-                                          {eraxc::token::IDENTIFIER, "AA"},
-                                          {eraxc::token::IDENTIFIER, "A1"},
-                                          {eraxc::token::IDENTIFIER, "_A"}};
+    std::vector<Token> expected = {{Token::IDENTIFIER, "B"},
+                                          {Token::IDENTIFIER, "AA"},
+                                          {Token::IDENTIFIER, "A1"},
+                                          {Token::IDENTIFIER, "_A"}};
     ASSERT_EQ(res.value.size(), expected.size());
     for (size_t i = 0; i < expected.size(); ++i) {
         EXPECT_TRUE(compare_tokens(res.value[i], expected[i]));
@@ -76,7 +78,7 @@ TEST(PreprocessorTest, MacroSubstitutionFullMatchOnly) {
 
 TEST(PreprocessorTest, NestedIfdef) {
     std::string src = "#define A\n#ifdef A\n#define B\n#ifdef B\nresult\n#endif\n#endif";
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto res = tokenizer.tokenize(src);
     ASSERT_EQ(res.error, "");
     ASSERT_EQ(res.value.size(), 1);
@@ -93,17 +95,17 @@ TEST(PreprocessorTest, NestedIfdefWithNesting) {
 #endif
 #endif
 )";
-    eraxc::tokenizer t;
+    Tokenizer t;
     auto res = t.tokenize(src);
     ASSERT_EQ(res.error, "");
     ASSERT_EQ(res.value.size(), 1);
-    EXPECT_EQ(res.value[0].t, eraxc::token::INSTANT);
+    EXPECT_EQ(res.value[0].t, Token::INSTANT);
     EXPECT_EQ(res.value[0].data, "42");
 }
 
 TEST(PreprocessorTest, MissingEndifError) {
     std::string src = "#ifdef TEST\n123\n";  // no #endif
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto res = tokenizer.tokenize(src);
     EXPECT_NE(res.error, "");
     EXPECT_TRUE(res.error.find("expected #endif") != std::string::npos);
@@ -111,7 +113,7 @@ TEST(PreprocessorTest, MissingEndifError) {
 
 TEST(PreprocessorTest, DefineInvalidIdentifier) {
     std::string src = "#define 123 x";  // identifier can't start with digit
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto res = tokenizer.tokenize(src);
     EXPECT_NE(res.error, "");
     EXPECT_TRUE(res.error.find("expected identifier") != std::string::npos);
@@ -119,7 +121,7 @@ TEST(PreprocessorTest, DefineInvalidIdentifier) {
 
 TEST(PreprocessorTest, DefineSecondArgNotIdentifier) {
     std::string src = "#define A 123!";  // '!' is not allowed in replacement
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto res = tokenizer.tokenize(src);
     EXPECT_NE(res.error, "");
     EXPECT_TRUE(res.error.find("Expected identifier as define second argument") != std::string::npos);
@@ -127,7 +129,7 @@ TEST(PreprocessorTest, DefineSecondArgNotIdentifier) {
 
 TEST(PreprocessorTest, UnknownDirective) {
     std::string src = "#unknown\n123";
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto res = tokenizer.tokenize(src);
     EXPECT_NE(res.error, "");
     EXPECT_TRUE(res.error.find("No such macro") != std::string::npos);

@@ -39,20 +39,19 @@
 - declarations
 - expressions
 - return
-- selections
 - loops
 - anonymous namespaces (?)
 
-## Fuтctions:
+## Functions:
 
 - int main() {}
 - int main(int a) {}
 - int name([decl_list]) {[statement_list]}
 
-# Differences from C:
+# Differences from C/C++:
 - some operators should be explicitly separated by spaces (`a+++a` is not fine, `a++ + a` is, `a++++` is not allowed either but `a++ ++` is)
-- postfix increment and decrement operators are actually same as prefix operators, but executed at the end of expression. Actually, there are no such thing as postfix operators, all unary operators are prefix, because they are executed first and only then value is used (but postfix increment is just delayed prefix increment so don't bother brother)
-- No such thing as constructors. Only fabrics
+- postfix increment and decrement operators are actually same as prefix operators, but executed at the end of expression.
+- No such thing as constructors. Only fabrics ?
 - Only explicit types conversion. 
 - No implicit type casting: only explicit
 - Type casting syntax: `u64(a)` (maybe I'll add support for C-style casting)

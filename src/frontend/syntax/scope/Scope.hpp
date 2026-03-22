@@ -8,10 +8,10 @@
 #include <utility>
 #include <vector>
 
-#include "codegen/x64/asm_x64_mem.hpp"
+#include "frontend/syntax/enums.hpp"
 #include "util/common.hpp"
 
-namespace eraxc {
+namespace eraxc::frontend {
 
     class Scope {
 
@@ -34,6 +34,13 @@ namespace eraxc {
             }
             u64 getType() const {
                 return type;
+            }
+            error::errable<JIR::Type> getJirType() const {
+                const auto t = jirTypeFromKeyword((Keyword)getType());
+                if (t == JIR::Type::ERR) {
+                    return {"Cannot convert type " + std::to_string(getType()) + " to JIR type", t};
+                }
+                return {"", t};
             }
             void setId(u64 id) {
                 this->id = id;
@@ -180,7 +187,11 @@ namespace eraxc {
                 return std::nullopt;
             }
             if (doAllocate && !isFunc) {
-                allocatedSize += x64::size(type);
+                const auto size_opt = type_size((Keyword)type);
+                if (!size_opt) {
+                    return std::nullopt;
+                }
+                allocatedSize += size_opt.value;
                 allocations.emplace_back(r.first->second);
             }
             return r.first->second;
@@ -193,7 +204,9 @@ namespace eraxc {
                 throw std::runtime_error("cannot add " + name + " to scope. Is it already allocated?");
             }
             if (doAllocate && !isFunc) {
-                allocatedSize += x64::size(type);
+                if (const auto size_opt = type_size((Keyword)type)) {
+                    allocatedSize += size_opt.value;
+                }
                 allocations.emplace_back(r.first->second);
             }
             return r.first->second;

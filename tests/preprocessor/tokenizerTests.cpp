@@ -1,52 +1,54 @@
 
 #include <gtest/gtest.h>
 
-#include "frontend/lexic/preprocessor_tokenizer.hpp"
+#include "frontend/lexic/PreprocessorTokenizer.hpp"
+
+using namespace eraxc::frontend;
 
 TEST(TokenizerTest, ParseNumbers) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto r = tokenizer.tokenize("123");
     ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 1);
-    EXPECT_EQ(r.value[0].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[0].t, Token::INSTANT);
     EXPECT_EQ(r.value[0].data, "123");
 }
 
 TEST(TokenizerTest, ParseFloatNumbers) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto r = tokenizer.tokenize("123.2");
     ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 1);
-    EXPECT_EQ(r.value[0].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[0].t, Token::INSTANT);
     EXPECT_EQ(r.value[0].data, "123.2");
 }
 
 TEST(TokenizerTest, ParseSingleCharOperators) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto checkResult = [&tokenizer](const std::string& src, char op) {
         auto res = tokenizer.tokenize(src);
         ASSERT_EQ(res.error, "");
         ASSERT_EQ(res.value.size(), 1);
         EXPECT_EQ(res.value[0].data, std::string(1, op));
-        EXPECT_EQ(res.value[0].t, eraxc::token::OPERATOR);
+        EXPECT_EQ(res.value[0].t, Token::OPERATOR);
     };
 
-    for (const auto& op : eraxc::token::operator_chars) {
+    for (const auto& op : Token::operator_chars) {
         checkResult(std::string() + op, op);
     }
 }
 
 TEST(TokenizerTest, ParseMultiCharOperators) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto checkResult = [&tokenizer](const std::string& src, const std::string& op) {
         auto res = tokenizer.tokenize(src);
         ASSERT_EQ(res.error, "");
         ASSERT_EQ(res.value.size(), 1);
         EXPECT_EQ(res.value[0].data, op);
-        EXPECT_EQ(res.value[0].t, eraxc::token::OPERATOR);
+        EXPECT_EQ(res.value[0].t, Token::OPERATOR);
     };
 
-    for (const auto& op : eraxc::token::operator_chars) {
+    for (const auto& op : Token::operator_chars) {
         if (op == '/')
             continue;  //bypass because `///` is a comment
         checkResult(std::string(3, op), std::string(3, op));
@@ -54,26 +56,25 @@ TEST(TokenizerTest, ParseMultiCharOperators) {
 }
 
 TEST(TokenizerTest, ParseAllOperators) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     std::string str = "< = > & | ^ % * / ~ + - != <= >= == *= /= += -= %= <<= >>= |= &= ^=";
     auto res = tokenizer.tokenize(str);
     ASSERT_EQ(res.error, "");
     ASSERT_EQ(res.value.size(), 26);
 
     for (const auto& op : res.value) {
-        EXPECT_EQ(op.t, eraxc::token::OPERATOR);
+        EXPECT_EQ(op.t, Token::OPERATOR);
     }
 }
 
 TEST(TokenizerTest, ParseSpecialSymbols) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     std::string str = "; ! () {} [] ? : . ,";
 
-    const std::vector reference {
-        eraxc::token::type::SEMICOLON,    eraxc::token::type::OPERATOR,     eraxc::token::type::L_BRACKET,
-        eraxc::token::type::R_BRACKET,    eraxc::token::type::L_F_BRACKET,  eraxc::token::type::R_F_BRACKET,
-        eraxc::token::type::L_SQ_BRACKET, eraxc::token::type::R_SQ_BRACKET, eraxc::token::type::OPERATOR,
-        eraxc::token::type::COLON,        eraxc::token::type::DOT,          eraxc::token::type::COMMA};
+    const std::vector reference {Token::type::SEMICOLON,    Token::type::OPERATOR,     Token::type::L_BRACKET,
+                                 Token::type::R_BRACKET,    Token::type::L_F_BRACKET,  Token::type::R_F_BRACKET,
+                                 Token::type::L_SQ_BRACKET, Token::type::R_SQ_BRACKET, Token::type::OPERATOR,
+                                 Token::type::COLON,        Token::type::DOT,          Token::type::COMMA};
 
     auto res = tokenizer.tokenize(str);
     ASSERT_EQ(res.error, "");
@@ -86,334 +87,334 @@ TEST(TokenizerTest, ParseSpecialSymbols) {
 
 
 TEST(TokenizerTest, GeneralTest) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     std::string filepath = "../../tests/files/preprocessor/tokenizer.erx";
 
-    const std::vector<eraxc::token> reference {
-        {eraxc::token::IDENTIFIER, "unsigned"},
-        {eraxc::token::IDENTIFIER, "int"},
-        {eraxc::token::IDENTIFIER, "fib"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "int"},
-        {eraxc::token::IDENTIFIER, "number"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::L_F_BRACKET, "{"},
-        {eraxc::token::IDENTIFIER, "if"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "number"},
-        {eraxc::token::OPERATOR, "<="},
-        {eraxc::token::INSTANT, "0"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::L_F_BRACKET, "{"},
-        {eraxc::token::IDENTIFIER, "fprintf"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "stderr"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::STRING_INSTANT, "Illegal Argument Is Passed!\\n"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "exit"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "EXIT_FAILURE"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::R_F_BRACKET, "}"},
-        {eraxc::token::IDENTIFIER, "if"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "number"},
-        {eraxc::token::OPERATOR, "=="},
-        {eraxc::token::INSTANT, "1"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::IDENTIFIER, "return"},
-        {eraxc::token::INSTANT, "0"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "if"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "number"},
-        {eraxc::token::OPERATOR, "=="},
-        {eraxc::token::INSTANT, "2"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::IDENTIFIER, "return"},
-        {eraxc::token::INSTANT, "1"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "return"},
-        {eraxc::token::IDENTIFIER, "fib"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "number"},
-        {eraxc::token::OPERATOR, "-"},
-        {eraxc::token::INSTANT, "1"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::OPERATOR, "+"},
-        {eraxc::token::IDENTIFIER, "fib"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "number"},
-        {eraxc::token::OPERATOR, "-"},
-        {eraxc::token::INSTANT, "2"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::R_F_BRACKET, "}"},
+    const std::vector<Token> reference {
+        {Token::IDENTIFIER, "unsigned"},
+        {Token::IDENTIFIER, "int"},
+        {Token::IDENTIFIER, "fib"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "int"},
+        {Token::IDENTIFIER, "number"},
+        {Token::R_BRACKET, ")"},
+        {Token::L_F_BRACKET, "{"},
+        {Token::IDENTIFIER, "if"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "number"},
+        {Token::OPERATOR, "<="},
+        {Token::INSTANT, "0"},
+        {Token::R_BRACKET, ")"},
+        {Token::L_F_BRACKET, "{"},
+        {Token::IDENTIFIER, "fprintf"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "stderr"},
+        {Token::COMMA, ","},
+        {Token::STRING_INSTANT, "Illegal Argument Is Passed!\\n"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "exit"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "EXIT_FAILURE"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::R_F_BRACKET, "}"},
+        {Token::IDENTIFIER, "if"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "number"},
+        {Token::OPERATOR, "=="},
+        {Token::INSTANT, "1"},
+        {Token::R_BRACKET, ")"},
+        {Token::IDENTIFIER, "return"},
+        {Token::INSTANT, "0"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "if"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "number"},
+        {Token::OPERATOR, "=="},
+        {Token::INSTANT, "2"},
+        {Token::R_BRACKET, ")"},
+        {Token::IDENTIFIER, "return"},
+        {Token::INSTANT, "1"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "return"},
+        {Token::IDENTIFIER, "fib"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "number"},
+        {Token::OPERATOR, "-"},
+        {Token::INSTANT, "1"},
+        {Token::R_BRACKET, ")"},
+        {Token::OPERATOR, "+"},
+        {Token::IDENTIFIER, "fib"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "number"},
+        {Token::OPERATOR, "-"},
+        {Token::INSTANT, "2"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::R_F_BRACKET, "}"},
 
-        {eraxc::token::IDENTIFIER, "int"},
-        {eraxc::token::IDENTIFIER, "getInput"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "void"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::L_F_BRACKET, "{"},
-        {eraxc::token::IDENTIFIER, "int"},
-        {eraxc::token::IDENTIFIER, "num"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::IDENTIFIER, "excess_len"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "char"},
-        {eraxc::token::IDENTIFIER, "buffer"},
-        {eraxc::token::L_SQ_BRACKET, "["},
-        {eraxc::token::INSTANT, "3"},
-        {eraxc::token::R_SQ_BRACKET, "]"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::OPERATOR, "*"},
-        {eraxc::token::IDENTIFIER, "endPtr"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "while"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::INSTANT, "1"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::L_F_BRACKET, "{"},
-        {eraxc::token::IDENTIFIER, "printf"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::STRING_INSTANT, "Please enter a valid number:"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "fgets"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "buffer"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::INSTANT, "3"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::IDENTIFIER, "stdin"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "excess_len"},
-        {eraxc::token::OPERATOR, "="},
-        {eraxc::token::INSTANT, "0"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "if"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::OPERATOR, "!"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "buffer"},
-        {eraxc::token::L_SQ_BRACKET, "["},
-        {eraxc::token::INSTANT, "0"},
-        {eraxc::token::R_SQ_BRACKET, "]"},
-        {eraxc::token::OPERATOR, "=="},
-        {eraxc::token::STRING_INSTANT, "\\n"},
-        {eraxc::token::OPERATOR, "||"},
-        {eraxc::token::IDENTIFIER, "buffer"},
-        {eraxc::token::L_SQ_BRACKET, "["},
-        {eraxc::token::INSTANT, "1"},
-        {eraxc::token::R_SQ_BRACKET, "]"},
-        {eraxc::token::OPERATOR, "=="},
-        {eraxc::token::STRING_INSTANT, "\\n"},
-        {eraxc::token::OPERATOR, "||"},
-        {eraxc::token::IDENTIFIER, "buffer"},
-        {eraxc::token::L_SQ_BRACKET, "["},
-        {eraxc::token::INSTANT, "2"},
-        {eraxc::token::R_SQ_BRACKET, "]"},
-        {eraxc::token::OPERATOR, "=="},
-        {eraxc::token::STRING_INSTANT, "\\n"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::L_F_BRACKET, "{"},
-        {eraxc::token::IDENTIFIER, "while"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "getchar"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::OPERATOR, "!="},
-        {eraxc::token::STRING_INSTANT, "\\n"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::IDENTIFIER, "excess_len"},
-        {eraxc::token::OPERATOR, "++"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::R_F_BRACKET, "}"},
-        {eraxc::token::IDENTIFIER, "num"},
-        {eraxc::token::OPERATOR, "="},
-        {eraxc::token::IDENTIFIER, "strtol"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "buffer"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::OPERATOR, "&"},
-        {eraxc::token::IDENTIFIER, "endPtr"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::INSTANT, "10"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "if"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "excess_len"},
-        {eraxc::token::OPERATOR, ">"},
-        {eraxc::token::INSTANT, "0"},
-        {eraxc::token::OPERATOR, "||"},
-        {eraxc::token::IDENTIFIER, "num"},
-        {eraxc::token::OPERATOR, ">"},
-        {eraxc::token::INSTANT, "48"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::OPERATOR, "||"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::OPERATOR, "*"},
-        {eraxc::token::IDENTIFIER, "endPtr"},
-        {eraxc::token::OPERATOR, "!="},
-        {eraxc::token::STRING_INSTANT, "\\0"},
-        {eraxc::token::OPERATOR, "&&"},
-        {eraxc::token::OPERATOR, "*"},
-        {eraxc::token::IDENTIFIER, "endPtr"},
-        {eraxc::token::OPERATOR, "!="},
-        {eraxc::token::STRING_INSTANT, "\\n"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::OPERATOR, "||"},
-        {eraxc::token::IDENTIFIER, "endPtr"},
-        {eraxc::token::OPERATOR, "=="},
-        {eraxc::token::IDENTIFIER, "buffer"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::L_F_BRACKET, "{"},
-        {eraxc::token::IDENTIFIER, "continue"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::R_F_BRACKET, "}"},
-        {eraxc::token::IDENTIFIER, "break"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::R_F_BRACKET, "}"},
-        {eraxc::token::IDENTIFIER, "printf"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::STRING_INSTANT, "\\nEntered digit: %d (it might take sometime)\\n"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::IDENTIFIER, "num"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "return"},
-        {eraxc::token::IDENTIFIER, "num"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::R_F_BRACKET, "}"},
+        {Token::IDENTIFIER, "int"},
+        {Token::IDENTIFIER, "getInput"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "void"},
+        {Token::R_BRACKET, ")"},
+        {Token::L_F_BRACKET, "{"},
+        {Token::IDENTIFIER, "int"},
+        {Token::IDENTIFIER, "num"},
+        {Token::COMMA, ","},
+        {Token::IDENTIFIER, "excess_len"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "char"},
+        {Token::IDENTIFIER, "buffer"},
+        {Token::L_SQ_BRACKET, "["},
+        {Token::INSTANT, "3"},
+        {Token::R_SQ_BRACKET, "]"},
+        {Token::COMMA, ","},
+        {Token::OPERATOR, "*"},
+        {Token::IDENTIFIER, "endPtr"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "while"},
+        {Token::L_BRACKET, "("},
+        {Token::INSTANT, "1"},
+        {Token::R_BRACKET, ")"},
+        {Token::L_F_BRACKET, "{"},
+        {Token::IDENTIFIER, "printf"},
+        {Token::L_BRACKET, "("},
+        {Token::STRING_INSTANT, "Please enter a valid number:"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "fgets"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "buffer"},
+        {Token::COMMA, ","},
+        {Token::INSTANT, "3"},
+        {Token::COMMA, ","},
+        {Token::IDENTIFIER, "stdin"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "excess_len"},
+        {Token::OPERATOR, "="},
+        {Token::INSTANT, "0"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "if"},
+        {Token::L_BRACKET, "("},
+        {Token::OPERATOR, "!"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "buffer"},
+        {Token::L_SQ_BRACKET, "["},
+        {Token::INSTANT, "0"},
+        {Token::R_SQ_BRACKET, "]"},
+        {Token::OPERATOR, "=="},
+        {Token::STRING_INSTANT, "\\n"},
+        {Token::OPERATOR, "||"},
+        {Token::IDENTIFIER, "buffer"},
+        {Token::L_SQ_BRACKET, "["},
+        {Token::INSTANT, "1"},
+        {Token::R_SQ_BRACKET, "]"},
+        {Token::OPERATOR, "=="},
+        {Token::STRING_INSTANT, "\\n"},
+        {Token::OPERATOR, "||"},
+        {Token::IDENTIFIER, "buffer"},
+        {Token::L_SQ_BRACKET, "["},
+        {Token::INSTANT, "2"},
+        {Token::R_SQ_BRACKET, "]"},
+        {Token::OPERATOR, "=="},
+        {Token::STRING_INSTANT, "\\n"},
+        {Token::R_BRACKET, ")"},
+        {Token::R_BRACKET, ")"},
+        {Token::L_F_BRACKET, "{"},
+        {Token::IDENTIFIER, "while"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "getchar"},
+        {Token::L_BRACKET, "("},
+        {Token::R_BRACKET, ")"},
+        {Token::OPERATOR, "!="},
+        {Token::STRING_INSTANT, "\\n"},
+        {Token::R_BRACKET, ")"},
+        {Token::IDENTIFIER, "excess_len"},
+        {Token::OPERATOR, "++"},
+        {Token::SEMICOLON, ";"},
+        {Token::R_F_BRACKET, "}"},
+        {Token::IDENTIFIER, "num"},
+        {Token::OPERATOR, "="},
+        {Token::IDENTIFIER, "strtol"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "buffer"},
+        {Token::COMMA, ","},
+        {Token::OPERATOR, "&"},
+        {Token::IDENTIFIER, "endPtr"},
+        {Token::COMMA, ","},
+        {Token::INSTANT, "10"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "if"},
+        {Token::L_BRACKET, "("},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "excess_len"},
+        {Token::OPERATOR, ">"},
+        {Token::INSTANT, "0"},
+        {Token::OPERATOR, "||"},
+        {Token::IDENTIFIER, "num"},
+        {Token::OPERATOR, ">"},
+        {Token::INSTANT, "48"},
+        {Token::R_BRACKET, ")"},
+        {Token::OPERATOR, "||"},
+        {Token::L_BRACKET, "("},
+        {Token::OPERATOR, "*"},
+        {Token::IDENTIFIER, "endPtr"},
+        {Token::OPERATOR, "!="},
+        {Token::STRING_INSTANT, "\\0"},
+        {Token::OPERATOR, "&&"},
+        {Token::OPERATOR, "*"},
+        {Token::IDENTIFIER, "endPtr"},
+        {Token::OPERATOR, "!="},
+        {Token::STRING_INSTANT, "\\n"},
+        {Token::R_BRACKET, ")"},
+        {Token::OPERATOR, "||"},
+        {Token::IDENTIFIER, "endPtr"},
+        {Token::OPERATOR, "=="},
+        {Token::IDENTIFIER, "buffer"},
+        {Token::R_BRACKET, ")"},
+        {Token::L_F_BRACKET, "{"},
+        {Token::IDENTIFIER, "continue"},
+        {Token::SEMICOLON, ";"},
+        {Token::R_F_BRACKET, "}"},
+        {Token::IDENTIFIER, "break"},
+        {Token::SEMICOLON, ";"},
+        {Token::R_F_BRACKET, "}"},
+        {Token::IDENTIFIER, "printf"},
+        {Token::L_BRACKET, "("},
+        {Token::STRING_INSTANT, "\\nEntered digit: %d (it might take sometime)\\n"},
+        {Token::COMMA, ","},
+        {Token::IDENTIFIER, "num"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "return"},
+        {Token::IDENTIFIER, "num"},
+        {Token::SEMICOLON, ";"},
+        {Token::R_F_BRACKET, "}"},
 
-        {eraxc::token::IDENTIFIER, "static"},
-        {eraxc::token::IDENTIFIER, "void"},
-        {eraxc::token::IDENTIFIER, "test"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::L_F_BRACKET, "{"},
-        {eraxc::token::IDENTIFIER, "assert"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "fib"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::INSTANT, "5"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::OPERATOR, "=="},
-        {eraxc::token::INSTANT, "3"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "assert"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "fib"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::INSTANT, "2"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::OPERATOR, "=="},
-        {eraxc::token::INSTANT, "1"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "assert"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "fib"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::INSTANT, "9"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::OPERATOR, "=="},
-        {eraxc::token::INSTANT, "21"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::R_F_BRACKET, "}"},
+        {Token::IDENTIFIER, "static"},
+        {Token::IDENTIFIER, "void"},
+        {Token::IDENTIFIER, "test"},
+        {Token::L_BRACKET, "("},
+        {Token::R_BRACKET, ")"},
+        {Token::L_F_BRACKET, "{"},
+        {Token::IDENTIFIER, "assert"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "fib"},
+        {Token::L_BRACKET, "("},
+        {Token::INSTANT, "5"},
+        {Token::R_BRACKET, ")"},
+        {Token::OPERATOR, "=="},
+        {Token::INSTANT, "3"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "assert"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "fib"},
+        {Token::L_BRACKET, "("},
+        {Token::INSTANT, "2"},
+        {Token::R_BRACKET, ")"},
+        {Token::OPERATOR, "=="},
+        {Token::INSTANT, "1"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "assert"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "fib"},
+        {Token::L_BRACKET, "("},
+        {Token::INSTANT, "9"},
+        {Token::R_BRACKET, ")"},
+        {Token::OPERATOR, "=="},
+        {Token::INSTANT, "21"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::R_F_BRACKET, "}"},
 
-        {eraxc::token::IDENTIFIER, "int"},
-        {eraxc::token::IDENTIFIER, "main"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::L_F_BRACKET, "{"},
-        {eraxc::token::IDENTIFIER, "test"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "printf"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::STRING_INSTANT, "Tests passed...\\n"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "printf"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::STRING_INSTANT, "Enter n to find nth fibonacci element...\\n"},
-        {eraxc::token::STRING_INSTANT, "Note: You would be asked to enter input until valid number ( less "},
-        {eraxc::token::STRING_INSTANT, "than or equal to 48 ) is entered.\\n"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "int"},
-        {eraxc::token::IDENTIFIER, "number"},
-        {eraxc::token::OPERATOR, "="},
-        {eraxc::token::IDENTIFIER, "getInput"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "clock_t"},
-        {eraxc::token::IDENTIFIER, "start"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::IDENTIFIER, "end"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "start"},
-        {eraxc::token::OPERATOR, "="},
-        {eraxc::token::IDENTIFIER, "clock"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "printf"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::STRING_INSTANT, "Fibonacci element %d is %u "},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::IDENTIFIER, "number"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::IDENTIFIER, "fib"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "number"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "end"},
-        {eraxc::token::OPERATOR, "="},
-        {eraxc::token::IDENTIFIER, "clock"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "printf"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::STRING_INSTANT, "in %.3f seconds.\\n"},
-        {eraxc::token::COMMA, ","},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "double"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::L_BRACKET, "("},
-        {eraxc::token::IDENTIFIER, "end"},
-        {eraxc::token::OPERATOR, "-"},
-        {eraxc::token::IDENTIFIER, "start"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::OPERATOR, "/"},
-        {eraxc::token::IDENTIFIER, "CLOCKS_PER_SEC"},
-        {eraxc::token::R_BRACKET, ")"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::IDENTIFIER, "return"},
-        {eraxc::token::INSTANT, "0"},
-        {eraxc::token::SEMICOLON, ";"},
-        {eraxc::token::R_F_BRACKET, "}"},
+        {Token::IDENTIFIER, "int"},
+        {Token::IDENTIFIER, "main"},
+        {Token::L_BRACKET, "("},
+        {Token::R_BRACKET, ")"},
+        {Token::L_F_BRACKET, "{"},
+        {Token::IDENTIFIER, "test"},
+        {Token::L_BRACKET, "("},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "printf"},
+        {Token::L_BRACKET, "("},
+        {Token::STRING_INSTANT, "Tests passed...\\n"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "printf"},
+        {Token::L_BRACKET, "("},
+        {Token::STRING_INSTANT, "Enter n to find nth fibonacci element...\\n"},
+        {Token::STRING_INSTANT, "Note: You would be asked to enter input until valid number ( less "},
+        {Token::STRING_INSTANT, "than or equal to 48 ) is entered.\\n"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "int"},
+        {Token::IDENTIFIER, "number"},
+        {Token::OPERATOR, "="},
+        {Token::IDENTIFIER, "getInput"},
+        {Token::L_BRACKET, "("},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "clock_t"},
+        {Token::IDENTIFIER, "start"},
+        {Token::COMMA, ","},
+        {Token::IDENTIFIER, "end"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "start"},
+        {Token::OPERATOR, "="},
+        {Token::IDENTIFIER, "clock"},
+        {Token::L_BRACKET, "("},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "printf"},
+        {Token::L_BRACKET, "("},
+        {Token::STRING_INSTANT, "Fibonacci element %d is %u "},
+        {Token::COMMA, ","},
+        {Token::IDENTIFIER, "number"},
+        {Token::COMMA, ","},
+        {Token::IDENTIFIER, "fib"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "number"},
+        {Token::R_BRACKET, ")"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "end"},
+        {Token::OPERATOR, "="},
+        {Token::IDENTIFIER, "clock"},
+        {Token::L_BRACKET, "("},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "printf"},
+        {Token::L_BRACKET, "("},
+        {Token::STRING_INSTANT, "in %.3f seconds.\\n"},
+        {Token::COMMA, ","},
+        {Token::L_BRACKET, "("},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "double"},
+        {Token::R_BRACKET, ")"},
+        {Token::L_BRACKET, "("},
+        {Token::IDENTIFIER, "end"},
+        {Token::OPERATOR, "-"},
+        {Token::IDENTIFIER, "start"},
+        {Token::R_BRACKET, ")"},
+        {Token::R_BRACKET, ")"},
+        {Token::OPERATOR, "/"},
+        {Token::IDENTIFIER, "CLOCKS_PER_SEC"},
+        {Token::R_BRACKET, ")"},
+        {Token::SEMICOLON, ";"},
+        {Token::IDENTIFIER, "return"},
+        {Token::INSTANT, "0"},
+        {Token::SEMICOLON, ";"},
+        {Token::R_F_BRACKET, "}"},
     };
 
-    auto compare_tokens = [](const eraxc::token& a, const eraxc::token& b) {
+    auto compare_tokens = [](const Token& a, const Token& b) {
         if (a.t == b.t && a.data == b.data) {
             return testing::AssertionSuccess();
         }
@@ -431,89 +432,89 @@ TEST(TokenizerTest, GeneralTest) {
 
 
 TEST(TokenizerTest, IgnoreComments) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto r = tokenizer.tokenize("123.2 //comment till end of line//full line comment\n132.2");
     ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 2);
-    EXPECT_EQ(r.value[0].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[0].t, Token::INSTANT);
     EXPECT_EQ(r.value[0].data, "123.2");
-    EXPECT_EQ(r.value[1].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[1].t, Token::INSTANT);
     EXPECT_EQ(r.value[1].data, "132.2");
 }
 
 TEST(TokenizerTest, IgnoreSpacesTabsLineBreaks) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto r = tokenizer.tokenize("123.2  132.2 \t \t 1 12\t\t1");
     ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 5);
-    EXPECT_EQ(r.value[0].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[0].t, Token::INSTANT);
     EXPECT_EQ(r.value[0].data, "123.2");
-    EXPECT_EQ(r.value[1].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[1].t, Token::INSTANT);
     EXPECT_EQ(r.value[1].data, "132.2");
-    EXPECT_EQ(r.value[2].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[2].t, Token::INSTANT);
     EXPECT_EQ(r.value[2].data, "1");
-    EXPECT_EQ(r.value[3].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[3].t, Token::INSTANT);
     EXPECT_EQ(r.value[3].data, "12");
-    EXPECT_EQ(r.value[4].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[4].t, Token::INSTANT);
     EXPECT_EQ(r.value[4].data, "1");
 }
 
 TEST(TokenizerTest, Identifiers) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto r = tokenizer.tokenize("test_123 test-123 _test 123test");
     ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 5);
-    EXPECT_EQ(r.value[0].t, eraxc::token::IDENTIFIER);
+    EXPECT_EQ(r.value[0].t, Token::IDENTIFIER);
     EXPECT_EQ(r.value[0].data, "test_123");
-    EXPECT_EQ(r.value[1].t, eraxc::token::IDENTIFIER);
+    EXPECT_EQ(r.value[1].t, Token::IDENTIFIER);
     EXPECT_EQ(r.value[1].data, "test-123");
-    EXPECT_EQ(r.value[2].t, eraxc::token::IDENTIFIER);
+    EXPECT_EQ(r.value[2].t, Token::IDENTIFIER);
     EXPECT_EQ(r.value[2].data, "_test");
-    EXPECT_EQ(r.value[3].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[3].t, Token::INSTANT);
     EXPECT_EQ(r.value[3].data, "123");
-    EXPECT_EQ(r.value[4].t, eraxc::token::IDENTIFIER);
+    EXPECT_EQ(r.value[4].t, Token::IDENTIFIER);
     EXPECT_EQ(r.value[4].data, "test");
 }
 
 TEST(TokenizerTest, StringLiterals) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto r = tokenizer.tokenize(R"("hello world")");
     ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 1);
-    EXPECT_EQ(r.value[0].t, eraxc::token::STRING_INSTANT);
+    EXPECT_EQ(r.value[0].t, Token::STRING_INSTANT);
     EXPECT_EQ(r.value[0].data, "hello world");
 }
 
 TEST(TokenizerTest, EmptyString) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto r = tokenizer.tokenize(R"("")");
     ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 1);
-    EXPECT_EQ(r.value[0].t, eraxc::token::STRING_INSTANT);
+    EXPECT_EQ(r.value[0].t, Token::STRING_INSTANT);
     EXPECT_EQ(r.value[0].data, "");
 }
 
 TEST(TokenizerTest, UnterminatedStringError) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto r = tokenizer.tokenize(R"("unterminated)");
     EXPECT_NE(r.error, "");
 }
 
 TEST(TokenizerTest, ComplexOperators) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     std::string src = "!= == <<= >>= += -= *= /= %= &= |= ^= ~";
     auto res = tokenizer.tokenize(src);
     ASSERT_EQ(res.error, "");
     std::vector<std::string> expected = {"!=", "==", "<<=", ">>=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "~"};
     ASSERT_EQ(res.value.size(), expected.size());
     for (size_t i = 0; i < expected.size(); ++i) {
-        EXPECT_EQ(res.value[i].t, eraxc::token::OPERATOR);
+        EXPECT_EQ(res.value[i].t, Token::OPERATOR);
         EXPECT_EQ(res.value[i].data, expected[i]);
     }
 }
 
 TEST(TokenizerTest, SlashOperatorsVsComments) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     // Ensure '//' starts comment, but '/=' is operator
     auto r = tokenizer.tokenize("/= // this is comment\n*=");
     ASSERT_EQ(r.error, "");
@@ -523,27 +524,27 @@ TEST(TokenizerTest, SlashOperatorsVsComments) {
 }
 
 TEST(TokenizerTest, NumberWithSuffixes) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     auto r = tokenizer.tokenize("123u 456l 789i 10.5u");
     ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 4);
     EXPECT_EQ(r.value[0].data, "123u");
     EXPECT_EQ(r.value[1].data, "456l");
     EXPECT_EQ(r.value[2].data, "789i");
-    EXPECT_EQ(r.value[3].data, "10.5u"); // Note: your tokenizer allows suffixes on floats too
+    EXPECT_EQ(r.value[3].data, "10.5u");  // Note: your tokenizer allows suffixes on floats too
     for (const auto& t : r.value) {
-        EXPECT_EQ(t.t, eraxc::token::INSTANT);
+        EXPECT_EQ(t.t, Token::INSTANT);
     }
 }
 
 TEST(TokenizerTest, IdentifierStartsWithDigit) {
-    eraxc::tokenizer tokenizer;
+    Tokenizer tokenizer;
     // "123abc" -> "123" (INSTANT) + "abc" (IDENTIFIER)
     auto r = tokenizer.tokenize("123abc");
     ASSERT_EQ(r.error, "");
     ASSERT_EQ(r.value.size(), 2);
-    EXPECT_EQ(r.value[0].t, eraxc::token::INSTANT);
+    EXPECT_EQ(r.value[0].t, Token::INSTANT);
     EXPECT_EQ(r.value[0].data, "123");
-    EXPECT_EQ(r.value[1].t, eraxc::token::IDENTIFIER);
+    EXPECT_EQ(r.value[1].t, Token::IDENTIFIER);
     EXPECT_EQ(r.value[1].data, "abc");
 }

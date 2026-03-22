@@ -1,15 +1,18 @@
 #pragma once
-
-#include <algorithm>
-#include <iostream>
+#include <functional>
 #include <stack>
+#include <vector>
 
-#include "CFG/CFG_parts.hpp"
-#include "Operation.hpp"
+#include "Scope.hpp"
+#include "common/JIR/Function.hpp"
+#include "common/JIR/JIR.hpp"
 
-namespace eraxc::JIR {
+namespace eraxc::frontend {
+
     class ScopeManager {
         std::vector<Scope> scopes;
+
+        std::unordered_map<u64, JIR::Function> functions;
 
         class StackFrame {
             size_t topScopeId;
@@ -39,10 +42,12 @@ namespace eraxc::JIR {
 
         std::stack<StackFrame> stackFrames;
 
-        using Nodes = std::vector<JIRop>;
-
     public:
         ScopeManager();
+
+        auto& getFunctions() {
+            return functions;
+        }
 
         auto addType(const std::string& type);
 
@@ -79,13 +84,12 @@ namespace eraxc::JIR {
         /// \param is_func is this identifier a function
         /// \param nodes nodes list where allocation operation will be added
         /// \return the index of declaration
-        std::optional<size_t> addId(const std::string& id, size_t type, bool is_func, CFG_Node& node,
-                                    bool rValue = false);
+        std::optional<size_t> addId(const std::string& id, size_t type, bool is_func, bool rValue = false);
 
         //for already allocated ids (e.g. func args)
         std::optional<size_t> addIdWithoutAllocation(const std::string& id, size_t type, bool is_func);
 
-        size_t addAnonymousId(const u64 type, bool is_func, CFG_Node& node, bool rValue = false);
+        size_t addAnonymousId(u64 type, bool is_func, bool rValue = false);
 
         size_t scopesCount() const;
 
@@ -96,13 +100,10 @@ namespace eraxc::JIR {
 
         void push();
 
-        void pop(CFG_Node& node);
+        void pop(std::vector<JIR::Command>& tokens);
 
-        u64 popFrame(CFG_Node& node, bool dealloc = true);
+        u64 popFrame();
 
-        void deallocFrame(Nodes& nodes);
-
-    private:
-        static void dealloc_scope(Nodes& nodes, const Scope& scope);
+        void deallocFrame(std::vector<JIR::Command>& tokens);
     };
 }

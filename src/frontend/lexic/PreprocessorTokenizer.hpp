@@ -9,8 +9,8 @@
 
 #include "../../util/error.hpp"
 
-namespace eraxc {
-    struct token {
+namespace eraxc::frontend {
+    struct Token {
         static inline std::set<char> special_symbols {';', '\'', '\"', '=', '+', '<', '>', '%', '/',
                                                       '*', '!',  '&',  '|', '^', '(', ')', '{', '}',
                                                       '[', ']',  '-',  '?', ':', '.', ',', '~'};
@@ -18,7 +18,8 @@ namespace eraxc {
         static inline std::set<char> operator_chars {'<', '=', '>', '&', '|', '^', '%',
                                                      '*', '/', '~', '+', '-', '!', '?'};
 
-        static inline std::set<char> instant_number_chars {'u', 'l', 'i'};
+        static inline std::set<char> instant_number_chars {'u', 'l', 'i', '.', '0', '1', '2',
+                                                           '3', '4', '5', '6', '7', '8', '9'};
 
         enum type {
             SEMICOLON,
@@ -41,35 +42,39 @@ namespace eraxc {
         type t;
         std::string data;
 
-        token();
-        token(type t, const std::string& data);
+        Token();
+        Token(type t, const std::string& data);
 
-        bool operator==(const token& other) const;
+        bool operator==(const Token& other) const;
     };
 
-    struct tokenizer {
+    struct Tokenizer {
         std::unordered_map<std::string, std::string> defined;
 
-        error::errable<std::vector<token>> process_macro(std::stringstream& ss);
+        error::errable<std::vector<Token>> process_macro(std::stringstream& ss);
 
         static bool is_identifier_char(char c);
 
-        static void add_token(std::vector<token>& tr, std::stringstream& tmp, token::type t);
+        static void add_token(std::vector<Token>& tr, std::stringstream& tmp, Token::type t);
 
-        error::errable<std::vector<token>> tokenize(std::stringstream& f);
+        error::errable<std::vector<Token>> tokenize(std::stringstream& f);
 
-        error::errable<std::vector<token>> tokenize(const std::string& s) {
+        error::errable<std::vector<Token>> tokenize(const std::string& s) {
             auto ss = std::stringstream {s};
             return tokenize(ss);
         }
 
-        error::errable<std::vector<token>> tokenize_file(const std::string& filename) {
+        error::errable<std::vector<Token>> tokenize_file(const std::string& filename) {
             std::ifstream f {filename};
             if (!f)
                 return {"Cannot open file: " + filename, {}};
             std::stringstream ss;
             ss << f.rdbuf();
-            return tokenize(ss);
+            const auto& tokenized = tokenize(ss);
+            if (!tokenized) {
+                return {tokenized.error, {}};
+            }
+            return {"", tokenized.value};
         }
     };
 }

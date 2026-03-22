@@ -1,7 +1,7 @@
 #pragma once
-#include "backend/JIR/CFG/Allocated/CFGAllocated.hpp"
-#include "backend/JIR/CFG/CFG.hpp"
-#include "backend/codegen/x64/asm_x64.hpp"
+
+#include "frontend/lexic/PreprocessorTokenizer.hpp"
+#include "frontend/syntax/parser/StructureAnalyzer.hpp"
 
 using namespace eraxc;
 
@@ -9,7 +9,7 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
     double total_time = 0;
 
     auto t1 = std::chrono::high_resolution_clock::now();
-    tokenizer tokenizer;
+    frontend::Tokenizer tokenizer;
     auto tokens = tokenizer.tokenize_file(filename);
     auto t2 = std::chrono::high_resolution_clock::now();
     double dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
@@ -20,29 +20,37 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
     }
 
     t1 = std::chrono::high_resolution_clock::now();
-    JIR::CFG cfg {};
-    auto JIR_err = cfg.create(tokens.value);
+    frontend::StructureAnalyzer structureAnalyzer;
+    const auto structure = structureAnalyzer.analyze(tokens.value);
     t2 = std::chrono::high_resolution_clock::now();
-    if (!JIR_err) {
-        return {"Failed to translate to JIR code. Error:\n" + JIR_err.error};
+    if (!structure) {
+        return {"Failed to translate to JIR code. Error:\n" + structure.error};
     }
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     total_time += dur;
     std::cout << "CFG created in: " << dur << "ms\n";
 
-    cfg.print_nodes();
+    structure.value.print();
 
-    cfg.print_to_file("cfg.txt");
+    // cfg.print_to_file("cfg.txt");
 
     t1 = std::chrono::high_resolution_clock::now();
 
-    JIR::Allocated::CFGAllocated cfg_allocated(cfg);
+    //TODO allocate
 
-    auto asmtr = x64::asm_translator::translate(cfg_allocated, "eraxc.asm");
+    // JIR::Allocated::CFGAllocated cfg_allocated(cfg);
+
     t2 = std::chrono::high_resolution_clock::now();
-    if (!asmtr) {
-        return {"Failed to translate to ASM. Error:\n" + asmtr.error};
-    }
+    dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
+    std::cout << "Allocation pass in: " << dur << "ms\n";
+
+
+    t1 = std::chrono::high_resolution_clock::now();
+    // auto asmtr = x64::asm_translator::translate(cfg_allocated, "eraxc.asm");
+    t2 = std::chrono::high_resolution_clock::now();
+    // if (!asmtr) {
+        // return {"Failed to translate to ASM. Error:\n" + asmtr.error};
+    // }
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     total_time += dur;
     std::cout << "ASM translator done in: " << dur << "ms\n";
@@ -52,14 +60,14 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
     //autorun compilation to .exe
     t1 = std::chrono::high_resolution_clock::now();
     // system("nasm -f win64 eraxc.asm -o eraxc.obj");
-    system("D:/programs/SASM/Windows/NASM/nasm.exe -f win64 eraxc.asm -o eraxc.obj");
+    // system("D:/programs/SASM/Windows/NASM/nasm.exe -f win64 eraxc.asm -o eraxc.obj");
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     std::cout << "nasm compiler done in: " << dur << "ms\n";
     total_time += dur;
 
     t1 = std::chrono::high_resolution_clock::now();
-    system("D:/programs/SASM/Windows/MinGW64/bin/gcc.exe eraxc.obj -o a.exe -m64 -g");
+    // system("D:/programs/SASM/Windows/MinGW64/bin/gcc.exe eraxc.obj -o a.exe -m64 -g");
     // system("gcc eraxc.obj -o a.exe -m64 -g");
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();

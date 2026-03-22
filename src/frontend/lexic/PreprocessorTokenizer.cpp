@@ -1,4 +1,4 @@
-#include "preprocessor_tokenizer.hpp"
+#include "PreprocessorTokenizer.hpp"
 
 #include <fstream>
 #include <limits>
@@ -7,25 +7,27 @@
 #include <unordered_map>
 #include <vector>
 
-eraxc::token::token() {
+using namespace eraxc::frontend;
+
+Token::Token() {
     t = NONE;
     data = std::string {};
 }
 
-eraxc::token::token(type t, const std::string& data) {
+Token::Token(type t, const std::string& data) {
     this->t = t;
     this->data = data;
 }
 
-bool eraxc::token::operator==(const token& other) const {
+bool Token::operator==(const Token& other) const {
     return t == other.t && data == other.data;
 }
 
-bool eraxc::tokenizer::is_identifier_char(char c) {
+bool Tokenizer::is_identifier_char(char c) {
     return c == '_' || c == '-' || std::isalpha(c) || std::isdigit(c);
 }
 
-error::errable<std::vector<eraxc::token>> eraxc::tokenizer::process_macro(std::stringstream& ss) {
+error::errable<std::vector<Token>> Tokenizer::process_macro(std::stringstream& ss) {
 
     const auto read_until_endif = [](std::stringstream& ss) -> error::errable<std::string> {
         std::string buffer;
@@ -127,14 +129,15 @@ error::errable<std::vector<eraxc::token>> eraxc::tokenizer::process_macro(std::s
     return {{"No such macro: " + macro}, {}};
 }
 
-void eraxc::tokenizer::add_token(std::vector<token>& tr, std::stringstream& tmp, token::type t) {
-    if (t != token::NONE)
+void Tokenizer::add_token(std::vector<Token>& tr, std::stringstream& tmp, Token::type t) {
+    if (t != Token::NONE) {
         tr.emplace_back(t, tmp.str());
+    }
     tmp.str(std::string {});
 }
 
-error::errable<std::vector<eraxc::token>> eraxc::tokenizer::tokenize(std::stringstream& f) {
-    std::vector<token> tokens;
+error::errable<std::vector<Token>> Tokenizer::tokenize(std::stringstream& f) {
+    std::vector<Token> tokens;
 
     char c;
     std::stringstream tmp {};
@@ -142,7 +145,7 @@ error::errable<std::vector<eraxc::token>> eraxc::tokenizer::tokenize(std::string
         f.get(c);
         if (f.eof())
             break;
-        if (c == ' ' || c == '\n' || c == '\t') {
+        if (c == ' ' || c == '\n' || c == '\t' || c == '\r') {
             continue;
         }
         if (c == '/' && f.peek() == '/') {
@@ -154,49 +157,50 @@ error::errable<std::vector<eraxc::token>> eraxc::tokenizer::tokenize(std::string
         }
         if (c == '#') {
             auto r = process_macro(f);
-            if (!r)
-                return {r.error, tokens};
+            if (!r) {
+                return {r.error, {}};
+            }
             tokens.insert(tokens.end(), r.value.cbegin(), r.value.cend());
             continue;
         }
         if (c == '(') {
-            tokens.emplace_back(token::L_BRACKET, "(");
+            tokens.emplace_back(Token::L_BRACKET, "(");
             continue;
         }
         if (c == ')') {
-            tokens.emplace_back(token::R_BRACKET, ")");
+            tokens.emplace_back(Token::R_BRACKET, ")");
             continue;
         }
         if (c == '[') {
-            tokens.emplace_back(token::L_SQ_BRACKET, "[");
+            tokens.emplace_back(Token::L_SQ_BRACKET, "[");
             continue;
         }
         if (c == ']') {
-            tokens.emplace_back(token::R_SQ_BRACKET, "]");
+            tokens.emplace_back(Token::R_SQ_BRACKET, "]");
             continue;
         }
         if (c == '{') {
-            tokens.emplace_back(token::L_F_BRACKET, "{");
+            tokens.emplace_back(Token::L_F_BRACKET, "{");
             continue;
         }
         if (c == '}') {
-            tokens.emplace_back(token::R_F_BRACKET, "}");
+            tokens.emplace_back(Token::R_F_BRACKET, "}");
             continue;
         }
         if (c == ';') {
-            tokens.emplace_back(token::SEMICOLON, ";");
+            tokens.emplace_back(Token::SEMICOLON, ";");
             continue;
         }
         if (c == ':') {
-            tokens.emplace_back(token::COLON, ":");
+            tokens.emplace_back(Token::COLON, ":");
             continue;
         }
         if (c == '.') {
-            tokens.emplace_back(token::DOT, ".");
+            tokens.emplace_back(Token::DOT, ".");
             continue;
         }
         if (c == ',') {
-            tokens.emplace_back(token::COMMA, ",");
+            tokens.emplace_back(Token::COMMA, ",");
             continue;
         }
         if (c == '"') {
@@ -205,31 +209,31 @@ error::errable<std::vector<eraxc::token>> eraxc::tokenizer::tokenize(std::string
                 // if (c == '\n')
                 // break;
                 if (c == '"') {
-                    add_token(tokens, tmp, token::STRING_INSTANT);
+                    add_token(tokens, tmp, Token::STRING_INSTANT);
                     break;
                 }
                 tmp << c;
             }
-            if (f.eof())
-                return {R"(expected end of string instant (""") before EOF)", tokens};
+            if (f.eof()) {
+                return {R"(expected end of string instant (") before EOF)", tokens};
+            }
             continue;
         }
-        if (token::operator_chars.contains(c)) {
+        if (Token::operator_chars.contains(c)) {
             //is an operator
             tmp << c;
-            while (token::operator_chars.contains(char(f.peek())) && !f.eof()) {
+            while (Token::operator_chars.contains(char(f.peek())) && !f.eof()) {
                 tmp << char(f.get());
             }
-            add_token(tokens, tmp, token::OPERATOR);
+            add_token(tokens, tmp, Token::OPERATOR);
             continue;
         }
         if (std::isdigit(c)) {
             tmp << c;
-            while ((std::isdigit(f.peek()) || token::instant_number_chars.contains(f.peek()) || f.peek() == '.') &&
-                   !f.eof()) {
+            while (Token::instant_number_chars.contains(f.peek()) && !f.eof()) {
                 tmp << char(f.get());
             }
-            add_token(tokens, tmp, token::INSTANT);
+            add_token(tokens, tmp, Token::INSTANT);
             continue;
         }
         if (std::isalpha(c) || c == '_') {
@@ -237,9 +241,10 @@ error::errable<std::vector<eraxc::token>> eraxc::tokenizer::tokenize(std::string
             while (is_identifier_char(f.peek()) && !f.eof()) {
                 tmp << char(f.get());
             }
-            if (defined.contains(tmp.str()) && !defined.at(tmp.str()).empty())
+            if (defined.contains(tmp.str()) && !defined.at(tmp.str()).empty()) {
                 tmp.str(defined.at(tmp.str()));
-            add_token(tokens, tmp, token::IDENTIFIER);
+            }
+            add_token(tokens, tmp, Token::IDENTIFIER);
             continue;
         }
         tmp << c;
