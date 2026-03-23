@@ -24,7 +24,7 @@ bool Token::operator==(const Token& other) const {
 }
 
 bool Tokenizer::is_identifier_char(char c) {
-    return c == '_' || c == '-' || std::isalpha(c) || std::isdigit(c);
+    return c == '_' || std::isalpha(c) || std::isdigit(c);
 }
 
 error::errable<std::vector<Token>> Tokenizer::process_macro(std::stringstream& ss) {

@@ -413,7 +413,6 @@ namespace eraxc::frontend {
             return JIR::Operation::DEC;
         }
 
-        // TODO is it bitwise ops? add tests
         if (op == OperatorType::AND) {
             return JIR::Operation::AND;
         }
@@ -430,6 +429,19 @@ namespace eraxc::frontend {
             return JIR::Operation::NEG;
         }
 
+        if (op == OperatorType::BITWISE_AND) {
+            return JIR::Operation::AND;
+        }
+        if (op == OperatorType::BITWISE_OR) {
+            return JIR::Operation::OR;
+        }
+        if (op == OperatorType::BITWISE_NOT) {
+            return JIR::Operation::NOT;
+        }
+        if (op == OperatorType::BITWISE_XOR) {
+            return JIR::Operation::XOR;
+        }
+
         if (op == OperatorType::BITWISE_LSHIFT) {
             return JIR::Operation::LSHIFT;
         }
@@ -439,6 +451,25 @@ namespace eraxc::frontend {
 
         if (op == OperatorType::ASSIGN) {
             return JIR::Operation::MOVE;
+        }
+
+        if (op == OperatorType::LESS) {
+            return JIR::Operation::CMP;
+        }
+        if (op == OperatorType::GREATER) {
+            return JIR::Operation::CMP;
+        }
+        if (op == OperatorType::LESS_EQ) {
+            return JIR::Operation::CMP;
+        }
+        if (op == OperatorType::GREATER_EQ) {
+            return JIR::Operation::CMP;
+        }
+        if (op == OperatorType::EQUAL) {
+            return JIR::Operation::CMP;
+        }
+        if (op == OperatorType::NOT_EQUAL) {
+            return JIR::Operation::CMP;
         }
 
         return JIR::Operation::ERR;
@@ -486,6 +517,10 @@ namespace eraxc::frontend {
             return JIR::Operation::INC;
         if (op == OperatorType::DECREMENT)
             return JIR::Operation::DEC;
+        if (op == OperatorType::INDIRECTION)
+            return JIR::Operation::DEREF;
+        if (op == OperatorType::ADDRESSOF)
+            return JIR::Operation::ADDR;
         return JIR::Operation::ERR;
     }
 

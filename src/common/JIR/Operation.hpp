@@ -39,6 +39,8 @@ namespace eraxc::JIR {
         ALLOC,
         DEALLOC,
         STORE,
+        DEREF,
+        ADDR,
 
         NONE,
         ERR
@@ -163,6 +165,13 @@ namespace eraxc::JIR {
 
         if (node == Operation::STORE) {
             return "STORE";
+        }
+
+        if (node == Operation::DEREF) {
+            return "DEREF";
+        }
+        if (node == Operation::ADDR) {
+            return "ADDR";
         }
 
         if (node == Operation::NONE) {

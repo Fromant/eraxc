@@ -463,17 +463,21 @@ TEST(TokenizerTest, Identifiers) {
     Tokenizer tokenizer;
     auto r = tokenizer.tokenize("test_123 test-123 _test 123test");
     ASSERT_EQ(r.error, "");
-    ASSERT_EQ(r.value.size(), 5);
+    ASSERT_EQ(r.value.size(), 7);
     EXPECT_EQ(r.value[0].t, Token::IDENTIFIER);
     EXPECT_EQ(r.value[0].data, "test_123");
     EXPECT_EQ(r.value[1].t, Token::IDENTIFIER);
-    EXPECT_EQ(r.value[1].data, "test-123");
-    EXPECT_EQ(r.value[2].t, Token::IDENTIFIER);
-    EXPECT_EQ(r.value[2].data, "_test");
+    EXPECT_EQ(r.value[1].data, "test");
+    EXPECT_EQ(r.value[2].t, Token::OPERATOR);
+    EXPECT_EQ(r.value[2].data, "-");
     EXPECT_EQ(r.value[3].t, Token::INSTANT);
     EXPECT_EQ(r.value[3].data, "123");
     EXPECT_EQ(r.value[4].t, Token::IDENTIFIER);
-    EXPECT_EQ(r.value[4].data, "test");
+    EXPECT_EQ(r.value[4].data, "_test");
+    EXPECT_EQ(r.value[5].t, Token::INSTANT);
+    EXPECT_EQ(r.value[5].data, "123");
+    EXPECT_EQ(r.value[6].t, Token::IDENTIFIER);
+    EXPECT_EQ(r.value[6].data, "test");
 }
 
 TEST(TokenizerTest, StringLiterals) {

@@ -14,7 +14,7 @@ error::errable<eraxc::JIR::Function> StructureAnalyzer::parseFunction(const std:
         return {"No such typename " + tokens[pos].data, {}};
     }
 
-    const auto funcId = scopeManager.addId(tokens[pos + 1].data, return_type.value(), true, false);
+    const auto funcId = scopeManager.addId(tokens[pos + 1].data, (size_t)return_type.value(), true, false);
     if (!funcId) {
         return {"Identifier " + tokens[pos + 1].data + " is already defined in this scope", {}};
     }

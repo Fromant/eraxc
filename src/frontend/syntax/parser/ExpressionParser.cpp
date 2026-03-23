@@ -152,6 +152,33 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
     while (tokens[pos].t == Token::IDENTIFIER || tokens[pos].t == Token::L_BRACKET ||
            tokens[pos].t == Token::OPERATOR || tokens[pos].t == Token::INSTANT) {
 
+        if (tokens[pos].t == Token::OPERATOR && prefix_operators.contains(tokens[pos].data)) {
+            auto operand_err = parse_expr_operand(tokens, pos, tr, postfix_ops);
+            if (!operand_err) {
+                return {"Error while parsing expression:\n" + operand_err.error, {}};
+            }
+            operands.push(operand_err.value);
+            if (endTokens.contains(tokens[pos].t)) {
+                break;
+            }
+            if (tokens[pos].t != Token::OPERATOR) {
+                return {"Expected end of expr or operator instead of " + tokens[pos].data, {}};
+            }
+            OperatorType op = operators.at(tokens[pos].data);
+            if (assign_operators.contains(op)) {
+                return {"Cannot assign to rvalue $" + std::to_string(operand_err.value.value), {}};
+            }
+            while (!operations.empty() && operator_priorities.at(operations.top()) < operator_priorities.at(op)) {
+                auto r = push_expr_stack(operations, operands, tr);
+                if (!r) {
+                    return {r.error, {}};
+                }
+            }
+            operations.push(op);
+            pos++;
+            continue;
+        }
+
         JIR::Operand operand {};
 
         if (tokens[pos].t == Token::L_BRACKET) {
@@ -268,105 +295,133 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
                                                            std::vector<JIR::Command>& cmds,
                                                            std::vector<JIR::Command>& postfix_cmds) {
 
-    //Now multiple prefix & postfix operators!
     std::vector<JIR::Operation> prefix_ops;
 
     while (tokens[pos].t == Token::OPERATOR) {
-        //prefix operators
         JIR::Operation prefix_op = prefixOpToJirOp(tokens[pos]);
         if (prefix_op == JIR::Operation::ERR) {
-            return {"No such prefix operator: " + tokens[pos].data + ". Expected prefix operator or variable", {}};
+            break;
         }
         prefix_ops.emplace_back(prefix_op);
         pos++;
     }
 
-    if (tokens[pos].t != Token::IDENTIFIER) {
+    JIR::Operand operand {};
+
+    if (tokens[pos].t == Token::L_BRACKET) {
+        pos++;
+        auto parentheses = parse(tokens, pos, {Token::R_BRACKET});
+        if (!parentheses) {
+            return {"Error parsing parenthesized expression: " + parentheses.error, {}};
+        }
+        operand = parentheses.value.result;
+        cmds.insert(cmds.end(), parentheses.value.node.begin(), parentheses.value.node.end());
+    } else if (tokens[pos].t == Token::INSTANT) {
+        auto instant = parse_instant(tokens[pos].data);
+        if (!instant) {
+            return {instant.error, {}};
+        }
+        operand = instant.value;
+        pos++;
+    } else if (tokens[pos].t == Token::IDENTIFIER) {
+        auto declOpt = scope_manager.findDeclarationRecursive(tokens[pos].data);
+        if (!declOpt) {
+            return {"Unknown identifier in this scope: " + tokens[pos].data, {}};
+        }
+        const auto& decl = declOpt.value();
+
+        const auto declJirType = decl.getJirType();
+        if (!declJirType) {
+            return {declJirType.error, {}};
+        }
+        operand = JIR::Operand {declJirType.value, decl.getId(), false, false};
+        pos++;
+
+        while ((tokens[pos].t == Token::OPERATOR && postfix_operators.contains(tokens[pos].data)) ||
+               tokens[pos].t == Token::L_BRACKET || tokens[pos].t == Token::L_SQ_BRACKET) {
+
+            if (tokens[pos].t == Token::L_BRACKET) {
+                if (!decl.isFunc()) {
+                    return {"Function expected for call operator", {}};
+                }
+                u64 args_passed = 0;
+                pos++;
+
+                const auto& function_iter = scope_manager.getFunctions().find(decl.getId());
+                if (function_iter == scope_manager.getFunctions().end()) {
+                    return {"Internal error - function is not registered", {}};
+                }
+
+                const auto& function = function_iter->second;
+
+                if (tokens[pos].t == Token::R_BRACKET) {
+                    pos++;
+                } else {
+                    while (tokens[pos].t != Token::R_BRACKET) {
+                        auto arg = parse(tokens, pos, {Token::COMMA, Token::R_BRACKET});
+                        if (!arg) {
+                            return {"Error while parsing function call argument" + arg.error, {}};
+                        }
+
+                        auto arg1 = arg.value;
+
+                        if (args_passed < function.params.size()) {
+                            const auto requiredType = function.params[args_passed].type;
+                            if (requiredType != arg1.result.type) {
+                                return {"Invalid argument type in function call.\nExpected: " + std::to_string((u64)requiredType) +
+                                            ", got:" + std::to_string((u64)arg1.result.type),
+                                        {}};
+                            }
+                        }
+                        args_passed++;
+                        cmds.insert(cmds.end(), arg1.node.begin(), arg1.node.end());
+                        cmds.emplace_back(JIR::Operation::PASS, arg1.result, JIR::Operand {});
+
+                        if (tokens[pos].t == Token::COMMA) {
+                            pos++;
+                        }
+                    }
+                    pos++;
+                }
+
+                if (args_passed < function.params.size()) {
+                    return {"Not enough arguments for function: $" + std::to_string(decl.getId()), {}};
+                }
+
+                u64 call_result_id = scope_manager.addAnonymousId(decl.getType(), false, true);
+                const auto declT = decl.getJirType();
+                if (!declT) {
+                    return {declT.error, {}};
+                }
+                cmds.emplace_back(JIR::Operation::CALL, operand, JIR::Operand {declT.value, call_result_id, false, true});
+                operand = JIR::Operand(declT.value, call_result_id, false, true);
+                continue;
+            }
+
+            if (tokens[pos].t == Token::L_SQ_BRACKET) {
+                while (tokens[pos].t != Token::R_SQ_BRACKET) {
+                    pos++;
+                }
+                pos++;
+                continue;
+            }
+
+            JIR::Operation postfix_op = postfixOpToJirOp(tokens[pos]);
+            if (postfix_op == JIR::Operation::ERR) {
+                return {"No such postfix operator: " + tokens[pos].data, {}};
+            }
+            pos++;
+            postfix_cmds.emplace_back(postfix_op, operand, JIR::Operand {});
+        }
+    } else {
+        if (!prefix_ops.empty()) {
+            return {"Expected identifier or expression after prefix operator instead of: " + tokens[pos].data, {}};
+        }
         return {"Expected identifier in expression operand instead of: " + tokens[pos].data, {}};
     }
 
-    auto declOpt = scope_manager.findDeclarationRecursive(tokens[pos].data);
-    if (!declOpt) {
-        return {"Unknown identifier in this scope: " + tokens[pos].data, {}};
-    }
-    const auto& decl = declOpt.value();
-    pos++;
-
-    const auto declJirType = decl.getJirType();
-    if (!declJirType) {
-        return {declJirType.error, {}};
-    }
-    JIR::Operand operand {declJirType.value, decl.getId(), false, false};
     for (auto op : prefix_ops) {
         cmds.emplace_back(op, operand, JIR::Operand {});
-    }
-
-    while ((tokens[pos].t == Token::OPERATOR && postfix_operators.contains(tokens[pos].data)) ||
-           tokens[pos].t == Token::L_BRACKET || tokens[pos].t == Token::L_SQ_BRACKET) {
-
-        if (tokens[pos].t == Token::L_BRACKET) {
-            //function call
-            if (!decl.isFunc()) {
-                return {"Function expected for call operator", {}};
-            }
-            u64 args_passed = 0;
-            pos++;
-
-            const auto& function_iter = scope_manager.getFunctions().find(decl.getId());
-            if (function_iter == scope_manager.getFunctions().end()) {
-                return {"Internal error - function is not registered", {}};
-            }
-
-            const auto& function = function_iter->second;
-
-            //parse args
-            while (tokens[pos - 1].t != Token::R_BRACKET) {
-                auto arg = parse(tokens, pos, {Token::R_BRACKET, Token::COMMA});
-                if (!arg) {
-                    return {"Error while parsing function call argument" + arg.error, {}};
-                }
-
-                auto arg1 = arg.value;
-
-                // somehow check operands
-                const auto requiredType = function.params[args_passed].type;
-                if (requiredType != arg1.result.type) {
-                    return {"Invalid argument type in function call.\nExpected: " + std::to_string((u64)requiredType) +
-                                ", got:" + std::to_string((u64)arg1.result.type),
-                            {}};
-                }
-                args_passed++;
-                cmds.insert(cmds.end(), arg1.node.begin(), arg1.node.end());
-                cmds.emplace_back(JIR::Operation::PASS, arg1.result, JIR::Operand {});
-            }
-
-            if (args_passed < function.params.size()) {
-                return {"Not enough arguments for function: $" + std::to_string(decl.getId()), {}};
-            }
-
-            u64 call_result_id = scope_manager.addAnonymousId(decl.getType(), false, true);
-            const auto declT = decl.getJirType();
-            if (!declT) {
-                return {declT.error, {}};
-            }
-            cmds.emplace_back(JIR::Operation::CALL, operand, JIR::Operand {declT.value, call_result_id, false, true});
-            operand = JIR::Operand(declT.value, call_result_id, false, true);
-            continue;
-        }
-
-        if (tokens[pos].t == Token::L_SQ_BRACKET) {
-            while (tokens[pos].t != Token::R_SQ_BRACKET) {
-                pos++;
-            }
-            continue;
-        }
-
-        JIR::Operation postfix_op = postfixOpToJirOp(tokens[pos]);
-        if (postfix_op == JIR::Operation::ERR) {
-            return {"No such postfix operator: " + tokens[pos].data, {}};
-        }
-        pos++;
-        postfix_cmds.emplace_back(postfix_op, operand, JIR::Operand {});
     }
 
     return {"", operand};
@@ -387,6 +442,33 @@ errable<ExpressionParser::ParseCondResult> ExpressionParser::parse_cond(const st
 
     while (tokens[pos].t == Token::IDENTIFIER || tokens[pos].t == Token::L_BRACKET ||
            tokens[pos].t == Token::OPERATOR || tokens[pos].t == Token::INSTANT) {
+
+        if (tokens[pos].t == Token::OPERATOR && prefix_operators.contains(tokens[pos].data)) {
+            auto operand_err = parse_expr_operand(tokens, pos, tr, postfix_ops);
+            if (!operand_err) {
+                return {"Error while parsing expression:\n" + operand_err.error, {}};
+            }
+            operands.push(operand_err.value);
+            if (endTokens.contains(tokens[pos].t)) {
+                break;
+            }
+            if (tokens[pos].t != Token::OPERATOR) {
+                return {"Expected end of expr or operator instead of " + tokens[pos].data, {}};
+            }
+            OperatorType op = operators.at(tokens[pos].data);
+            if (assign_operators.contains(op)) {
+                return {"Cannot assign to rvalue $" + std::to_string(operand_err.value.value), {}};
+            }
+            while (!operations.empty() && operator_priorities.at(operations.top()) < operator_priorities.at(op)) {
+                auto r = push_cond_expr_stack(operations, operands, tr);
+                if (!r) {
+                    return {r.error, {}};
+                }
+            }
+            operations.push(op);
+            pos++;
+            continue;
+        }
 
         JIR::Operand operand {};
 
