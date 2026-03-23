@@ -8,12 +8,13 @@
 using namespace eraxc::frontend;
 
 void dealloc_scope(std::vector<eraxc::JIR::Command>& tokens, const Scope& scope) {
-    for (const auto& allocated : scope.getAllocations()) {
-        tokens.emplace_back(eraxc::JIR::Command {
-            eraxc::JIR::Operation::DEALLOC,
-            eraxc::JIR::Operand {(eraxc::JIR::Type)allocated.getId(), allocated.getType(), false, false},
-            eraxc::JIR::Operand {}});
-    }
+    // someday i'll call destructors here...
+    // for (const auto& allocated : scope.getAllocations()) {
+    //     tokens.emplace_back(eraxc::JIR::Command {
+    //         eraxc::JIR::Operation::DEALLOC,
+    //         eraxc::JIR::Operand {(eraxc::JIR::Type)allocated.getId(), allocated.getType(), false, false},
+    //         eraxc::JIR::Operand {}});
+    // }
 }
 
 
