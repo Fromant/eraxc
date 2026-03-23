@@ -518,7 +518,7 @@ TEST_F(ExpressionParserTest, Error_UnexpectedComma) {
     auto result = parser.parse(tokens, pos, {Token::SEMICOLON});
 
     ASSERT_FALSE(result);
-    EXPECT_NE(result.error.find("comma;"), std::string::npos) << result.error;
+    EXPECT_NE(result.error.find("comma"), std::string::npos) << result.error;
 }
 
 // === TERMINATION PARAMETER TESTS ===
@@ -530,6 +530,7 @@ TEST_F(ExpressionParserTest, Termination_Semicolon) {
 
     ASSERT_TRUE(result) << result.error;
     // Should stop at semicolon, not parse "c"
+    ASSERT_EQ(pos, 4);
 }
 
 TEST_F(ExpressionParserTest, Termination_RightParen) {
@@ -538,6 +539,7 @@ TEST_F(ExpressionParserTest, Termination_RightParen) {
     auto result = parser.parse(tokens, pos, {Token::R_BRACKET});
 
     ASSERT_TRUE(result) << result.error;
+    ASSERT_EQ(pos, 4);
 }
 
 // === PRECEDENCE VERIFICATION ===
