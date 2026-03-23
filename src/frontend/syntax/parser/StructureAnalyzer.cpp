@@ -63,14 +63,18 @@ error::errable<eraxc::JIR::Function> StructureAnalyzer::parseFunction(const std:
 
     pos++;  // skip right bracket
 
+    JIR::Function to_add {};
+    to_add.decl = JIR::Declaration(funcId.value(), jirTypeFromKeyword((Keyword)return_type.value()));
+    to_add.params = params;
+
+    // register function so it could be called inside itself
+    scopeManager.getFunctions().emplace(to_add.decl.id, to_add);
+
     // parse function body
     if (tokens[pos].t != Token::L_F_BRACKET) {
         return {"Expected function body '{' instead of " + tokens[pos].data, {}};
     }
 
-    JIR::Function to_add {};
-    to_add.decl = JIR::Declaration(funcId.value(), jirTypeFromKeyword((Keyword)return_type.value()));
-    to_add.params = params;
     size_t node_id = 0;
     to_add.cfg.nodes.emplace_back();
     auto body = parseStatements(tokens, pos, to_add.cfg, node_id);
@@ -80,6 +84,7 @@ error::errable<eraxc::JIR::Function> StructureAnalyzer::parseFunction(const std:
     //TODO check & add return if needed
     u64 stackSize = scopeManager.popFrame();
     to_add.cfg.maxStackSize = stackSize;
+    result.functions.emplace_back(to_add);
 
     return {"", to_add};
 }
@@ -360,8 +365,6 @@ error::errable<eraxc::JIR::FrontendResult> StructureAnalyzer::analyze(const std:
                 if (!r) {
                     return {r.error, {}};
                 }
-                result.functions.emplace_back(r.value);
-                scopeManager.getFunctions().emplace(r.value.decl.id, r.value);
             } else {
                 result.globals.emplace_back();
                 //global variable declaration

@@ -12,12 +12,16 @@ void FrontendResult::print() const {
         std::cout << "Function $" << func.decl.id << '(';
         if (!func.params.empty()) {
             for (const auto& param : func.params | std::views::take(func.params.size() - 1)) {
-                std::cout << 'T' << (u64)param.type << " $" << param.id << ", ";
+                std::cout << to_string(param.type) << " $" << param.id << ", ";
             }
             const auto& last = func.params.back();
-            std::cout << 'T' << (u64)last.type << " $" << last.id;
+            std::cout << to_string(last.type) << " $" << last.id;
         }
         std::cout << "):" << std::endl;
+
+        if (func.cfg.nodes.empty()) {
+            continue;
+        }
 
         CFG::CFGIterator iter {func.cfg, 0};
 

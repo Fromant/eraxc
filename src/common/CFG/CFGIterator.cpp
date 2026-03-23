@@ -45,5 +45,5 @@ CFGIterator& CFGIterator::operator++() {
 }
 
 CFGIterator::operator bool() const {
-    return !q.empty();
+    return !q.empty() && !cfg.nodes.empty();
 }
