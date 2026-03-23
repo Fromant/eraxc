@@ -24,6 +24,7 @@ protected:
 
     Operand newVar1 {i32, 15, false, true};
     Operand newVar2 {i32, 16, false, true};
+    Operand newVar3 {i32, 17, false, true};
 
     ExpressionParserTest() {
         const auto type = scopeManager.findTypeRecursive("i32");
@@ -40,15 +41,13 @@ protected:
         scopeManager.addId("k", (size_t)type.value(), false, false);
         scopeManager.addId("l", (size_t)type.value(), false, false);
 
-        auto fooId = scopeManager.addId("foo", (size_t)type.value(), true, false);
-        if (fooId) {
+        if (auto fooId = scopeManager.addId("foo", (size_t)type.value(), true, false)) {
             Function fooFunc;
             fooFunc.decl = Declaration(fooId.value(), jirTypeFromKeyword(Keyword::i32));
             scopeManager.getFunctions()[fooId.value()] = fooFunc;
         }
 
-        auto barId = scopeManager.addId("bar", (size_t)type.value(), true, false);
-        if (barId) {
+        if (auto barId = scopeManager.addId("bar", (size_t)type.value(), true, false)) {
             Function barFunc;
             barFunc.decl = Declaration(barId.value(), jirTypeFromKeyword(Keyword::i32));
             barFunc.params.emplace_back(0, jirTypeFromKeyword(Keyword::i32));
@@ -237,139 +236,285 @@ TEST_F(ExpressionParserTest, Prefix_Negation) {
     auto tokens = tokenize("-a;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 3);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
+        << newVar1.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::NEG, newVar1, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Prefix_LogicalNot) {
     auto tokens = tokenize("!a;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 3);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
+        << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::NOT, newVar1, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Prefix_BitwiseNot) {
     auto tokens = tokenize("~a;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 3);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
+        << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::NOT, newVar1, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Prefix_AddressOf) {
     auto tokens = tokenize("&a;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 3);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
+        << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::ADDR, newVar1, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Prefix_Dereference) {
     auto tokens = tokenize("*a;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 3);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
+        << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::DEREF, newVar1, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Prefix_Increment) {
     auto tokens = tokenize("++a;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 3);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
+        << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::INC, newVar1, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Prefix_Decrement) {
     auto tokens = tokenize("--a;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 3);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
+        << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::DEC, newVar1, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Prefix_ConsecutiveOperators) {
     auto tokens = tokenize("- !a;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 4);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
+        << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::NOT, newVar1, {}},
+        Command {Operation::NEG, newVar1, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Prefix_InExpression_Context) {
     auto tokens = tokenize("a + -b;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 5);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar2))
+        << "Result operand mismatch" << newVar2.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandB},
+        Command {Operation::NEG, newVar1, {}},
+        Command {Operation::MOVE, newVar2, operandA},
+        Command {Operation::ADD, newVar2, newVar1},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Prefix_WithParentheses) {
     auto tokens = tokenize("-(a + b);");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 7);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
+        << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::ADD, newVar1, operandB},
+        Command {Operation::NEG, newVar1, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Postfix_Increment) {
     auto tokens = tokenize("a++;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 3);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, operandA))
+        << "Result operand mismatch" << operandA.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::INC, operandA, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Postfix_Decrement) {
     auto tokens = tokenize("a--;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 3);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, operandA))
+        << "Result operand mismatch" << operandA.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::DEC, operandA, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Postfix_InExpression) {
     auto tokens = tokenize("a++ + b;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
+    ASSERT_EQ(pos, 5);
+
     ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
+        << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::ADD, newVar1, operandB},
+        Command {Operation::INC, operandA, {}},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Disambiguation_PlusMinus) {
     auto tokens1 = tokenize("a + +b;");
     size_t pos1 = 0;
     auto result1 = parser.parse(tokens1, pos1);
+    ASSERT_EQ(pos1, 5);
+
     ASSERT_TRUE(result1) << result1.error;
+    ASSERT_TRUE(operandsEqual(result1.value.result, newVar1))
+        << "Result operand mismatch" << newVar1.to_string() << "!=" << result1.value.result.to_string();
+
+    CFGNode nodes1 = {
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::ADD, newVar1, operandB},
+    };
+
+    ASSERT_TRUE(nodesEqual(result1.value.node, nodes1));
 
     auto tokens2 = tokenize("a - -b;");
     size_t pos2 = 0;
     auto result2 = parser.parse(tokens2, pos2);
+    ASSERT_EQ(pos2, 5);
+
     ASSERT_TRUE(result2) << result2.error;
-}
+    ASSERT_TRUE(operandsEqual(result2.value.result, newVar3))
+        << "Result operand mismatch" << newVar3.to_string() << "!=" << result2.value.result.to_string();
 
-TEST_F(ExpressionParserTest, Disambiguation_Star) {
-    auto tokens1 = tokenize("a * b;");
-    size_t pos1 = 0;
-    auto result1 = parser.parse(tokens1, pos1);
-    ASSERT_TRUE(result1) << result1.error;
+    CFGNode nodes2 = {
+        Command {Operation::MOVE, newVar2, operandB},
+        Command {Operation::NEG, newVar2, {}},
+        Command {Operation::MOVE, newVar3, operandA},
+        Command {Operation::SUB, newVar3, newVar2},
+    };
 
-    auto tokens2 = tokenize("*a;");
-    size_t pos2 = 0;
-    auto result2 = parser.parse(tokens2, pos2);
-    ASSERT_TRUE(result2) << result2.error;
-}
-
-TEST_F(ExpressionParserTest, Disambiguation_Ampersand) {
-    auto tokens1 = tokenize("a & b;");
-    size_t pos1 = 0;
-    auto result1 = parser.parse(tokens1, pos1);
-    ASSERT_TRUE(result1) << result1.error;
-
-    auto tokens2 = tokenize("&a;");
-    size_t pos2 = 0;
-    auto result2 = parser.parse(tokens2, pos2);
-    ASSERT_TRUE(result2) << result2.error;
-}
-
-TEST_F(ExpressionParserTest, Disambiguation_IncrementDecrement) {
-    auto tokens1 = tokenize("++a;");
-    size_t pos1 = 0;
-    auto result1 = parser.parse(tokens1, pos1);
-    ASSERT_TRUE(result1);
-
-    auto tokens2 = tokenize("a++;");
-    size_t pos2 = 0;
-    auto result2 = parser.parse(tokens2, pos2);
-    ASSERT_TRUE(result2);
+    ASSERT_TRUE(nodesEqual(result2.value.node, nodes2));
 }
 
 TEST_F(ExpressionParserTest, Complex_MixedUnaryBinary) {
@@ -507,6 +652,15 @@ TEST_F(ExpressionParserTest, Error_UnknownOperator) {
 
     ASSERT_FALSE(result);
     EXPECT_NE(result.error.find('@'), std::string::npos) << result.error;
+}
+
+TEST_F(ExpressionParserTest, Error_PrefixOnInstant) {
+    auto tokens = tokenize("-2;");
+    size_t pos = 0;
+    auto result = parser.parse(tokens, pos);
+
+    ASSERT_FALSE(result);
+    EXPECT_NE(result.error.find("prefix"), std::string::npos) << result.error;
 }
 
 TEST_F(ExpressionParserTest, Error_UnexpectedComma) {

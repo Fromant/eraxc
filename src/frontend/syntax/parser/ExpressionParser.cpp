@@ -152,33 +152,6 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
     while (tokens[pos].t == Token::IDENTIFIER || tokens[pos].t == Token::L_BRACKET ||
            tokens[pos].t == Token::OPERATOR || tokens[pos].t == Token::INSTANT) {
 
-        if (tokens[pos].t == Token::OPERATOR && prefix_operators.contains(tokens[pos].data)) {
-            auto operand_err = parse_expr_operand(tokens, pos, tr, postfix_ops);
-            if (!operand_err) {
-                return {"Error while parsing expression:\n" + operand_err.error, {}};
-            }
-            operands.push(operand_err.value);
-            if (endTokens.contains(tokens[pos].t)) {
-                break;
-            }
-            if (tokens[pos].t != Token::OPERATOR) {
-                return {"Expected end of expr or operator instead of " + tokens[pos].data, {}};
-            }
-            OperatorType op = operators.at(tokens[pos].data);
-            if (assign_operators.contains(op)) {
-                return {"Cannot assign to rvalue $" + std::to_string(operand_err.value.value), {}};
-            }
-            while (!operations.empty() && operator_priorities.at(operations.top()) < operator_priorities.at(op)) {
-                auto r = push_expr_stack(operations, operands, tr);
-                if (!r) {
-                    return {r.error, {}};
-                }
-            }
-            operations.push(op);
-            pos++;
-            continue;
-        }
-
         JIR::Operand operand {};
 
         if (tokens[pos].t == Token::L_BRACKET) {
@@ -294,15 +267,16 @@ errable<void> ExpressionParser::push_expr_stack(std::stack<OperatorType>& operat
 errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Token>& tokens, size_t& pos,
                                                            std::vector<JIR::Command>& cmds,
                                                            std::vector<JIR::Command>& postfix_cmds) {
-
-    std::vector<JIR::Operation> prefix_ops;
+    std::stack<JIR::Operation> prefix_ops;
 
     while (tokens[pos].t == Token::OPERATOR) {
         JIR::Operation prefix_op = prefixOpToJirOp(tokens[pos]);
         if (prefix_op == JIR::Operation::ERR) {
-            break;
+            return {"Error while parsing prefix operator: " + tokens[pos].data, {}};
         }
-        prefix_ops.emplace_back(prefix_op);
+        if (prefix_op != JIR::Operation::NONE) {
+            prefix_ops.push(prefix_op);
+        }
         pos++;
     }
 
@@ -423,8 +397,23 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
         return {"Expected identifier in expression operand instead of: " + tokens[pos].data, {}};
     }
 
-    for (auto op : prefix_ops) {
-        cmds.emplace_back(op, operand, JIR::Operand {});
+    if (!prefix_ops.empty()) {
+        if (operand.is_instant) {
+            return {"Can't use prefix operators on instants!", {}};
+        }
+        if (!operand.is_rvalue) {
+            const auto type = keywordFromJirType(operand.type);
+            u64 result_id = scope_manager.addAnonymousId((u64)type, false, true);
+            const JIR::Operand operand1 {operand.type, result_id, false, true};
+            cmds.emplace_back(JIR::Operation::MOVE, operand1, operand);
+            operand = operand1;
+        }
+
+        while (!prefix_ops.empty()) {
+            const auto op = prefix_ops.top();
+            prefix_ops.pop();
+            cmds.emplace_back(op, operand, JIR::Operand {});
+        }
     }
 
     return {"", operand};
@@ -563,28 +552,28 @@ errable<JIR::Operation> ExpressionParser::push_cond_expr_stack(std::stack<Operat
     operands.pop();
 
     // temporary: resulting type is always evaluated as the top operands stack element type
-    JIR::Operand result {operand1};
-    result.is_rvalue = true;
+    JIR::Operand cond_res {operand1};
+    cond_res.is_rvalue = true;
 
     // TODO rvalue logic and logic at all
 
     if (!operand1.is_instant && operand1.is_rvalue) {
         cmds.emplace_back(to_add, operand1, operand2);
-        result.value = operand1.value;
-        result.is_instant = operand1.is_instant;
+        cond_res.value = operand1.value;
+        cond_res.is_instant = operand1.is_instant;
     } else {
-        const auto& keyword = keywordFromJirType(result.type);
+        const auto& keyword = keywordFromJirType(cond_res.type);
         u64 result_id = scope_manager.addAnonymousId((u64)keyword, false, true);
-        result.value = result_id;
-        result.is_instant = false;
+        cond_res.value = result_id;
+        cond_res.is_instant = false;
         //copy operand1
-        cmds.emplace_back(JIR::Operation::MOVE, result, operand1);
-        cmds.emplace_back(to_add, result, operand2);
+        cmds.emplace_back(JIR::Operation::MOVE, cond_res, operand1);
+        cmds.emplace_back(to_add, cond_res, operand2);
         // const auto& keyword2 = keywordFromJirType(operand1.type);
         // scope_manager.setDeclaration(operand1.value, Scope::Declaration {(u64)keyword2, result.value, false});
     }
 
     //result is a new operand
-    operands.push(result);
+    operands.push(cond_res);
     return {"", to_add};
 }
