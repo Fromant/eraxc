@@ -314,11 +314,10 @@ error::errable<void> StructureAnalyzer::parseDeclaration(const std::vector<Token
             return "Only `=` operator allowed inside declaration initialization. Example: `i32 a = 2;`";
         }
 
-        //parsing initialization
+        //parsing initialization (e.g. `int a = a + 2`)
         pos++;
-        const auto assign_expr_pos = pos;
+        const auto assign_expr_pos = pos;  // `a` pos
         pos += 2;
-        // TODO complete
         // parse a + 2
         auto init_val = parser.parse(tokens, pos);
 
@@ -330,7 +329,8 @@ error::errable<void> StructureAnalyzer::parseDeclaration(const std::vector<Token
 
         cfg.nodes[node_id].insert(cfg.nodes[node_id].end(), expr.begin(), expr.end());
 
-        scopeManager.addId(name, type, false, false);
+        // TODO check for instants, etc?
+        scopeManager.addId(name, expr_res.value, type, false);
 
         return "";
     }

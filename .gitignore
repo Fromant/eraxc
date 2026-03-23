@@ -3,5 +3,6 @@
 /cmake-build-debug-wsl/
 /.idea/
 build/
+.venv/
 .gitignore
 .vscode/settings.json

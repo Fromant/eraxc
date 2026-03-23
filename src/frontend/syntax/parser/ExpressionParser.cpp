@@ -245,20 +245,22 @@ errable<void> ExpressionParser::push_expr_stack(std::stack<OperatorType>& operat
 
     // TODO rvalue logic
 
-    if (!operand1.is_instant && operand1.is_rvalue) {
+    if (operand1.is_instant || operand1.is_rvalue) {
         cmds.emplace_back(to_add, operand1, operand2);
         result.value = operand1.value;
         result.is_instant = operand1.is_instant;
+        result.is_rvalue = true;
     } else {
         const auto type = keywordFromJirType(result.type);
         u64 result_id = scope_manager.addAnonymousId((u64)type, false, true);
         result.value = result_id;
         result.is_instant = false;
+        result.is_rvalue = true;
         //copy operand1
         cmds.emplace_back(JIR::Operation::MOVE, result, operand1);
         cmds.emplace_back(to_add, result, operand2);
-        scope_manager.setDeclaration(operand1.value,
-                                     Scope::Declaration {(u64)keywordFromJirType(operand1.type), result.value, false});
+        // scope_manager.setDeclaration(operand1.value,
+                                     // Scope::Declaration {(u64)keywordFromJirType(operand1.type), result.value, false});
     }
 
     //result is a new operand
@@ -498,7 +500,7 @@ errable<JIR::Operation> ExpressionParser::push_cond_expr_stack(std::stack<Operat
         cmds.emplace_back(JIR::Operation::MOVE, result, operand1);
         cmds.emplace_back(to_add, result, operand2);
         const auto& keyword2 = keywordFromJirType(operand1.type);
-        scope_manager.setDeclaration(operand1.value, Scope::Declaration {(u64)keyword2, result.value, false});
+        // scope_manager.setDeclaration(operand1.value, Scope::Declaration {(u64)keyword2, result.value, false});
     }
 
     //result is a new operand

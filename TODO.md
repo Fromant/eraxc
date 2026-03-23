@@ -70,7 +70,9 @@ const and non const functions duplicate code too much.
 - [x] nested `while` & `if` support (problem is memory is managed linearly while execution is not linear)
 - [x] move codegen to CFGA
 - [x] fix recursion - codegen side problem - will fix `recursion.erx`
-- [ ] new nice architecture
+- [ ] new nice architecture - think about having SSA JIR, e.g. LLVM IR
+- [ ] very many TODOs
+- [ ] Type convertion to string for printing (JIR types can be only `u32`, `i32`, ...)
 - [ ] type conversion 
 - [ ] Cfg rvalue - what is it? declare behavior and implement it. Function parameters may be overwritten while implementing
 - [ ] new allocator

@@ -197,6 +197,22 @@ namespace eraxc::frontend {
             return r.first->second;
         }
 
+        std::optional<Declaration> addId(const std::string& name, u64 id, u64 type, bool doAllocate = false) {
+            auto r = identifiers.emplace(name, Declaration {type, id, false});
+            if (!r.second) {
+                return std::nullopt;
+            }
+            if (doAllocate) {
+                const auto size_opt = type_size((Keyword)type);
+                if (!size_opt) {
+                    return std::nullopt;
+                }
+                allocatedSize += size_opt.value;
+                allocations.emplace_back(r.first->second);
+            }
+            return r.first->second;
+        }
+
         Declaration& addAnonymousId(u64 type, bool isFunc, bool doAllocate = true) {
             const auto name = "$anonimous" + std::to_string(allocatedIds);
             auto r = identifiers.emplace(name, Declaration {type, allocatedIds++, isFunc});

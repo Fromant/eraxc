@@ -137,6 +137,13 @@ std::optional<size_t> ScopeManager::addId(const std::string& id, size_t type, bo
     return std::nullopt;
 }
 
+std::optional<size_t> ScopeManager::addId(const std::string& name, u64 id, u64 type, bool alloc) {
+    if (const auto opt = top().addId(name, id, type, alloc)) {
+        return opt.value().getId();
+    }
+    return std::nullopt;
+}
+
 std::optional<size_t> ScopeManager::addIdWithoutAllocation(const std::string& id, size_t type, bool is_func) {
     if (const auto res = top().addId(id, type, is_func, false)) {
         return res.value().getId();

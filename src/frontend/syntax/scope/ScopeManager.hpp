@@ -86,6 +86,8 @@ namespace eraxc::frontend {
         /// \return the index of declaration
         std::optional<size_t> addId(const std::string& id, size_t type, bool is_func, bool rValue = false);
 
+        std::optional<size_t> addId(const std::string& name, u64 id, u64 type, bool alloc = false);
+
         //for already allocated ids (e.g. func args)
         std::optional<size_t> addIdWithoutAllocation(const std::string& id, size_t type, bool is_func);
 
