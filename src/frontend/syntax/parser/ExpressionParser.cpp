@@ -126,7 +126,8 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
         }
 
         // just move decl id if we can
-        if (assign_to.value.result.is_rvalue && !assign_to.value.result.is_instant && assign_op == JIR::Operation::MOVE) {
+        if (assign_to.value.result.is_rvalue && !assign_to.value.result.is_instant &&
+            assign_op == JIR::Operation::MOVE) {
             scope_manager.setDeclaration(assignee_name, {assignee.getType(), assign_to.value.result.value, false});
             return {"", assign_to.value};
         }
@@ -353,39 +354,40 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
 
                 const auto& function = function_iter->second;
 
-                if (tokens[pos].t == Token::R_BRACKET) {
-                    pos++;
-                } else {
-                    while (tokens[pos].t != Token::R_BRACKET) {
-                        auto arg = parse(tokens, pos, {Token::COMMA, Token::R_BRACKET});
-                        if (!arg) {
-                            return {"Error while parsing function call argument" + arg.error, {}};
-                        }
+                while (tokens[pos].t != Token::R_BRACKET) {
+                    auto arg = parse(tokens, pos, {Token::COMMA, Token::R_BRACKET});
+                    if (!arg) {
+                        return {"Error while parsing function call argument" + arg.error, {}};
+                    }
 
-                        auto arg1 = arg.value;
+                    auto arg1 = arg.value;
+                    --pos;
 
-                        if (args_passed < function.params.size()) {
-                            const auto requiredType = function.params[args_passed].type;
-                            if (requiredType != arg1.result.type) {
-                                return {"Invalid argument type in function call.\nExpected: " +
-                                            std::to_string((u64)requiredType) +
-                                            ", got:" + std::to_string((u64)arg1.result.type),
-                                        {}};
-                            }
-                        }
-                        args_passed++;
-                        cmds.insert(cmds.end(), arg1.node.begin(), arg1.node.end());
-                        cmds.emplace_back(JIR::Operation::PASS, arg1.result, JIR::Operand {});
-
-                        if (tokens[pos].t == Token::COMMA) {
-                            pos++;
+                    if (args_passed < function.params.size()) {
+                        const auto requiredType = function.params[args_passed].type;
+                        if (requiredType != arg1.result.type) {
+                            return {"Invalid argument type in function call.\nExpected: " +
+                                        std::to_string((u64)requiredType) +
+                                        ", got:" + std::to_string((u64)arg1.result.type),
+                                    {}};
                         }
                     }
-                    pos++;
+                    args_passed++;
+                    cmds.insert(cmds.end(), arg1.node.begin(), arg1.node.end());
+                    cmds.emplace_back(JIR::Operation::PASS, arg1.result, JIR::Operand {});
+
+                    if (tokens[pos].t == Token::COMMA) {
+                        pos++;
+                    }
                 }
+                pos++;
 
                 if (args_passed < function.params.size()) {
                     return {"Not enough arguments for function: $" + std::to_string(decl.getId()), {}};
+                }
+
+                if (args_passed > function.params.size()) {
+                    return {"Too many arguments for function: $" + std::to_string(decl.getId()), {}};
                 }
 
                 u64 call_result_id = scope_manager.addAnonymousId(decl.getType(), false, true);

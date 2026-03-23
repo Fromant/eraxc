@@ -404,21 +404,21 @@ TEST_F(ExpressionParserTest, FunctionCall_WithArgs) {
     auto tokens = tokenize("bar(a, b);");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
-    ASSERT_FALSE(result) << result.error;
+    ASSERT_TRUE(result) << result.error;
 }
 
 TEST_F(ExpressionParserTest, FunctionCall_WithUnaryArgs) {
     auto tokens = tokenize("bar(-a, !b);");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
-    ASSERT_FALSE(result) << result.error;
+    ASSERT_TRUE(result) << result.error;
 }
 
 TEST_F(ExpressionParserTest, FunctionCall_Nested) {
     auto tokens = tokenize("bar(a, foo());");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
-    ASSERT_FALSE(result) << result.error;
+    ASSERT_TRUE(result) << result.error;
 }
 
 TEST_F(ExpressionParserTest, Edge_SingleOperand) {
@@ -473,8 +473,17 @@ TEST_F(ExpressionParserTest, Error_MismatchedParen_Open) {
     EXPECT_NE(result.error.find(';'), std::string::npos) << result.error;
 }
 
-TEST_F(ExpressionParserTest, Error_ParamsMismatch) {
+TEST_F(ExpressionParserTest, Error_TooManyParams) {
     auto tokens = tokenize("foo(a);");
+    size_t pos = 0;
+    auto result = parser.parse(tokens, pos);
+
+    ASSERT_FALSE(result);
+    EXPECT_NE(result.error.find("argument"), std::string::npos) << result.error;
+}
+
+TEST_F(ExpressionParserTest, Error_NotEnoughParams) {
+    auto tokens = tokenize("bar(a);");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
 
