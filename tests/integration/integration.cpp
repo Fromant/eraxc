@@ -25,9 +25,9 @@ struct TestData {
     int expectedOutput;
 };
 
-class DynamicTest : public ::testing::TestWithParam<TestData> {};
+class IntegrationTest : public testing::TestWithParam<TestData> {};
 
-TEST_P(DynamicTest, integrationTest) {
+TEST_P(IntegrationTest, integrationTest) {
     const TestData& data = GetParam();
     checkSource(data.path, data.expectedOutput);
 }
@@ -46,8 +46,8 @@ std::vector<TestData> tests = {
     {"weird.erx", 102},
 };
 
-INSTANTIATE_TEST_SUITE_P(IntegrationTests, DynamicTest, ::testing::ValuesIn(tests),
-                         [](const testing::TestParamInfo<DynamicTest::ParamType>& info) {
+INSTANTIATE_TEST_SUITE_P(IntegrationTest, IntegrationTest, ::testing::ValuesIn(tests),
+                         [](const testing::TestParamInfo<IntegrationTest::ParamType>& info) {
                              std::string full_string = info.param.path;
                              size_t last_slash_pos = full_string.find_last_of('/');
 
