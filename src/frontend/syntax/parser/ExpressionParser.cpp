@@ -78,7 +78,6 @@ static errable<JIR::Operand> parse_instant(const std::string& instant) {
     }
 
     try {
-
         const auto jirType = jirTypeFromKeyword(type);
 
         if (jirType == JIR::Type::ERR) {
@@ -126,22 +125,22 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
             return assign_to;
         }
 
-        //DO I need this assign logic??
-        if (!assign_to.value.result.is_rvalue && assign_op == JIR::Operation::MOVE) {
-            tr.emplace_back(assign_op, assign_to.value.result, assign_to.value.result);
+        // just move decl id if we can
+        if (assign_to.value.result.is_rvalue && !assign_to.value.result.is_instant && assign_op == JIR::Operation::MOVE) {
             scope_manager.setDeclaration(assignee_name, {assignee.getType(), assign_to.value.result.value, false});
             return {"", assign_to.value};
         }
 
-        const auto jirType = assignee.getJirType();
-
-        if (!jirType) {
-            return {jirType.error, {}};
+        const auto assignee_type_err = assignee.getJirType();
+        if (!assignee_type_err) {
+            return {assignee_type_err.error, {}};
         }
 
-        auto expr_res = JIR::Operand(jirType.value, assignee.getId(), false, false);
-        tr.emplace_back(assign_op, expr_res, assign_to.value.result);
-        return {"", {tr, expr_res}};
+        const JIR::Operand assignee_operand {assignee_type_err.value, assignee.getId(), false, false};
+
+        tr.insert(tr.end(), assign_to.value.node.begin(), assign_to.value.node.end());
+        tr.emplace_back(assign_op, assignee_operand, assign_to.value.result);
+        return {"", {tr, assignee_operand}};
     }
 
     std::vector<JIR::Command> postfix_ops;
@@ -368,7 +367,8 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
                         if (args_passed < function.params.size()) {
                             const auto requiredType = function.params[args_passed].type;
                             if (requiredType != arg1.result.type) {
-                                return {"Invalid argument type in function call.\nExpected: " + std::to_string((u64)requiredType) +
+                                return {"Invalid argument type in function call.\nExpected: " +
+                                            std::to_string((u64)requiredType) +
                                             ", got:" + std::to_string((u64)arg1.result.type),
                                         {}};
                             }
@@ -393,7 +393,8 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
                 if (!declT) {
                     return {declT.error, {}};
                 }
-                cmds.emplace_back(JIR::Operation::CALL, operand, JIR::Operand {declT.value, call_result_id, false, true});
+                cmds.emplace_back(JIR::Operation::CALL, operand,
+                                  JIR::Operand {declT.value, call_result_id, false, true});
                 operand = JIR::Operand(declT.value, call_result_id, false, true);
                 continue;
             }

@@ -10,11 +10,20 @@ using namespace eraxc::frontend;
 using namespace eraxc::JIR;
 using namespace eraxc::CFG;
 
+constexpr Type i32 = jirTypeFromKeyword(Keyword::i32);
+
 class ExpressionParserTest : public ::testing::Test {
- protected:
+protected:
     ScopeManager scopeManager;
     FrontendResult result;
     ExpressionParser parser {scopeManager, result};
+
+    Operand operandA;
+    Operand operandB;
+    Operand operandC;
+
+    Operand newVar1 {i32, 15, false, true};
+    Operand newVar2 {i32, 16, false, true};
 
     ExpressionParserTest() {
         const auto type = scopeManager.findTypeRecursive("i32");
@@ -42,8 +51,22 @@ class ExpressionParserTest : public ::testing::Test {
         if (barId) {
             Function barFunc;
             barFunc.decl = Declaration(barId.value(), jirTypeFromKeyword(Keyword::i32));
+            barFunc.params.emplace_back(0, jirTypeFromKeyword(Keyword::i32));
+            barFunc.params.emplace_back(1, jirTypeFromKeyword(Keyword::i32));
             scopeManager.getFunctions()[barId.value()] = barFunc;
         }
+
+        const auto& a_decl_opt = scopeManager.findDeclarationRecursive("a");
+        const auto& b_decl_opt = scopeManager.findDeclarationRecursive("b");
+        const auto& c_decl_opt = scopeManager.findDeclarationRecursive("c");
+
+        const auto& a_decl = a_decl_opt.value();
+        const auto& b_decl = b_decl_opt.value();
+        const auto& c_decl = c_decl_opt.value();
+
+        operandA = operandFromDecl(a_decl);
+        operandB = operandFromDecl(b_decl);
+        operandC = operandFromDecl(c_decl);
     }
     static std::vector<Token> tokenize(const std::string& expr) {
         Tokenizer t {};
@@ -81,29 +104,16 @@ class ExpressionParserTest : public ::testing::Test {
     }
 };
 
-constexpr Type i32 = jirTypeFromKeyword(Keyword::i32);
 
 TEST_F(ExpressionParserTest, SimpleBinaryExpression) {
     auto tokens = tokenize("a + b;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
 
-    const auto& a_decl_opt = scopeManager.findDeclarationRecursive("a");
-    const auto& b_decl_opt = scopeManager.findDeclarationRecursive("b");
-
-    ASSERT_TRUE(a_decl_opt);
-    ASSERT_TRUE(b_decl_opt);
-
-    const auto& a_decl = a_decl_opt.value();
-    const auto& b_decl = b_decl_opt.value();
-
-    const Operand new_var {i32, 15, false, true};
-
     ASSERT_TRUE(result) << result.error;
-    ASSERT_TRUE(operandsEqual(result.value.result, new_var));
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1));
 
-    CFGNode nodes = {Command {Operation::MOVE, new_var, operandFromDecl(a_decl)},
-                     Command {Operation::ADD, new_var, operandFromDecl(b_decl)}};
+    CFGNode nodes = {Command {Operation::MOVE, newVar1, operandA}, Command {Operation::ADD, newVar1, operandB}};
 
     ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
@@ -114,29 +124,15 @@ TEST_F(ExpressionParserTest, Precedence_MultiplicationBeforeAddition) {
     auto result = parser.parse(tokens, pos);
 
     ASSERT_EQ(pos, 6);
-    const auto& a_decl_opt = scopeManager.findDeclarationRecursive("a");
-    const auto& b_decl_opt = scopeManager.findDeclarationRecursive("b");
-    const auto& c_decl_opt = scopeManager.findDeclarationRecursive("c");
-
-    ASSERT_TRUE(a_decl_opt);
-    ASSERT_TRUE(b_decl_opt);
-    ASSERT_TRUE(c_decl_opt);
-
-    const auto& a_decl = a_decl_opt.value();
-    const auto& b_decl = b_decl_opt.value();
-    const auto& c_decl = c_decl_opt.value();
-
-    const Operand new_var {i32, 15, false, true};
-    const Operand new_var2 {i32, 16, false, true};
 
     ASSERT_TRUE(result) << result.error;
-    ASSERT_TRUE(operandsEqual(result.value.result, new_var2));
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar2));
 
     CFGNode nodes = {
-        Command {Operation::MOVE, new_var, operandFromDecl(b_decl)},
-        Command {Operation::MUL, new_var, operandFromDecl(c_decl)},
-        Command {Operation::MOVE, new_var2, operandFromDecl(a_decl)},
-        Command {Operation::ADD, new_var2, new_var},
+        Command {Operation::MOVE, newVar1, operandB},
+        Command {Operation::MUL, newVar1, operandC},
+        Command {Operation::MOVE, newVar2, operandA},
+        Command {Operation::ADD, newVar2, newVar1},
     };
 
     ASSERT_TRUE(nodesEqual(result.value.node, nodes));
@@ -148,38 +144,93 @@ TEST_F(ExpressionParserTest, Precedence_ParenthesesOverride) {
     auto result = parser.parse(tokens, pos);
 
     ASSERT_EQ(pos, 8);
-    const auto& a_decl_opt = scopeManager.findDeclarationRecursive("a");
-    const auto& b_decl_opt = scopeManager.findDeclarationRecursive("b");
-    const auto& c_decl_opt = scopeManager.findDeclarationRecursive("c");
-
-    ASSERT_TRUE(a_decl_opt);
-    ASSERT_TRUE(b_decl_opt);
-    ASSERT_TRUE(c_decl_opt);
-
-    const auto& a_decl = a_decl_opt.value();
-    const auto& b_decl = b_decl_opt.value();
-    const auto& c_decl = c_decl_opt.value();
-
-    const Operand new_var {i32, 15, false, true};
 
     ASSERT_TRUE(result) << result.error;
-    ASSERT_TRUE(operandsEqual(result.value.result, new_var));
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1));
 
     CFGNode nodes = {
-        Command {Operation::MOVE, new_var, operandFromDecl(a_decl)},
-        Command {Operation::ADD, new_var, operandFromDecl(b_decl)},
-        Command {Operation::MUL, new_var, operandFromDecl(c_decl)},
+        Command {Operation::MOVE, newVar1, operandA},
+        Command {Operation::ADD, newVar1, operandB},
+        Command {Operation::MUL, newVar1, operandC},
     };
 
     ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
-TEST_F(ExpressionParserTest, RightAssociative_Assignment) {
-    auto tokens = tokenize("a = b = c;");
+TEST_F(ExpressionParserTest, Assignment_Simple) {
+    auto tokens = tokenize("a = b;");
     size_t pos = 0;
     auto result = parser.parse(tokens, pos);
 
     ASSERT_TRUE(result) << result.error;
+    ASSERT_EQ(pos, 4);
+    ASSERT_TRUE(operandsEqual(result.value.result, operandA));
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, operandA, operandB},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
+}
+
+TEST_F(ExpressionParserTest, Assignment_Instant) {
+    auto tokens = tokenize("a = 2;");
+    size_t pos = 0;
+    auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 4);
+
+    ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, operandA));
+
+    Operand operand2 {i32, 2, true, true};
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, operandA, operand2},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
+}
+
+TEST_F(ExpressionParserTest, Assignment_RightAssiciative) {
+    auto tokens = tokenize("a = b = c;");
+    size_t pos = 0;
+    auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 6);
+
+    ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, operandA));
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, operandB, operandC},
+        Command {Operation::MOVE, operandA, operandB},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
+}
+
+TEST_F(ExpressionParserTest, Assignment_RvalueDeclarationIdMove) {
+    auto tokens = tokenize("a = b + c;");
+    size_t pos = 0;
+    auto result = parser.parse(tokens, pos);
+
+    ASSERT_EQ(pos, 6);
+
+    ASSERT_TRUE(result) << result.error;
+    ASSERT_TRUE(operandsEqual(result.value.result, newVar1));
+
+    const auto a_decl_new = scopeManager.findDeclaration("a");
+    ASSERT_TRUE(a_decl_new) << "Can't find 'a' declaration??";
+    ASSERT_EQ(newVar1.value, a_decl_new.value().getId());
+    ASSERT_EQ(newVar1.type, a_decl_new.value().getJirType().value);
+
+    CFGNode nodes = {
+        Command {Operation::MOVE, newVar1, operandB},
+        Command {Operation::ADD, newVar1, operandC},
+    };
+
+    ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
 
 TEST_F(ExpressionParserTest, Prefix_Negation) {
@@ -419,7 +470,16 @@ TEST_F(ExpressionParserTest, Error_MismatchedParen_Open) {
     auto result = parser.parse(tokens, pos);
 
     ASSERT_FALSE(result);
-    EXPECT_NE(result.error.find(";"), std::string::npos) << result.error;
+    EXPECT_NE(result.error.find(';'), std::string::npos) << result.error;
+}
+
+TEST_F(ExpressionParserTest, Error_ParamsMismatch) {
+    auto tokens = tokenize("foo(a);");
+    size_t pos = 0;
+    auto result = parser.parse(tokens, pos);
+
+    ASSERT_FALSE(result);
+    EXPECT_NE(result.error.find("argument"), std::string::npos) << result.error;
 }
 
 TEST_F(ExpressionParserTest, Error_MismatchedParen_Close) {
@@ -428,7 +488,7 @@ TEST_F(ExpressionParserTest, Error_MismatchedParen_Close) {
     auto result = parser.parse(tokens, pos);
 
     ASSERT_FALSE(result);
-    EXPECT_NE(result.error.find(")"), std::string::npos) << result.error;
+    EXPECT_NE(result.error.find(')'), std::string::npos) << result.error;
 }
 
 TEST_F(ExpressionParserTest, Error_UnknownOperator) {
@@ -437,7 +497,7 @@ TEST_F(ExpressionParserTest, Error_UnknownOperator) {
     auto result = parser.parse(tokens, pos);
 
     ASSERT_FALSE(result);
-    EXPECT_NE(result.error.find("@"), std::string::npos) << result.error;
+    EXPECT_NE(result.error.find('@'), std::string::npos) << result.error;
 }
 
 TEST_F(ExpressionParserTest, Error_UnexpectedComma) {
@@ -446,7 +506,7 @@ TEST_F(ExpressionParserTest, Error_UnexpectedComma) {
     auto result = parser.parse(tokens, pos, {Token::SEMICOLON});
 
     ASSERT_FALSE(result);
-    EXPECT_NE(result.error.find(","), std::string::npos) << result.error;
+    EXPECT_NE(result.error.find(','), std::string::npos) << result.error;
 }
 
 TEST_F(ExpressionParserTest, Termination_Semicolon) {
