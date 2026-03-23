@@ -1,9 +1,10 @@
-#include "Function.hpp"
+#include "FrontendResult.hpp"
 
 #include <iostream>
 #include <ranges>
 
 #include "common/CFG/CFGIterator.hpp"
+
 using namespace eraxc::JIR;
 
 void FrontendResult::print() const {

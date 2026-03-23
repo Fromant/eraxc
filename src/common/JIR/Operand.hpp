@@ -1,26 +1,9 @@
 #pragma once
-#include "Operation.hpp"
+
+#include "Type.hpp"
 #include "util/common.hpp"
 
 namespace eraxc::JIR {
-
-    enum class Type {
-        VOID,
-        I8,
-        U8,
-        I16,
-        U16,
-        I32,
-        U32,
-        I64,
-        U64,
-
-        // FUTURE SECTION
-        // PTR, ...
-
-        ERR
-    };
-
     class Operand {
     public:
         Type type;
@@ -49,14 +32,5 @@ namespace eraxc::JIR {
             result += std::to_string(value);
             return result;
         }
-    };
-
-    class Command {
-    public:
-        Operation op = Operation::ERR;
-        Operand operand1;
-        Operand operand2;
-
-        void print() const;
     };
 }

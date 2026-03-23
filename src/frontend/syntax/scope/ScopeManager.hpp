@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "Scope.hpp"
+#include "common/JIR/Command.hpp"
 #include "common/JIR/Function.hpp"
-#include "common/JIR/JIR.hpp"
 
 namespace eraxc::frontend {
 

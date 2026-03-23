@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "common/JIR/JIR.hpp"
+#include "common/JIR/Command.hpp"
 #include "common/JIR/Operation.hpp"
 #include "frontend/lexic/PreprocessorTokenizer.hpp"
 #include "util/error.hpp"

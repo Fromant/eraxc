@@ -17,10 +17,9 @@ add_library(eraxCore
         frontend/syntax/parser/StructureAnalyzer.cpp
         frontend/syntax/parser/ExpressionParser.cpp
         common/CFG/CFGIterator.cpp
-        common/CFG/CFGIterator.hpp
-        common/JIR/Function.cpp
         common/CFG/CFGParts.cpp
-        common/JIR/JIR.cpp
+        common/JIR/Command.cpp
+        common/JIR/FrontendResult.cpp
 )
 target_include_directories(eraxCore PRIVATE ../src)
 

@@ -1,6 +1,6 @@
-#include "JIR.hpp"
-
 #include <iostream>
+
+#include "Command.hpp"
 
 using namespace eraxc::JIR;
 

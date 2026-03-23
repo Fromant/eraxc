@@ -1,5 +1,4 @@
 #pragma once
-#include "../scope/ScopeManager.hpp"
 #include "ExpressionParser.hpp"
 #include "common/CFG/CFGParts.hpp"
 #include "common/JIR/Function.hpp"

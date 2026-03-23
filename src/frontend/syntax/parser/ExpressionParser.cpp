@@ -139,9 +139,9 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
             return {jirType.error, {}};
         }
 
-        auto result = JIR::Operand(jirType.value, assignee.getId(), false, false);
-        tr.emplace_back(assign_op, result, assign_to.value.result);
-        return {"", {tr, result}};
+        auto expr_res = JIR::Operand(jirType.value, assignee.getId(), false, false);
+        tr.emplace_back(assign_op, expr_res, assign_to.value.result);
+        return {"", {tr, expr_res}};
     }
 
     std::vector<JIR::Command> postfix_ops;
@@ -240,31 +240,27 @@ errable<void> ExpressionParser::push_expr_stack(std::stack<OperatorType>& operat
     operands.pop();
 
     // temporary: resulting type is always evaluated as the top operands stack element type
-    JIR::Operand result {operand1};
-    result.is_rvalue = true;
-
-    // TODO rvalue logic
+    JIR::Operand expr_res {operand1};
+    expr_res.is_rvalue = true;
 
     if (operand1.is_instant || operand1.is_rvalue) {
         cmds.emplace_back(to_add, operand1, operand2);
-        result.value = operand1.value;
-        result.is_instant = operand1.is_instant;
-        result.is_rvalue = true;
+        expr_res.value = operand1.value;
+        expr_res.is_instant = operand1.is_instant;
+        expr_res.is_rvalue = true;
     } else {
-        const auto type = keywordFromJirType(result.type);
+        const auto type = keywordFromJirType(expr_res.type);
         u64 result_id = scope_manager.addAnonymousId((u64)type, false, true);
-        result.value = result_id;
-        result.is_instant = false;
-        result.is_rvalue = true;
+        expr_res.value = result_id;
+        expr_res.is_instant = false;
+        expr_res.is_rvalue = true;
         //copy operand1
-        cmds.emplace_back(JIR::Operation::MOVE, result, operand1);
-        cmds.emplace_back(to_add, result, operand2);
-        // scope_manager.setDeclaration(operand1.value,
-                                     // Scope::Declaration {(u64)keywordFromJirType(operand1.type), result.value, false});
+        cmds.emplace_back(JIR::Operation::MOVE, expr_res, operand1);
+        cmds.emplace_back(to_add, expr_res, operand2);
     }
 
     //result is a new operand
-    operands.push(result);
+    operands.push(expr_res);
     return {""};
 }
 
@@ -499,7 +495,7 @@ errable<JIR::Operation> ExpressionParser::push_cond_expr_stack(std::stack<Operat
         //copy operand1
         cmds.emplace_back(JIR::Operation::MOVE, result, operand1);
         cmds.emplace_back(to_add, result, operand2);
-        const auto& keyword2 = keywordFromJirType(operand1.type);
+        // const auto& keyword2 = keywordFromJirType(operand1.type);
         // scope_manager.setDeclaration(operand1.value, Scope::Declaration {(u64)keyword2, result.value, false});
     }
 

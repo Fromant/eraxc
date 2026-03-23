@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "../JIR/Operation.hpp"
-#include "common/JIR/JIR.hpp"
+#include "common/JIR/Command.hpp"
 #include "util/common.hpp"
 
 

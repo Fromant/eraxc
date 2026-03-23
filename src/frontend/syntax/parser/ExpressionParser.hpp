@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common/CFG/CFGParts.hpp"
-#include "common/JIR/Function.hpp"
-#include "common/JIR/JIR.hpp"
+#include "common/JIR/Command.hpp"
+#include "common/JIR/FrontendResult.hpp"
 #include "frontend/lexic/PreprocessorTokenizer.hpp"
 #include "frontend/syntax/scope/ScopeManager.hpp"
 #include "util/error.hpp"
