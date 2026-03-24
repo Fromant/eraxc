@@ -33,6 +33,8 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
 
     structure.value.print();
 
+    structure.value.print_to_file("cfg.txt");
+
     // cfg.print_to_file("cfg.txt");
 
     t1 = std::chrono::high_resolution_clock::now();

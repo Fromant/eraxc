@@ -16,5 +16,6 @@ namespace eraxc::JIR {
         // module exports
 
         void print() const;
+        void print_to_file(const std::string& str) const;
     };
 }

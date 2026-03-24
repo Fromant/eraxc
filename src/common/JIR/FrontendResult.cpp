@@ -1,5 +1,6 @@
 #include "FrontendResult.hpp"
 
+#include <fstream>
 #include <iostream>
 #include <ranges>
 
@@ -32,6 +33,25 @@ void FrontendResult::print() const {
                 node.print();
             }
             ++iter;
+        }
+    }
+}
+void FrontendResult::print_to_file(const std::string& str) const {
+    std::ofstream file(str);
+
+    const auto edge_to_int = [](const CFG::CFGEdge::CFGEdgeType t) {
+        if (t == CFG::CFGEdge::SQUASH) {
+            return 0;
+        }
+        return 1;
+    };
+
+    for (const auto& func : functions) {
+        for (const auto& edge : func.cfg.edges) {
+            const auto from = edge.first;
+            for (const auto& to : edge.second) {
+                file << from << ", " << to.to_id << ", " << edge_to_int(to.type) << std::endl;
+            }
         }
     }
 }
