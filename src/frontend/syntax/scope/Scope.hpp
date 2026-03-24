@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "common/JIR/Declaration.hpp"
 #include "frontend/syntax/enums.hpp"
 #include "util/common.hpp"
 
@@ -35,6 +36,15 @@ namespace eraxc::frontend {
             u64 getType() const {
                 return type;
             }
+
+            error::errable<JIR::Declaration> toJirDecl() const {
+                const auto jirType = getJirType();
+                if (!jirType) {
+                    return {jirType.error, {}};
+                }
+                return {"", {getId(), jirType.value}};
+            }
+
             error::errable<JIR::Type> getJirType() const {
                 const auto t = jirTypeFromKeyword((Keyword)getType());
                 if (t == JIR::Type::ERR) {

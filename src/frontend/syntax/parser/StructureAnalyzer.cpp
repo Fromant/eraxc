@@ -14,7 +14,7 @@ error::errable<eraxc::JIR::Function> StructureAnalyzer::parseFunction(const std:
         return {"No such typename " + tokens[pos].data, {}};
     }
 
-    const auto funcId = scopeManager.addId(tokens[pos + 1].data, (size_t)return_type.value(), true, false);
+    const auto funcId = scopeManager.addIdWithoutAllocation(tokens[pos + 1].data, (size_t)return_type.value(), true);
     if (!funcId) {
         return {"Identifier " + tokens[pos + 1].data + " is already defined in this scope", {}};
     }
@@ -82,8 +82,11 @@ error::errable<eraxc::JIR::Function> StructureAnalyzer::parseFunction(const std:
         return {body.error, {}};
     }
     //TODO check & add return if needed
-    u64 stackSize = scopeManager.popFrame();
-    to_add.cfg.maxStackSize = stackSize;
+    const auto stackSize = scopeManager.popFrame();
+    if (!stackSize) {
+        return {stackSize.error, {}};
+    }
+    to_add.cfg.maxStackSize = stackSize.value;
     result.functions.emplace_back(to_add);
 
     return {"", to_add};
@@ -125,9 +128,9 @@ error::errable<void> StructureAnalyzer::parseStatement(const std::vector<Token>&
         scopeManager.deallocFrame(expr_err.value.node);
 
         const auto& expr = expr_err.value.node;
-        cfg.nodes[node_id].insert(cfg.nodes[node_id].end(), expr.begin(), expr.end());
-        cfg.nodes[node_id].emplace_back(JIR::Operation::PASS_RET, expr_err.value.result, JIR::Operand {});
-        cfg.nodes[node_id].emplace_back(JIR::Operation::RET, JIR::Operand {}, JIR::Operand {});
+        cfg.nodes[node_id] += expr;
+        cfg.nodes[node_id].nodes.emplace_back(JIR::Operation::PASS_RET, expr_err.value.result, JIR::Operand {});
+        cfg.nodes[node_id].nodes.emplace_back(JIR::Operation::RET, JIR::Operand {}, JIR::Operand {});
         return "";
     }
     if (tokens[pos].data == "if") {
@@ -161,7 +164,7 @@ error::errable<void> StructureAnalyzer::parseStatement(const std::vector<Token>&
         return expr_err.error;
     }
     const auto& expr = expr_err.value.node;
-    cfg.nodes[node_id].insert(cfg.nodes[node_id].end(), expr.begin(), expr.end());
+    cfg.nodes[node_id] += expr;
     return "";
 }
 
@@ -186,7 +189,7 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
     auto& cond = cond_err.value.node;
 
     // append condition to current node
-    cfg.nodes[node_id].insert(cfg.nodes[node_id].end(), cond.begin(), cond.end());
+    cfg.nodes[node_id] += cond;
 
     const size_t node_id_before = node_id;
 
@@ -212,7 +215,7 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
     }
 
     // end of scope of positive branch
-    scopeManager.pop(cfg.nodes[node_id]);
+    scopeManager.pop();
 
     if (tokens[pos].t == Token::IDENTIFIER && tokens[pos].data == "else") {
         // else branch
@@ -230,7 +233,7 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
         }
 
         // end of else scope
-        scopeManager.pop(cfg.nodes[node_id]);
+        scopeManager.pop();
 
         const size_t after_body_id = cfg.nodes.size();
         cfg.nodes.emplace_back();
@@ -263,7 +266,7 @@ error::errable<void> StructureAnalyzer::parseWhile(const std::vector<Token>& tok
     const auto& cond_body = cond.value.node;
     const auto& cond_jump = cond.value.jump_op;
 
-    if (cond_body.empty()) {
+    if (cond_body.nodes.empty()) {
         //TODO no condition appeared error
         return "Expected condition expression inside of while()";
     }
@@ -292,7 +295,7 @@ error::errable<void> StructureAnalyzer::parseWhile(const std::vector<Token>& tok
     }
 
     cfg.edges[node_id].emplace_back(cond_branch, CFG::CFGEdge::SQUASH);
-    scopeManager.pop(cfg.nodes[node_id]);
+    scopeManager.pop();
 
     node_id = after_body;
 
@@ -332,10 +335,10 @@ error::errable<void> StructureAnalyzer::parseDeclaration(const std::vector<Token
         const auto& expr = init_val.value.node;
         const auto& expr_res = init_val.value.result;
 
-        cfg.nodes[node_id].insert(cfg.nodes[node_id].end(), expr.begin(), expr.end());
+        cfg.nodes[node_id] += expr;
 
         // TODO check for instants, etc?
-        scopeManager.addId(name, expr_res.value, type, false);
+        scopeManager.linkId(name, expr_res.value, type, false);
 
         return "";
     }

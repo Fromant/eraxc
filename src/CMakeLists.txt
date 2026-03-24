@@ -20,6 +20,8 @@ add_library(eraxCore
         common/CFG/CFGParts.cpp
         common/JIR/Command.cpp
         common/JIR/FrontendResult.cpp
+        backend/allocation/StackAllocator.cpp
+        common/CFG/allocated/AllocatedCFG.cpp
 )
 target_include_directories(eraxCore PRIVATE ../src)
 

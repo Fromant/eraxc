@@ -28,26 +28,27 @@ protected:
 
     ExpressionParserTest() {
         const auto type = scopeManager.findTypeRecursive("i32");
-        scopeManager.addId("a", (size_t)type.value(), false, false);
-        scopeManager.addId("b", (size_t)type.value(), false, false);
-        scopeManager.addId("c", (size_t)type.value(), false, false);
-        scopeManager.addId("d", (size_t)type.value(), false, false);
-        scopeManager.addId("e", (size_t)type.value(), false, false);
-        scopeManager.addId("f", (size_t)type.value(), false, false);
-        scopeManager.addId("g", (size_t)type.value(), false, false);
-        scopeManager.addId("h", (size_t)type.value(), false, false);
-        scopeManager.addId("i", (size_t)type.value(), false, false);
-        scopeManager.addId("j", (size_t)type.value(), false, false);
-        scopeManager.addId("k", (size_t)type.value(), false, false);
-        scopeManager.addId("l", (size_t)type.value(), false, false);
+        CFGNode temp {};
+        scopeManager.addId("a", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("b", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("c", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("d", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("e", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("f", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("g", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("h", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("i", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("j", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("k", (size_t)type.value(), false, false, temp);
+        scopeManager.addId("l", (size_t)type.value(), false, false, temp);
 
-        if (auto fooId = scopeManager.addId("foo", (size_t)type.value(), true, false)) {
+        if (auto fooId = scopeManager.addId("foo", (size_t)type.value(), true, false, temp)) {
             Function fooFunc;
             fooFunc.decl = Declaration(fooId.value(), jirTypeFromKeyword(Keyword::i32));
             scopeManager.getFunctions()[fooId.value()] = fooFunc;
         }
 
-        if (auto barId = scopeManager.addId("bar", (size_t)type.value(), true, false)) {
+        if (auto barId = scopeManager.addId("bar", (size_t)type.value(), true, false, temp)) {
             Function barFunc;
             barFunc.decl = Declaration(barId.value(), jirTypeFromKeyword(Keyword::i32));
             barFunc.params.emplace_back(0, jirTypeFromKeyword(Keyword::i32));
@@ -84,12 +85,18 @@ protected:
         return a.op == b.op && operandsEqual(a.operand1, b.operand1) && operandsEqual(a.operand2, b.operand2);
     }
 
-    static bool nodesEqual(const CFGNode& a, const CFGNode& b) {
-        if (a.size() != b.size()) {
+    static bool nodesEqual(const CFGNode& a, const std::vector<Command>& b) {
+        if (a.nodes.size() != b.size()) {
             return false;
         }
-        for (size_t i = 0; i < a.size(); i++) {
-            if (!commandsEqual(a[i], b[i])) {
+
+        // TODO check for allocations
+        // if (a.declarations.size() != b.declarations.size()) {
+        //     return false;
+        // }
+
+        for (size_t i = 0; i < a.nodes.size(); i++) {
+            if (!commandsEqual(a.nodes[i], b[i])) {
                 return false;
             }
         }
@@ -112,7 +119,8 @@ TEST_F(ExpressionParserTest, SimpleBinaryExpression) {
     ASSERT_TRUE(result) << result.error;
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1));
 
-    CFGNode nodes = {Command {Operation::MOVE, newVar1, operandA}, Command {Operation::ADD, newVar1, operandB}};
+    std::vector<Command> nodes = {Command {Operation::MOVE, newVar1, operandA},
+                                  Command {Operation::ADD, newVar1, operandB}};
 
     ASSERT_TRUE(nodesEqual(result.value.node, nodes));
 }
@@ -127,7 +135,7 @@ TEST_F(ExpressionParserTest, Precedence_MultiplicationBeforeAddition) {
     ASSERT_TRUE(result) << result.error;
     ASSERT_TRUE(operandsEqual(result.value.result, newVar2));
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandB},
         Command {Operation::MUL, newVar1, operandC},
         Command {Operation::MOVE, newVar2, operandA},
@@ -147,7 +155,7 @@ TEST_F(ExpressionParserTest, Precedence_ParenthesesOverride) {
     ASSERT_TRUE(result) << result.error;
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1));
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::ADD, newVar1, operandB},
         Command {Operation::MUL, newVar1, operandC},
@@ -165,7 +173,7 @@ TEST_F(ExpressionParserTest, Assignment_Simple) {
     ASSERT_EQ(pos, 4);
     ASSERT_TRUE(operandsEqual(result.value.result, operandA));
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, operandA, operandB},
     };
 
@@ -184,7 +192,7 @@ TEST_F(ExpressionParserTest, Assignment_Instant) {
 
     Operand operand2 {i32, 2, true, true};
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, operandA, operand2},
     };
 
@@ -201,7 +209,7 @@ TEST_F(ExpressionParserTest, Assignment_RightAssiciative) {
     ASSERT_TRUE(result) << result.error;
     ASSERT_TRUE(operandsEqual(result.value.result, operandA));
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, operandB, operandC},
         Command {Operation::MOVE, operandA, operandB},
     };
@@ -224,7 +232,7 @@ TEST_F(ExpressionParserTest, Assignment_RvalueDeclarationIdMove) {
     ASSERT_EQ(newVar1.value, a_decl_new.value().getId());
     ASSERT_EQ(newVar1.type, a_decl_new.value().getJirType().value);
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandB},
         Command {Operation::ADD, newVar1, operandC},
     };
@@ -243,7 +251,7 @@ TEST_F(ExpressionParserTest, Prefix_Negation) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
         << newVar1.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::NEG, newVar1, {}},
     };
@@ -262,7 +270,7 @@ TEST_F(ExpressionParserTest, Prefix_LogicalNot) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
         << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::NOT, newVar1, {}},
     };
@@ -281,7 +289,7 @@ TEST_F(ExpressionParserTest, Prefix_BitwiseNot) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
         << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::NOT, newVar1, {}},
     };
@@ -300,7 +308,7 @@ TEST_F(ExpressionParserTest, Prefix_AddressOf) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
         << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::ADDR, newVar1, {}},
     };
@@ -319,7 +327,7 @@ TEST_F(ExpressionParserTest, Prefix_Dereference) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
         << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::DEREF, newVar1, {}},
     };
@@ -338,7 +346,7 @@ TEST_F(ExpressionParserTest, Prefix_Increment) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
         << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::INC, newVar1, {}},
     };
@@ -357,7 +365,7 @@ TEST_F(ExpressionParserTest, Prefix_Decrement) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
         << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::DEC, newVar1, {}},
     };
@@ -376,7 +384,7 @@ TEST_F(ExpressionParserTest, Prefix_ConsecutiveOperators) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
         << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::NOT, newVar1, {}},
         Command {Operation::NEG, newVar1, {}},
@@ -396,7 +404,7 @@ TEST_F(ExpressionParserTest, Prefix_InExpression_Context) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar2))
         << "Result operand mismatch" << newVar2.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandB},
         Command {Operation::NEG, newVar1, {}},
         Command {Operation::MOVE, newVar2, operandA},
@@ -417,7 +425,7 @@ TEST_F(ExpressionParserTest, Prefix_WithParentheses) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
         << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::ADD, newVar1, operandB},
         Command {Operation::NEG, newVar1, {}},
@@ -437,7 +445,7 @@ TEST_F(ExpressionParserTest, Postfix_Increment) {
     ASSERT_TRUE(operandsEqual(result.value.result, operandA))
         << "Result operand mismatch" << operandA.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::INC, operandA, {}},
     };
 
@@ -455,7 +463,7 @@ TEST_F(ExpressionParserTest, Postfix_Decrement) {
     ASSERT_TRUE(operandsEqual(result.value.result, operandA))
         << "Result operand mismatch" << operandA.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::DEC, operandA, {}},
     };
 
@@ -472,7 +480,7 @@ TEST_F(ExpressionParserTest, Postfix_InExpression) {
     ASSERT_TRUE(operandsEqual(result.value.result, newVar1))
         << "Result operand mismatch" << newVar1.to_string() << "!=" << result.value.result.to_string();
 
-    CFGNode nodes = {
+    std::vector<Command> nodes = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::ADD, newVar1, operandB},
         Command {Operation::INC, operandA, {}},
@@ -491,7 +499,7 @@ TEST_F(ExpressionParserTest, Disambiguation_PlusMinus) {
     ASSERT_TRUE(operandsEqual(result1.value.result, newVar1))
         << "Result operand mismatch" << newVar1.to_string() << "!=" << result1.value.result.to_string();
 
-    CFGNode nodes1 = {
+    std::vector<Command> nodes1 = {
         Command {Operation::MOVE, newVar1, operandA},
         Command {Operation::ADD, newVar1, operandB},
     };
@@ -507,7 +515,7 @@ TEST_F(ExpressionParserTest, Disambiguation_PlusMinus) {
     ASSERT_TRUE(operandsEqual(result2.value.result, newVar3))
         << "Result operand mismatch" << newVar3.to_string() << "!=" << result2.value.result.to_string();
 
-    CFGNode nodes2 = {
+    std::vector<Command> nodes2 = {
         Command {Operation::MOVE, newVar2, operandB},
         Command {Operation::NEG, newVar2, {}},
         Command {Operation::MOVE, newVar3, operandA},

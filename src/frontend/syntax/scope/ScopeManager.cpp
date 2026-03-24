@@ -7,7 +7,7 @@
 
 using namespace eraxc::frontend;
 
-void dealloc_scope(std::vector<eraxc::JIR::Command>& tokens, const Scope& scope) {
+error::errable<void> dealloc_scope(const Scope& scope) {
     // someday i'll call destructors here...
     // for (const auto& allocated : scope.getAllocations()) {
     //     tokens.emplace_back(eraxc::JIR::Command {
@@ -15,6 +15,7 @@ void dealloc_scope(std::vector<eraxc::JIR::Command>& tokens, const Scope& scope)
     //         eraxc::JIR::Operand {(eraxc::JIR::Type)allocated.getId(), allocated.getType(), false, false},
     //         eraxc::JIR::Operand {}});
     // }
+    return "";
 }
 
 
@@ -131,14 +132,20 @@ std::optional<u64> ScopeManager::findType(const std::string& type) const {
     return std::nullopt;
 }
 
-std::optional<size_t> ScopeManager::addId(const std::string& id, size_t type, bool is_func, bool is_rvalue) {
+std::optional<size_t> ScopeManager::addId(const std::string& id, size_t type, bool is_func, bool is_rvalue,
+                                          CFG::CFGNode& node) {
     if (const auto opt = top().addId(id, type, is_func)) {
+        const auto e = opt.value().toJirDecl();
+        if (!e) {
+            return std::nullopt;
+        }
+        node.declarations.emplace_back(e.value);
         return opt.value().getId();
     }
     return std::nullopt;
 }
 
-std::optional<size_t> ScopeManager::addId(const std::string& name, u64 id, u64 type, bool alloc) {
+std::optional<size_t> ScopeManager::linkId(const std::string& name, u64 id, u64 type, bool alloc) {
     if (const auto opt = top().addId(name, id, type, alloc)) {
         return opt.value().getId();
     }
@@ -152,8 +159,13 @@ std::optional<size_t> ScopeManager::addIdWithoutAllocation(const std::string& id
     return std::nullopt;
 }
 
-size_t ScopeManager::addAnonymousId(const u64 type, bool is_func, bool rValue) {
+size_t ScopeManager::addAnonymousId(const u64 type, bool is_func, bool rValue, CFG::CFGNode& node) {
     auto& id = top().addAnonymousId(type, is_func);
+    const auto e = id.toJirDecl();
+    if (!e) {
+        return -1;
+    }
+    node.declarations.emplace_back(e.value);
     return id.getId();
 }
 
@@ -182,14 +194,17 @@ void ScopeManager::push() {
     }
 }
 
-void ScopeManager::pop(std::vector<JIR::Command>& tokens) {
+error::errable<void> ScopeManager::pop() {
     auto& scope = scopes.back();
-    dealloc_scope(tokens, scope);
+    if (const auto r = dealloc_scope(scope); !r) {
+        return r.error;
+    }
     stackFrames.top().addSize(scope.getAllocatedSize());
     scopes.pop_back();
+    return "";
 }
 
-u64 ScopeManager::popFrame() {
+error::errable<u64> ScopeManager::popFrame() {
     const auto start_index = stackFrames.top().getTopScopeId();
     const auto end_index = scopes.size();
 
@@ -198,16 +213,19 @@ u64 ScopeManager::popFrame() {
         scopes | std::views::drop(start_index) | std::views::take(end_index - start_index) | std::views::reverse;
 
     for (const auto& scope : view) {
+        if (const auto r = dealloc_scope(scope); !r) {
+            return {r.error, {}};
+        }
         stackFrames.top().addSize(scope.getAllocatedSize());
     }
     scopes.erase(scopes.begin() + start_index, scopes.end());
     auto totalSize = stackFrames.top().getMaxSize();
     std::cout << "top frame size: " << totalSize << std::endl;
     stackFrames.pop();
-    return totalSize;
+    return {"", totalSize};
 }
 
-void ScopeManager::deallocFrame(std::vector<JIR::Command>& tokens) {
+error::errable<void> ScopeManager::deallocFrame(CFG::CFGNode& node) {
     const auto start_index = stackFrames.top().getTopScopeId();
     const auto end_index = scopes.size();
 
@@ -215,6 +233,9 @@ void ScopeManager::deallocFrame(std::vector<JIR::Command>& tokens) {
     auto view =
         scopes | std::views::drop(start_index) | std::views::take(end_index - start_index) | std::views::reverse;
     for (const auto& scope : view) {
-        dealloc_scope(tokens, scope);
+        if (const auto r = dealloc_scope(scope); !r) {
+            return r.error;
+        }
     }
+    return "";
 }

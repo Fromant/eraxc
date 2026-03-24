@@ -95,7 +95,7 @@ static errable<JIR::Operand> parse_instant(const std::string& instant) {
 
 errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector<Token>& tokens, size_t& pos,
                                                                const std::set<Token::type>& endTokens) {
-    std::vector<JIR::Command> tr;
+    CFG::CFGNode tr;
 
     if (tokens[pos + 1].t == Token::OPERATOR && assign_operators.contains(operators.at(tokens[pos + 1].data))) {
         //Handle assign operators differently
@@ -138,9 +138,8 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
         }
 
         const JIR::Operand assignee_operand {assignee_type_err.value, assignee.getId(), false, false};
-
-        tr.insert(tr.end(), assign_to.value.node.begin(), assign_to.value.node.end());
-        tr.emplace_back(assign_op, assignee_operand, assign_to.value.result);
+        tr += assign_to.value.node;
+        tr.nodes.emplace_back(assign_op, assignee_operand, assign_to.value.result);
         return {"", {tr, assignee_operand}};
     }
 
@@ -162,7 +161,7 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
                 return parentheses;
             }
             operand = parentheses.value.result;
-            tr.insert(tr.end(), parentheses.value.node.begin(), parentheses.value.node.end());
+            tr += parentheses.value.node;
         } else if (tokens[pos].t == Token::INSTANT) {
             auto instant = parse_instant(tokens[pos].data);
             if (!instant) {
@@ -212,7 +211,7 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
         }
     }
     for (auto& postfix : postfix_ops) {
-        tr.emplace_back(postfix);
+        tr.nodes.emplace_back(postfix);
     }
 
     if (endTokens.contains(tokens[pos].t)) {
@@ -227,7 +226,7 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
 
 errable<void> ExpressionParser::push_expr_stack(std::stack<OperatorType>& operations,
                                                 std::stack<JIR::Operand>& operands,
-                                                std::vector<JIR::Command>& cmds) const {
+                                                CFG::CFGNode& node) const {
     auto to_add = opToJirOp(operations.top());
     if (to_add == JIR::Operation::ERR) {
         return {"Invalid operation encountered."};
@@ -244,19 +243,19 @@ errable<void> ExpressionParser::push_expr_stack(std::stack<OperatorType>& operat
     expr_res.is_rvalue = true;
 
     if (operand1.is_instant || operand1.is_rvalue) {
-        cmds.emplace_back(to_add, operand1, operand2);
+        node.nodes.emplace_back(to_add, operand1, operand2);
         expr_res.value = operand1.value;
         expr_res.is_instant = operand1.is_instant;
         expr_res.is_rvalue = true;
     } else {
         const auto type = keywordFromJirType(expr_res.type);
-        u64 result_id = scope_manager.addAnonymousId((u64)type, false, true);
+        u64 result_id = scope_manager.addAnonymousId((u64)type, false, true, node);
         expr_res.value = result_id;
         expr_res.is_instant = false;
         expr_res.is_rvalue = true;
         //copy operand1
-        cmds.emplace_back(JIR::Operation::MOVE, expr_res, operand1);
-        cmds.emplace_back(to_add, expr_res, operand2);
+        node.nodes.emplace_back(JIR::Operation::MOVE, expr_res, operand1);
+        node.nodes.emplace_back(to_add, expr_res, operand2);
     }
 
     //result is a new operand
@@ -265,7 +264,7 @@ errable<void> ExpressionParser::push_expr_stack(std::stack<OperatorType>& operat
 }
 
 errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Token>& tokens, size_t& pos,
-                                                           std::vector<JIR::Command>& cmds,
+                                                           CFG::CFGNode& node,
                                                            std::vector<JIR::Command>& postfix_cmds) {
     std::stack<JIR::Operation> prefix_ops;
 
@@ -289,7 +288,7 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
             return {"Error parsing parenthesized expression: " + parentheses.error, {}};
         }
         operand = parentheses.value.result;
-        cmds.insert(cmds.end(), parentheses.value.node.begin(), parentheses.value.node.end());
+        node += parentheses.value.node;
     } else if (tokens[pos].t == Token::INSTANT) {
         auto instant = parse_instant(tokens[pos].data);
         if (!instant) {
@@ -347,8 +346,8 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
                         }
                     }
                     args_passed++;
-                    cmds.insert(cmds.end(), arg1.node.begin(), arg1.node.end());
-                    cmds.emplace_back(JIR::Operation::PASS, arg1.result, JIR::Operand {});
+                    node += arg1.node;
+                    node.nodes.emplace_back(JIR::Operation::PASS, arg1.result, JIR::Operand {});
 
                     if (tokens[pos].t == Token::COMMA) {
                         pos++;
@@ -364,12 +363,12 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
                     return {"Too many arguments for function: $" + std::to_string(decl.getId()), {}};
                 }
 
-                u64 call_result_id = scope_manager.addAnonymousId(decl.getType(), false, true);
+                u64 call_result_id = scope_manager.addAnonymousId(decl.getType(), false, true, node);
                 const auto declT = decl.getJirType();
                 if (!declT) {
                     return {declT.error, {}};
                 }
-                cmds.emplace_back(JIR::Operation::CALL, operand,
+                node.nodes.emplace_back(JIR::Operation::CALL, operand,
                                   JIR::Operand {declT.value, call_result_id, false, true});
                 operand = JIR::Operand(declT.value, call_result_id, false, true);
                 continue;
@@ -403,16 +402,16 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
         }
         if (!operand.is_rvalue) {
             const auto type = keywordFromJirType(operand.type);
-            u64 result_id = scope_manager.addAnonymousId((u64)type, false, true);
+            u64 result_id = scope_manager.addAnonymousId((u64)type, false, true, node);
             const JIR::Operand operand1 {operand.type, result_id, false, true};
-            cmds.emplace_back(JIR::Operation::MOVE, operand1, operand);
+            node.nodes.emplace_back(JIR::Operation::MOVE, operand1, operand);
             operand = operand1;
         }
 
         while (!prefix_ops.empty()) {
             const auto op = prefix_ops.top();
             prefix_ops.pop();
-            cmds.emplace_back(op, operand, JIR::Operand {});
+            node.nodes.emplace_back(op, operand, JIR::Operand {});
         }
     }
 
@@ -421,7 +420,7 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
 
 errable<ExpressionParser::ParseCondResult> ExpressionParser::parse_cond(const std::vector<Token>& tokens, size_t& pos,
                                                                         const std::set<Token::type>& endTokens) {
-    std::vector<JIR::Command> tr;
+    CFG::CFGNode tr;
 
     if (tokens[pos + 1].t == Token::OPERATOR && assign_operators.contains(operators.at(tokens[pos + 1].data))) {
         return {"cannot assign inside condition", {}};
@@ -472,7 +471,7 @@ errable<ExpressionParser::ParseCondResult> ExpressionParser::parse_cond(const st
                 return {parentheses.error, {}};
             }
             operand = parentheses.value.result;
-            tr.insert(tr.end(), parentheses.value.node.begin(), parentheses.value.node.end());
+            tr += parentheses.value.node;
         } else if (tokens[pos].t == Token::INSTANT) {
             auto instant = parse_instant(tokens[pos].data);
             if (!instant) {
@@ -524,7 +523,7 @@ errable<ExpressionParser::ParseCondResult> ExpressionParser::parse_cond(const st
         }
     }
     for (auto& postfix : postfix_ops) {
-        tr.emplace_back(postfix);
+        tr.nodes.emplace_back(postfix);
     }
 
     if (endTokens.contains(tokens[pos].t)) {
@@ -539,7 +538,7 @@ errable<ExpressionParser::ParseCondResult> ExpressionParser::parse_cond(const st
 
 errable<JIR::Operation> ExpressionParser::push_cond_expr_stack(std::stack<OperatorType>& operations,
                                                                std::stack<JIR::Operand>& operands,
-                                                               std::vector<JIR::Command>& cmds) const {
+                                                               CFG::CFGNode& node) const {
     auto to_add = cmpOpToJirOp(operations.top());
     if (to_add == JIR::Operation::ERR) {
         return {"Invalid compare operation encountered.", to_add};
@@ -558,17 +557,17 @@ errable<JIR::Operation> ExpressionParser::push_cond_expr_stack(std::stack<Operat
     // TODO rvalue logic and logic at all
 
     if (!operand1.is_instant && operand1.is_rvalue) {
-        cmds.emplace_back(to_add, operand1, operand2);
+        node.nodes.emplace_back(to_add, operand1, operand2);
         cond_res.value = operand1.value;
         cond_res.is_instant = operand1.is_instant;
     } else {
         const auto& keyword = keywordFromJirType(cond_res.type);
-        u64 result_id = scope_manager.addAnonymousId((u64)keyword, false, true);
+        u64 result_id = scope_manager.addAnonymousId((u64)keyword, false, true, node);
         cond_res.value = result_id;
         cond_res.is_instant = false;
         //copy operand1
-        cmds.emplace_back(JIR::Operation::MOVE, cond_res, operand1);
-        cmds.emplace_back(to_add, cond_res, operand2);
+        node.nodes.emplace_back(JIR::Operation::MOVE, cond_res, operand1);
+        node.nodes.emplace_back(to_add, cond_res, operand2);
         // const auto& keyword2 = keywordFromJirType(operand1.type);
         // scope_manager.setDeclaration(operand1.value, Scope::Declaration {(u64)keyword2, result.value, false});
     }

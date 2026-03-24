@@ -4,33 +4,37 @@
 
 #include "../JIR/Operation.hpp"
 #include "common/JIR/Command.hpp"
+#include "common/JIR/Declaration.hpp"
 #include "util/common.hpp"
 
 
 namespace eraxc::CFG {
 
-    using CFGNode = std::vector<JIR::Command>;
+    // using CFGNode = std::vector<JIR::Command>;
 
-    // class CFGNode {
-    // public:
-    //     std::vector<JIR::Command> nodes;
-    //     CFGNode() = default;
-    //     CFGNode(const std::vector<JIR::Command>& nodes) : nodes(nodes) {};
-    //
-    //     void print() const;
-    // };
+    class CFGNode {
+    public:
+        std::vector<JIR::Command> nodes;
+        CFGNode() = default;
+        CFGNode(const std::vector<JIR::Command>& nodes) : nodes(nodes) {};
+
+        std::vector<JIR::Declaration> declarations;
+
+        void operator+=(const CFGNode& node);
+
+    };
     // struct CFGNode {
     //
     //     // {type, id}
     //     std::vector<std::pair<u64, u64>> allocatedIds;
     // };
 
-    enum CFGEdgeType {
-        SQUASH,
-        EXTEND
-    };
-
     struct CFGEdge {
+        enum CFGEdgeType {
+            SQUASH,
+            EXTEND
+        };
+
         size_t to_id;
         CFGEdgeType type;
         JIR::Operation jump_op = JIR::Operation::JUMP;

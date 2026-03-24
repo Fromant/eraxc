@@ -1,10 +1,10 @@
 #pragma once
+
 #include <functional>
 #include <stack>
 #include <vector>
 
 #include "Scope.hpp"
-#include "common/JIR/Command.hpp"
 #include "common/JIR/Function.hpp"
 
 namespace eraxc::frontend {
@@ -77,21 +77,20 @@ namespace eraxc::frontend {
         std::optional<u64> findTypeRecursive(const std::string& type) const;
 
         std::optional<u64> findType(const std::string& type) const;
+        std::optional<size_t> addId(const std::string& id, size_t type, bool is_func, bool is_rvalue,
+                                    CFG::CFGNode& node);
 
         /// Function to add declaration into scope
+        /// \param name
         /// \param id declaration to add
         /// \param type id of type of added identifier
-        /// \param is_func is this identifier a function
-        /// \param nodes nodes list where allocation operation will be added
+        /// \param alloc is this identifier a function
         /// \return the index of declaration
-        std::optional<size_t> addId(const std::string& id, size_t type, bool is_func, bool rValue = false);
-
-        std::optional<size_t> addId(const std::string& name, u64 id, u64 type, bool alloc = false);
+        std::optional<size_t> linkId(const std::string& name, u64 id, size_t type, bool alloc);
 
         //for already allocated ids (e.g. func args)
         std::optional<size_t> addIdWithoutAllocation(const std::string& id, size_t type, bool is_func);
-
-        size_t addAnonymousId(u64 type, bool is_func, bool rValue = false);
+        size_t addAnonymousId(u64 type, bool is_func, bool rValue, CFG::CFGNode& node);
 
         size_t scopesCount() const;
 
@@ -102,10 +101,10 @@ namespace eraxc::frontend {
 
         void push();
 
-        void pop(std::vector<JIR::Command>& tokens);
+        error::errable<void> pop();
 
-        u64 popFrame();
+        error::errable<u64> popFrame();
 
-        void deallocFrame(std::vector<JIR::Command>& tokens);
+        error::errable<void> deallocFrame(CFG::CFGNode& node);
     };
 }

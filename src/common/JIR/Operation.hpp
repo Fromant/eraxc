@@ -42,6 +42,9 @@ namespace eraxc::JIR {
         DEREF,
         ADDR,
 
+        STACKALLOC,
+        STACKDEALLOC,
+
         NONE,
         ERR
     };

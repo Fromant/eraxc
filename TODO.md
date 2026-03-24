@@ -41,12 +41,13 @@
 - [ ] new nice architecture - think about having SSA JIR, e.g. LLVM IR
 - [ ] type conversions, booleans, type matrices?
 - [ ] docs (using mermaid diagrams) and tests
-- [ ] add a bunch of tests for stack size calculation add stuff on cfg node
+- [ ] tests for structure allocator (stack size and syntax checks)
 - [ ] `break` & `continue` support
 - [ ] `do` support (?)
 - [ ] `for` support
 - [ ] `extern` keyword
 - [ ] `defer` keyword
+- [ ] `loop` keyword for infinity loops 
 - [ ] early exit on logic expressions ( `false && f()` => don't call `f`)
 - [ ] Move all errors to separate file
 - [ ] Redo typenames (constness, rvalue/lvalue, references and pointers, structs and classes)

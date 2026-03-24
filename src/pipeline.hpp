@@ -1,5 +1,6 @@
 #pragma once
 
+#include "backend/allocation/StackAllocator.hpp"
 #include "frontend/lexic/PreprocessorTokenizer.hpp"
 #include "frontend/syntax/parser/StructureAnalyzer.hpp"
 
@@ -36,9 +37,13 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
 
     t1 = std::chrono::high_resolution_clock::now();
 
-    //TODO allocate
-
-    // JIR::Allocated::CFGAllocated cfg_allocated(cfg);
+    for (const auto& function : structure.value.functions) {
+        allocation::StackAllocator alloc {structure.value.globals};
+        const auto allocatedCFG = alloc.allocate(function);
+        if (!allocatedCFG) {
+            return allocatedCFG.error;
+        }
+    }
 
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
@@ -49,7 +54,7 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
     // auto asmtr = x64::asm_translator::translate(cfg_allocated, "eraxc.asm");
     t2 = std::chrono::high_resolution_clock::now();
     // if (!asmtr) {
-        // return {"Failed to translate to ASM. Error:\n" + asmtr.error};
+    // return {"Failed to translate to ASM. Error:\n" + asmtr.error};
     // }
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
     total_time += dur;

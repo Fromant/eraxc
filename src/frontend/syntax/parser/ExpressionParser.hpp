@@ -27,10 +27,9 @@ namespace eraxc::frontend {
         error::errable<ParseResult> parse(const std::vector<Token>& tokens, size_t& pos,
                                           const std::set<Token::type>& end = {Token::SEMICOLON});
         error::errable<void> push_expr_stack(std::stack<OperatorType>& operations, std::stack<JIR::Operand>& operands,
-                                             std::vector<JIR::Command>& cmds) const;
+                                             CFG::CFGNode& node) const;
         error::errable<JIR::Operand> parse_expr_operand(const std::vector<Token>& tokens, size_t& pos,
-                                                        std::vector<JIR::Command>& cmds,
-                                                        std::vector<JIR::Command>& postfix_cmds);
+                                                        CFG::CFGNode& node, std::vector<JIR::Command>& postfix_cmds);
 
         struct ParseCondResult {
             CFG::CFGNode node;
@@ -41,7 +40,7 @@ namespace eraxc::frontend {
                                                    const std::set<Token::type>& end = {Token::L_BRACKET});
         error::errable<JIR::Operation> push_cond_expr_stack(std::stack<OperatorType>& operations,
                                                             std::stack<JIR::Operand>& operands,
-                                                            std::vector<JIR::Command>& cmds) const;
+                                                            CFG::CFGNode& node) const;
     };
 
 }

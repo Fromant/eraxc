@@ -27,7 +27,7 @@ void FrontendResult::print() const {
 
         while (iter) {
             std::cout << '.' << iter.nodeId() << ':' << std::endl;
-            for (const auto& node : *iter) {
+            for (const auto& node : (*iter).nodes) {
                 std::cout << '\t';
                 node.print();
             }
