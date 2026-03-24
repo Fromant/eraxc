@@ -45,7 +45,7 @@ error::errable<eraxc::JIR::Function> StructureAnalyzer::parseFunction(const std:
             if (!arg_id) {
                 return {"Cannot allocate parameter somehow", {}};
             }
-            params.emplace_back(arg_type.value(), jirTypeFromKeyword((Keyword)arg_type.value()));
+            params.emplace_back(arg_id.value(), jirTypeFromKeyword((Keyword)arg_type.value()));
         } else {
             return {"Expected function parameters declaration or end of function declaration instead of " +
                         tokens[pos].data,
@@ -201,8 +201,8 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
     scopeManager.push();
 
     // jump to branches
-    cfg.edges[node_id_before].emplace_back(positive_branch, CFG::EXTEND, cond_err.value.jump_op);
-    cfg.edges[node_id_before].emplace_back(negative_branch, CFG::EXTEND);
+    cfg.edges[node_id_before].emplace_back(positive_branch, CFG::CFGEdge::EXTEND, cond_err.value.jump_op);
+    cfg.edges[node_id_before].emplace_back(negative_branch, CFG::CFGEdge::EXTEND);
 
     // parse positive branch body
     node_id = positive_branch;
@@ -234,12 +234,12 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
 
         const size_t after_body_id = cfg.nodes.size();
         cfg.nodes.emplace_back();
-        cfg.edges[negative_branch].emplace_back(after_body_id, CFG::SQUASH);
+        cfg.edges[negative_branch].emplace_back(after_body_id, CFG::CFGEdge::SQUASH);
     } else {
         // if body to after
         const size_t after_body_id = negative_branch;
-        cfg.edges[node_id_before].emplace_back(after_body_id, CFG::EXTEND);
-        cfg.edges[positive_branch].emplace_back(after_body_id, CFG::SQUASH);
+        cfg.edges[node_id_before].emplace_back(after_body_id, CFG::CFGEdge::EXTEND);
+        cfg.edges[positive_branch].emplace_back(after_body_id, CFG::CFGEdge::SQUASH);
         node_id = after_body_id;
     }
 
@@ -271,7 +271,7 @@ error::errable<void> StructureAnalyzer::parseWhile(const std::vector<Token>& tok
     // create cond branch
     const size_t cond_branch = cfg.nodes.size();
     cfg.nodes.emplace_back(cond_body);  //copy cond body
-    cfg.edges[node_id].emplace_back(cond_branch, CFG::EXTEND);
+    cfg.edges[node_id].emplace_back(cond_branch, CFG::CFGEdge::EXTEND);
 
     // create all branches
     const size_t while_body = cfg.nodes.size();
@@ -279,8 +279,8 @@ error::errable<void> StructureAnalyzer::parseWhile(const std::vector<Token>& tok
     const size_t after_body = cfg.nodes.size();
     cfg.nodes.emplace_back();
 
-    cfg.edges[cond_branch].emplace_back(while_body, CFG::EXTEND, cond_jump);
-    cfg.edges[cond_branch].emplace_back(after_body, CFG::SQUASH);
+    cfg.edges[cond_branch].emplace_back(while_body, CFG::CFGEdge::EXTEND, cond_jump);
+    cfg.edges[cond_branch].emplace_back(after_body, CFG::CFGEdge::SQUASH);
 
     scopeManager.push();
 
@@ -291,7 +291,7 @@ error::errable<void> StructureAnalyzer::parseWhile(const std::vector<Token>& tok
         return body;
     }
 
-    cfg.edges[node_id].emplace_back(cond_branch, CFG::SQUASH);
+    cfg.edges[node_id].emplace_back(cond_branch, CFG::CFGEdge::SQUASH);
     scopeManager.pop(cfg.nodes[node_id]);
 
     node_id = after_body;
