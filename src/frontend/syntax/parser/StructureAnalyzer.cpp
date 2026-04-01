@@ -323,9 +323,7 @@ error::errable<void> StructureAnalyzer::parseDeclaration(const std::vector<Token
         }
 
         //parsing initialization (e.g. `int a = a + 2`)
-        pos++;
-        const auto assign_expr_pos = pos;  // `a` pos
-        pos += 2;
+        pos += 3;
         // parse a + 2
         auto init_val = parser.parse(tokens, pos);
 
@@ -335,13 +333,23 @@ error::errable<void> StructureAnalyzer::parseDeclaration(const std::vector<Token
         const auto& expr = init_val.value.node;
         const auto& expr_res = init_val.value.result;
 
-        cfg.nodes[node_id] += expr;
+        if (expr_res.is_rvalue && !expr_res.is_instant) {
+            scopeManager.linkId(name, expr_res.value, type, false);
+        } else {
+            const auto id = scopeManager.addId(name, type, false, false, cfg.nodes[node_id]);
+            if (!id) {
+                return {"Something went wrong during declaration initialization parsing..."};
+            }
+            const JIR::Operand operand {jirTypeFromKeyword((Keyword)type), id.value(), false, false};
 
-        // TODO check for instants, etc?
-        scopeManager.linkId(name, expr_res.value, type, false);
+            cfg.nodes[node_id].nodes.emplace_back(JIR::Operation::MOVE, operand, expr_res);
+        }
+
+        cfg.nodes[node_id] += expr;
 
         return "";
     }
+    scopeManager.addId(name, type, false, false, cfg.nodes[node_id]);
 
     if (tokens[pos + 2].t != Token::SEMICOLON) {
         return {"Expected semicolon after declaration instead of: " + tokens[pos + 2].data};
