@@ -1,6 +1,7 @@
 #pragma once
 
 #include "backend/allocation/StackAllocator.hpp"
+#include "common/JIR/Program.hpp"
 #include "frontend/lexic/PreprocessorTokenizer.hpp"
 #include "frontend/syntax/parser/StructureAnalyzer.hpp"
 
@@ -35,17 +36,13 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
 
     structure.value.print_to_file("cfg.txt");
 
-    // cfg.print_to_file("cfg.txt");
+    JIR::Program program {structure.value.functions, structure.value.globals};
 
     t1 = std::chrono::high_resolution_clock::now();
 
-    for (const auto& function : structure.value.functions) {
-        allocation::StackAllocator alloc {structure.value.globals};
-        const auto allocatedCFG = alloc.allocate(function);
-        if (!allocatedCFG) {
-            return allocatedCFG.error;
-        }
-    }
+    allocation::StackAllocator allocator;
+
+    allocator.allocate(program);
 
     t2 = std::chrono::high_resolution_clock::now();
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();

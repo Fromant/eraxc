@@ -4,22 +4,18 @@
 
 namespace error {
 
-    template<typename v>
+    template<typename T>
     struct errable {
         std::string error;
-        v value;
+        T value;
 
-        errable(const char* error, v val) {
-            this->error = std::string {error};
-            value = val;
-        }
+        errable(const char* error, const T& val) : error(error), value(val) {}
+        errable(const char* error, T&& val) : error(error), value(val) {}
 
-        errable(const std::string& error, const v& val) {
-            this->error = std::string {error};
-            value = val;
-        }
+        errable(std::string error, const T& val) : error(std::move(error)), value(val) {}
+        errable(std::string error, T&& val) : error(std::move(error)), value(val) {}
 
-        explicit errable(v val) {
+        explicit errable(const T& val) {
             error = "";
             value = val;
         }

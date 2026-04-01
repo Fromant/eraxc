@@ -1,15 +1,33 @@
 #include "StackAllocator.hpp"
 
+#include <algorithm>
+
 #include "common/JIR/allocated/Function.hpp"
 
 using namespace eraxc;
 using namespace allocation;
 using namespace CFG;
 
-// TODO прокинуть
-error::errable<JIR::allocated::Function> StackAllocator::allocate(const JIR::Function& function) {
-    JIR::allocated::Function tr;
 
+error::errable<JIR::allocated::Program> StackAllocator::allocate(const JIR::Program& program) {
+    for (const auto& global : program.globals) {
+        globals.emplace(global.decl.id);
+    }
+
+    std::vector<JIR::allocated::Function> functions;
+
+    for (const auto& function : program.functions) {
+        const auto& allocated = allocate(function);
+        if (!allocated) {
+            return {allocated.error, {{}, {}}};
+        }
+        functions.emplace_back(allocated.value);
+    }
+
+    return {"", {functions, program.globals}};
+}
+
+error::errable<JIR::allocated::Function> StackAllocator::allocate(const JIR::Function& function) {
     for (const auto& param : function.params) {
         used_regs.emplace(param.id, pass_ABI[args_in_registers_count++]);
     }
@@ -19,9 +37,9 @@ error::errable<JIR::allocated::Function> StackAllocator::allocate(const JIR::Fun
         return {alloc.error, {}};
     }
 
-    tr.cfg = alloc.value;
-
-    return {"", tr};
+    JIR::allocated::Function result {};
+    result.cfg = alloc.value;
+    return {"", std::move(result)};
 }
 
 error::errable<allocated::CFG> StackAllocator::allocate(const CFG::CFG& cfg) {
@@ -31,7 +49,7 @@ error::errable<allocated::CFG> StackAllocator::allocate(const CFG::CFG& cfg) {
     tr.nodes.resize(cfg.nodes.size());
 
     if (cfg.nodes.empty()) {
-        return {"", tr};
+        return {"", std::move(tr)};
     }
 
     total_stack_space = cfg.maxStackSize;
@@ -51,7 +69,7 @@ error::errable<allocated::CFG> StackAllocator::allocate(const CFG::CFG& cfg) {
     }
 
 
-    return {"", tr};
+    return {"", std::move(tr)};
 }
 
 error::errable<allocated::CFGNode> StackAllocator::allocateCFGNode(const CFGNode& old_node) {
@@ -62,7 +80,7 @@ error::errable<allocated::CFGNode> StackAllocator::allocateCFGNode(const CFGNode
     for (const auto& op : old_node.nodes) {
         // skip alloc and dealloc
         if (op.op == JIR::Operation::ERR) {
-            return {"Encountered ERR operation", node};
+            return {"Encountered ERR operation", std::move(node)};
         }
         if (op.op == JIR::Operation::ALLOC || op.op == JIR::Operation::DEALLOC) {
             continue;
@@ -137,7 +155,7 @@ error::errable<allocated::CFGNode> StackAllocator::allocateCFGNode(const CFGNode
     for (const auto& alloc : old_node.declarations) {
         deallocVar(alloc.type, alloc.id);
     }
-    return {"", node};
+    return {"", std::move(node)};
 }
 
 error::errable<eraxc::JIR::allocated::Operand> StackAllocator::operandToAllocated(const JIR::Operand& operand) {
@@ -148,8 +166,7 @@ error::errable<eraxc::JIR::allocated::Operand> StackAllocator::operandToAllocate
     }
 
     if (operand.is_instant) {
-        const JIR::allocated::Operand op {operand, JIR::allocated::Operand::INSTANT};
-        return error::errable {op};
+        return error::errable {JIR::allocated::Operand {operand, JIR::allocated::Operand::INSTANT}};
     }
 
     if (const auto globals_it = globals.find(operand.value); globals_it != globals.end()) {

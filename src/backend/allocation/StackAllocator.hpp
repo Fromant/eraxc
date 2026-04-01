@@ -3,8 +3,9 @@
 #include "common/CFG/CFGIterator.hpp"
 #include "common/CFG/allocated/AllocatedCFG.hpp"
 #include "common/JIR/Function.hpp"
-#include "common/JIR/Global.hpp"
+#include "common/JIR/Program.hpp"
 #include "common/JIR/allocated/Function.hpp"
+#include "common/JIR/allocated/Program.hpp"
 #include "frontend/syntax/parser/ExpressionParser.hpp"
 #include "util/error.hpp"
 
@@ -42,12 +43,9 @@ namespace eraxc::allocation {
         size_t args_in_registers_count = 0;
 
     public:
-        StackAllocator(const std::vector<JIR::Global>& globals) {
-            for (const auto& global : globals) {
-                this->globals.emplace(global.decl.id);
-            }
-        }
+        StackAllocator() = default;
 
+        error::errable<JIR::allocated::Program> allocate(const JIR::Program& program);
         error::errable<CFG::allocated::CFG> allocate(const CFG::CFG& cfg);
         error::errable<JIR::allocated::Function> allocate(const JIR::Function& function);
     };
