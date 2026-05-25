@@ -1,0 +1,12 @@
+int main() {
+    if(2>1) {
+        if(3>2) {
+            return 2;
+        } else {
+            return 4;
+        }
+    } else {
+        return 3;
+    }
+    return 1;
+}

@@ -194,10 +194,10 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
     const size_t node_id_before = node_id;
 
     // create positive branch
-    const size_t positive_branch = cfg.nodes.size();
+    size_t positive_branch = cfg.nodes.size();
     cfg.nodes.emplace_back();
 
-    const size_t negative_branch = cfg.nodes.size();
+    size_t negative_branch = cfg.nodes.size();
     cfg.nodes.emplace_back();
 
     // scope for positive branch
@@ -210,8 +210,7 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
     cfg.edges[node_id_before].emplace_back(negative_branch, CFG::CFGEdge::EXTEND);
 
     // parse positive branch body
-    node_id = positive_branch;
-    auto positive_body = parseStatements(tokens, pos, cfg, node_id);
+    auto positive_body = parseStatements(tokens, pos, cfg, positive_branch);
     if (!positive_body) {
         return positive_body;
     }
@@ -229,7 +228,7 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
 
         const size_t else_body_id = negative_branch;
         node_id = else_body_id;
-        auto else_body = parseStatements(tokens, pos, cfg, node_id);
+        auto else_body = parseStatements(tokens, pos, cfg, negative_branch);
         if (!else_body) {
             return else_body;
         }
@@ -244,7 +243,6 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
     } else {
         // if body to after
         const size_t after_body_id = negative_branch;
-        // cfg.edges[node_id_before].emplace_back(after_body_id, CFG::CFGEdge::EXTEND);
         cfg.edges[positive_branch].emplace_back(after_body_id, CFG::CFGEdge::SQUASH);
         node_id = after_body_id;
     }

@@ -26,7 +26,7 @@ protected:
     Operand newVar2 {i32, 16, false, true};
     Operand newVar3 {i32, 17, false, true};
 
-    ExpressionParserTest() {
+    ExpressionParserTest() : result() {
         const auto type = scopeManager.findTypeRecursive("i32");
         CFGNode temp {};
         scopeManager.addId("a", (size_t)type.value(), false, false, temp);

@@ -249,6 +249,7 @@ errable<void> ExpressionParser::push_expr_stack(std::stack<OperatorType>& operat
     JIR::Operand expr_res {operand1};
     expr_res.is_rvalue = true;
     if (is_cmp_op) {
+        // TODO instant operands? e.g. "2 > 1"
         const auto type = keywordFromJirType(expr_res.type);
         u64 result_id = scope_manager.addAnonymousId((u64)type, false, true, node);
         expr_res.value = result_id;

@@ -39,8 +39,11 @@
 - [x] fix recursion - function is not registered before parsing body so can't call itself
 - [x] re-impl x64 asm win backend
 - [x] re-do booleans
-- [ ] fix all tests
-- [ ] impl symbolTable for being able to pass main (entrypoint function id) in BE 
+- [ ] conditionals 2 instants optimization (e.g. 2 > 1) [HERE](src/frontend/syntax/parser/ExpressionParser.cpp)
+- [ ] fix recursion test
+- [ ] fix scope test
+- [ ] globals impl & enable tests!
+- [ ] impl symbolTable for being able to pass main (entrypoint function id) in BE
 - [ ] in-code TODOs
 - [ ] new nice architecture - think about having SSA JIR, e.g. LLVM IR
 - [ ] type conversions, type matrices?
@@ -51,7 +54,7 @@
 - [ ] `for` support
 - [ ] `extern` keyword
 - [ ] `defer` keyword
-- [ ] `loop` keyword for infinity loops 
+- [ ] `loop` keyword for infinity loops
 - [ ] early exit on logic expressions ( `false && f()` => don't call `f`)
 - [ ] Move all errors to separate file
 - [ ] Redo typenames (constness, rvalue/lvalue, references and pointers, structs and classes)
