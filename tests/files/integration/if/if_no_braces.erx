@@ -1,0 +1,5 @@
+int main() {
+    int i = 0i;
+    if(1i==1i) i = 1i;
+    return i;
+}

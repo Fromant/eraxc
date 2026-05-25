@@ -1,0 +1,11 @@
+int main() {
+    int r = 0i;
+    if(1i==2i) {
+        if(1i==1i) {
+            r = 10i;
+        }
+    } else {
+        r = 20i;
+    }
+    return r;
+}

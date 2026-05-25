@@ -1,0 +1,11 @@
+int main() {
+    int i = 0i;
+    if(i==1i) {
+        i = 1i;
+    } else if(i==0i) {
+        i = 2i;
+    } else {
+        i = 3i;
+    }
+    return i;
+}

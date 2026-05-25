@@ -1,0 +1,12 @@
+int main() {
+    int a = 1i;
+    int b = 2i;
+    int r = 0i;
+    if(a==1i && b==2i) {
+        r = 1i;
+    }
+    if(a==2i || b==2i) {
+        r = r + 2i;
+    }
+    return r;
+}

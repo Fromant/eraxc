@@ -1,0 +1,11 @@
+int identity(int x) {
+    return x;
+}
+
+int main() {
+    int r = 0i;
+    if(identity(1i)==1i) {
+        r = 42i;
+    }
+    return r;
+}

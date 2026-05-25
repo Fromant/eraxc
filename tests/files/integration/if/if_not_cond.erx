@@ -1,0 +1,7 @@
+int main() {
+    int i = 0i;
+    if(!(1i==2i)) {
+        i = 1i;
+    }
+    return i;
+}

@@ -1,0 +1,11 @@
+int main() {
+    int r = 0i;
+    if(1i==2i) {
+        int x = 5i;
+        r = x;
+    } else {
+        int y = 10i;
+        r = y;
+    }
+    return r;
+}
