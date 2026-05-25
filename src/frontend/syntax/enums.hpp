@@ -562,9 +562,31 @@ namespace eraxc::frontend {
             return JIR::Operation::MOVE;
         return JIR::Operation::ERR;
     }
+
+    static const inline std::unordered_set<OperatorType> cond_operators = {
+        OperatorType::EQUAL,      OperatorType::NOT_EQUAL, OperatorType::GREATER,
+        OperatorType::GREATER_EQ, OperatorType::LESS,      OperatorType::LESS_EQ};
+
+    static constexpr JIR::BooleanOperation conditionalOpToBooleanOperation(const OperatorType& op) {
+        if (op == OperatorType::EQUAL) {
+            return JIR::BooleanOperation::EQUAL;
+        }
+        if (op == OperatorType::NOT_EQUAL) {
+            return JIR::BooleanOperation::NOT_EQUAL;
+        }
+        if (op == OperatorType::GREATER) {
+            return JIR::BooleanOperation::GREATER;
+        }
+        if (op == OperatorType::GREATER_EQ) {
+            return JIR::BooleanOperation::GREATER_EQUAL;
+        }
+        if (op == OperatorType::LESS) {
+            return JIR::BooleanOperation::LESS;
+        }
+        if (op == OperatorType::LESS_EQ) {
+            return JIR::BooleanOperation::LESS_EQUAL;
+        }
+        return JIR::BooleanOperation::ERR;
+    }
+
 }
-
-
-
-
-

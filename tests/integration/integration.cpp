@@ -13,8 +13,7 @@ void checkSource(const std::string& path, int expectedExitCode) {
     if (auto err = compilation_pipeline(path); !err) {
         FAIL() << err.error;
     }
-    // TODO enable
-    // EXPECT_EQ(executeProgramSimple("a.exe"), expectedExitCode);
+    EXPECT_EQ(executeProgramSimple("a.exe"), expectedExitCode);
 }
 
 const std::string prefix = "../../tests/files/integration/";

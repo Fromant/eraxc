@@ -19,9 +19,9 @@ namespace eraxc::JIR::allocated {
         Operand(Type type, u64 value, AllocPlace place) : type(type), value(value), place {place} {};
         Operand(const JIR::Operand& operand, AllocPlace place) :
             type(operand.type), value(operand.value), place(place) {}
-        Type type;
-        u64 value;  // stack offset or register ID or instant value
-        AllocPlace place;  // where operand is allocated
+        Type type = Type::ERR;
+        u64 value = -1;  // stack offset or register ID or instant value
+        AllocPlace place = INSTANT;  // where operand is allocated
     };
 
     class Command {
@@ -31,7 +31,7 @@ namespace eraxc::JIR::allocated {
             op(op), operand1(operand1), operand2 {operand2} {};
 
 
-        Operation op;
+        Operation op = Operation::ERR;
 
         Operand operand1;
         Operand operand2;

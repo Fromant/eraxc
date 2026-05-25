@@ -37,9 +37,13 @@
 ## Syntax & CFG generation:
 
 - [x] fix recursion - function is not registered before parsing body so can't call itself
+- [x] re-impl x64 asm win backend
+- [x] re-do booleans
+- [ ] fix all tests
+- [ ] impl symbolTable for being able to pass main (entrypoint function id) in BE 
 - [ ] in-code TODOs
 - [ ] new nice architecture - think about having SSA JIR, e.g. LLVM IR
-- [ ] type conversions, booleans, type matrices?
+- [ ] type conversions, type matrices?
 - [ ] docs (using mermaid diagrams) and tests
 - [ ] tests for structure allocator (stack size and syntax checks)
 - [ ] `break` & `continue` support

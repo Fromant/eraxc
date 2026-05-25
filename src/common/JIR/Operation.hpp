@@ -23,6 +23,8 @@ namespace eraxc::JIR {
 
         CMP,
 
+        BOOL,  // operation for setting booleans. BYTE only. Example: CMP $a, $b; BOOL $c GE; // $c = $a >= $b
+
         MOVE,
         CALL,
         RET,
@@ -49,17 +51,25 @@ namespace eraxc::JIR {
         ERR
     };
 
+    enum class BooleanOperation {
+        EQUAL, NOT_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
+        ERR
+    };
+
 
     constexpr Operation getInvertedJump(Operation jump) {
-        if (jump == Operation::JE)
+        if (jump == Operation::JE) {
             return Operation::JGE;
-        if (jump == Operation::JLE)
+        }
+        if (jump == Operation::JLE) {
             return Operation::JG;
-        if (jump == Operation::JGE)
+        }
+        if (jump == Operation::JGE) {
             return Operation::JL;
-        if (jump == Operation::JG)
+        }
+        if (jump == Operation::JG) {
             return Operation::JLE;
-
+        }
         return Operation::ERR;
     }
 

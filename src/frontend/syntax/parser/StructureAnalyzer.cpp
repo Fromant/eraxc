@@ -129,8 +129,8 @@ error::errable<void> StructureAnalyzer::parseStatement(const std::vector<Token>&
 
         const auto& expr = expr_err.value.node;
         cfg.nodes[node_id] += expr;
-        cfg.nodes[node_id].nodes.emplace_back(JIR::Operation::PASS_RET, expr_err.value.result, JIR::Operand {});
-        cfg.nodes[node_id].nodes.emplace_back(JIR::Operation::RET, JIR::Operand {}, JIR::Operand {});
+        cfg.nodes[node_id].commands.emplace_back(JIR::Operation::PASS_RET, expr_err.value.result, JIR::Operand {});
+        cfg.nodes[node_id].commands.emplace_back(JIR::Operation::RET, JIR::Operand {}, JIR::Operand {});
         return "";
     }
     if (tokens[pos].data == "if") {
@@ -180,7 +180,7 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
 
     // parse condition
 
-    auto cond_err = parser.parse_cond(tokens, pos, {Token::R_BRACKET});
+    auto cond_err = parser.parse(tokens, pos, {Token::R_BRACKET});
     if (!cond_err) {
         //TODO no condition appeared error
         return cond_err.error;
@@ -204,7 +204,9 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
     scopeManager.push();
 
     // jump to branches
-    cfg.edges[node_id_before].emplace_back(positive_branch, CFG::CFGEdge::EXTEND, cond_err.value.jump_op);
+    cfg.nodes[node_id].commands.emplace_back(JIR::Operation::CMP, cond_err.value.result,
+                                             JIR::Operand {JIR::Type::I32, 1, true, true});
+    cfg.edges[node_id_before].emplace_back(positive_branch, CFG::CFGEdge::EXTEND, JIR::Operation::JE);
     cfg.edges[node_id_before].emplace_back(negative_branch, CFG::CFGEdge::EXTEND);
 
     // parse positive branch body
@@ -238,10 +240,11 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
         const size_t after_body_id = cfg.nodes.size();
         cfg.nodes.emplace_back();
         cfg.edges[negative_branch].emplace_back(after_body_id, CFG::CFGEdge::SQUASH);
+        cfg.edges[positive_branch].emplace_back(after_body_id, CFG::CFGEdge::SQUASH);
     } else {
         // if body to after
         const size_t after_body_id = negative_branch;
-        cfg.edges[node_id_before].emplace_back(after_body_id, CFG::CFGEdge::EXTEND);
+        // cfg.edges[node_id_before].emplace_back(after_body_id, CFG::CFGEdge::EXTEND);
         cfg.edges[positive_branch].emplace_back(after_body_id, CFG::CFGEdge::SQUASH);
         node_id = after_body_id;
     }
@@ -258,15 +261,14 @@ error::errable<void> StructureAnalyzer::parseWhile(const std::vector<Token>& tok
     }
     pos += 2;
 
-    auto cond = parser.parse_cond(tokens, pos, {Token::R_BRACKET});
+    auto cond = parser.parse(tokens, pos, {Token::R_BRACKET});
     if (!cond) {
         return cond.error;
     }
 
     const auto& cond_body = cond.value.node;
-    const auto& cond_jump = cond.value.jump_op;
 
-    if (cond_body.nodes.empty()) {
+    if (cond_body.commands.empty()) {
         //TODO no condition appeared error
         return "Expected condition expression inside of while()";
     }
@@ -282,7 +284,9 @@ error::errable<void> StructureAnalyzer::parseWhile(const std::vector<Token>& tok
     const size_t after_body = cfg.nodes.size();
     cfg.nodes.emplace_back();
 
-    cfg.edges[cond_branch].emplace_back(while_body, CFG::CFGEdge::EXTEND, cond_jump);
+    cfg.nodes[cond_branch].commands.emplace_back(JIR::Operation::CMP, cond.value.result,
+                                                 JIR::Operand {JIR::Type::I32, 1, true, true});
+    cfg.edges[cond_branch].emplace_back(while_body, CFG::CFGEdge::EXTEND, JIR::Operation::JE);
     cfg.edges[cond_branch].emplace_back(after_body, CFG::CFGEdge::SQUASH);
 
     scopeManager.push();
@@ -342,7 +346,7 @@ error::errable<void> StructureAnalyzer::parseDeclaration(const std::vector<Token
             }
             const JIR::Operand operand {jirTypeFromKeyword((Keyword)type), id.value(), false, false};
 
-            cfg.nodes[node_id].nodes.emplace_back(JIR::Operation::MOVE, operand, expr_res);
+            cfg.nodes[node_id].commands.emplace_back(JIR::Operation::MOVE, operand, expr_res);
         }
 
         cfg.nodes[node_id] += expr;
@@ -391,6 +395,19 @@ error::errable<eraxc::JIR::FrontendResult> StructureAnalyzer::analyze(const std:
         }
     }
 
+    const auto main_id = scopeManager.findIdRecursive("main");
+    if (!main_id) {
+        return {"Cannot find main()", {}};
+    }
+
+    result.entrypointId = main_id.value();
+    // for (size_t fn = 0; fn < result.functions.size(); fn++) {
+    //     const auto& f = result.functions[fn];
+    //     if (f.decl.id == main_id.value()) {
+    //         // found main
+    //         break;
+    //     }
+    // }
 
     return {"", result};
 }

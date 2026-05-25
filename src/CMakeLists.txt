@@ -8,20 +8,19 @@ set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g")
 
 add_library(eraxCore
         util/error.cpp
-        backend/JIR/CFG/CFG.cpp
-        frontend/syntax/scope/ScopeManager.cpp
-        frontend/lexic/PreprocessorTokenizer.cpp
-        backend/JIR/CFG/Allocated/AllocationManager.cpp
-        backend/JIR/CFG/Allocated/Iterator/CFGIterator.cpp
+
         backend/codegen/x64/asm_x64.cpp
+        backend/allocation/StackAllocator.cpp
+
+        frontend/lexic/PreprocessorTokenizer.cpp
+        frontend/syntax/scope/ScopeManager.cpp
         frontend/syntax/parser/StructureAnalyzer.cpp
         frontend/syntax/parser/ExpressionParser.cpp
-        common/CFG/CFGIterator.cpp
+
         common/CFG/CFGParts.cpp
+        common/CFG/allocated/AllocatedCFG.cpp
         common/JIR/Command.cpp
         common/JIR/FrontendResult.cpp
-        backend/allocation/StackAllocator.cpp
-        common/CFG/allocated/AllocatedCFG.cpp
 )
 target_include_directories(eraxCore PRIVATE ../src)
 

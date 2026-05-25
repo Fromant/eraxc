@@ -33,14 +33,8 @@ namespace eraxc::frontend {
 
         struct ParseCondResult {
             CFG::CFGNode node;
-            JIR::Operation jump_op;
+            JIR::Command jump_cmd;
         };
-
-        error::errable<ParseCondResult> parse_cond(const std::vector<Token>& tokens, size_t& pos,
-                                                   const std::set<Token::type>& end = {Token::L_BRACKET});
-        error::errable<JIR::Operation> push_cond_expr_stack(std::stack<OperatorType>& operations,
-                                                            std::stack<JIR::Operand>& operands,
-                                                            CFG::CFGNode& node) const;
     };
 
 }

@@ -86,7 +86,7 @@ protected:
     }
 
     static bool nodesEqual(const CFGNode& a, const std::vector<Command>& b) {
-        if (a.nodes.size() != b.size()) {
+        if (a.commands.size() != b.size()) {
             return false;
         }
 
@@ -95,8 +95,8 @@ protected:
         //     return false;
         // }
 
-        for (size_t i = 0; i < a.nodes.size(); i++) {
-            if (!commandsEqual(a.nodes[i], b[i])) {
+        for (size_t i = 0; i < a.commands.size(); i++) {
+            if (!commandsEqual(a.commands[i], b[i])) {
                 return false;
             }
         }

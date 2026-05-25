@@ -19,12 +19,12 @@ error::errable<JIR::allocated::Program> StackAllocator::allocate(const JIR::Prog
     for (const auto& function : program.functions) {
         const auto& allocated = allocate(function);
         if (!allocated) {
-            return {allocated.error, {{}, {}}};
+            return {allocated.error, {{}, {}, 0}};
         }
         functions.emplace_back(allocated.value);
     }
 
-    return {"", {functions, program.globals}};
+    return {"", {functions, program.globals, program.entrypoint_id}};
 }
 
 error::errable<JIR::allocated::Function> StackAllocator::allocate(const JIR::Function& function) {
@@ -39,6 +39,8 @@ error::errable<JIR::allocated::Function> StackAllocator::allocate(const JIR::Fun
 
     JIR::allocated::Function result {};
     result.cfg = alloc.value;
+    result.decl = function.decl;
+    result.params = function.params;
     return {"", std::move(result)};
 }
 
@@ -52,9 +54,10 @@ error::errable<allocated::CFG> StackAllocator::allocate(const CFG::CFG& cfg) {
         return {"", std::move(tr)};
     }
 
+    const auto maxStackSize = cfg.maxStackSize;
     total_stack_space = cfg.maxStackSize;
 
-    CFGIterator iter {cfg, 0};
+    CFGIterator<CFG::CFG> iter {cfg, 0};
 
     while (iter) {
 
@@ -68,6 +71,7 @@ error::errable<allocated::CFG> StackAllocator::allocate(const CFG::CFG& cfg) {
         ++iter;
     }
 
+    tr.maxStackSize = maxStackSize;
 
     return {"", std::move(tr)};
 }
@@ -77,7 +81,7 @@ error::errable<allocated::CFGNode> StackAllocator::allocateCFGNode(const CFGNode
     for (const auto& alloc : old_node.declarations) {
         allocVar(alloc.type, alloc.id);
     }
-    for (const auto& op : old_node.nodes) {
+    for (const auto& op : old_node.commands) {
         // skip alloc and dealloc
         if (op.op == JIR::Operation::ERR) {
             return {"Encountered ERR operation", std::move(node)};

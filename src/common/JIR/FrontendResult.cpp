@@ -24,11 +24,11 @@ void FrontendResult::print() const {
             continue;
         }
 
-        CFG::CFGIterator iter {func.cfg, 0};
+        CFG::CFGIterator<CFG::CFG> iter {func.cfg, 0};
 
         while (iter) {
             std::cout << '.' << iter.nodeId() << ':' << std::endl;
-            for (const auto& node : (*iter).nodes) {
+            for (const auto& node : (*iter).commands) {
                 std::cout << '\t';
                 node.print();
             }

@@ -3,7 +3,7 @@ i32 t() {
 }
 
 i32 double(i32 a) {
-    return a*3i;
+    return a*2i;
 }
 
 i32 main() {

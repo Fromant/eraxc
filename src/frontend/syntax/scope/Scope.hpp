@@ -153,7 +153,7 @@ namespace eraxc::frontend {
 
         // already reversed
         auto getAllocations() const {
-            return std::views::all(allocations) | std::views::reverse;
+        return std::views::all(allocations) | std::views::reverse;
         }
 
         std::optional<Declaration> findId(const std::string& id) const {

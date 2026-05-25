@@ -10,24 +10,16 @@
 
 namespace eraxc::CFG {
 
-    // using CFGNode = std::vector<JIR::Command>;
-
     class CFGNode {
     public:
-        std::vector<JIR::Command> nodes;
+        std::vector<JIR::Command> commands;
         CFGNode() = default;
-        CFGNode(const std::vector<JIR::Command>& nodes) : nodes(nodes) {};
+        CFGNode(const std::vector<JIR::Command>& commands) : commands(commands) {};
 
         std::vector<JIR::Declaration> declarations;
 
         void operator+=(const CFGNode& node);
-
     };
-    // struct CFGNode {
-    //
-    //     // {type, id}
-    //     std::vector<std::pair<u64, u64>> allocatedIds;
-    // };
 
     struct CFGEdge {
         enum CFGEdgeType {
@@ -35,7 +27,7 @@ namespace eraxc::CFG {
             EXTEND
         };
 
-        size_t to_id;
+        size_t to_id = -1;
         CFGEdgeType type;
         JIR::Operation jump_op = JIR::Operation::JUMP;
     };
@@ -49,6 +41,10 @@ namespace eraxc::CFG {
 
     class CFG {
     public:
+        using NodeType = CFGNode;
+        using CommandType = JIR::Command;
+        using EdgeType = CFGEdge;
+
         size_t maxStackSize = -1;
         std::vector<CFGNode> nodes;
         // {from_id, edge}

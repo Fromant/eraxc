@@ -11,6 +11,8 @@ namespace eraxc::JIR {
         std::vector<Global> globals;
         std::vector<Function> functions;
 
+        size_t entrypointId;
+
         SymbolTable symbols;
         // module imports
         // module exports

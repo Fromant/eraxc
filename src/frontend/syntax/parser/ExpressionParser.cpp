@@ -139,7 +139,7 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
 
         const JIR::Operand assignee_operand {assignee_type_err.value, assignee.getId(), false, false};
         tr += assign_to.value.node;
-        tr.nodes.emplace_back(assign_op, assignee_operand, assign_to.value.result);
+        tr.commands.emplace_back(assign_op, assignee_operand, assign_to.value.result);
         return {"", {tr, assignee_operand}};
     }
 
@@ -211,7 +211,7 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
         }
     }
     for (auto& postfix : postfix_ops) {
-        tr.nodes.emplace_back(postfix);
+        tr.commands.emplace_back(postfix);
     }
 
     if (endTokens.contains(tokens[pos].t)) {
@@ -225,25 +225,51 @@ errable<ExpressionParser::ParseResult> ExpressionParser::parse(const std::vector
 };
 
 errable<void> ExpressionParser::push_expr_stack(std::stack<OperatorType>& operations,
-                                                std::stack<JIR::Operand>& operands,
-                                                CFG::CFGNode& node) const {
-    auto to_add = opToJirOp(operations.top());
+                                                std::stack<JIR::Operand>& operands, CFG::CFGNode& node) const {
+    if (operations.empty()) {
+        return {std::string("Internal error while parsing expression: empty stack passed. ") + __FILE__ + ':' +
+                std::to_string(__LINE__)};
+    }
+    const auto operation = operations.top();
+    operations.pop();
+
+    // compare operator (e.g. '<', '>')
+    const bool is_cmp_op = compare_operators.contains(operation);
+
+    auto to_add = opToJirOp(operation);
     if (to_add == JIR::Operation::ERR) {
         return {"Invalid operation encountered."};
     }
-    operations.pop();
     //operands are on stack in backwards order so flip em
     JIR::Operand operand2 = operands.top();
     operands.pop();
     JIR::Operand operand1 = operands.top();
     operands.pop();
 
-    // temporary: resulting type is always evaluated as the top operands stack element type
     JIR::Operand expr_res {operand1};
     expr_res.is_rvalue = true;
+    if (is_cmp_op) {
+        const auto type = keywordFromJirType(expr_res.type);
+        u64 result_id = scope_manager.addAnonymousId((u64)type, false, true, node);
+        expr_res.value = result_id;
+        expr_res.is_instant = false;
+        expr_res.is_rvalue = true;
+        expr_res.type = JIR::Type::I32;  // bool in i32 number
+        node.commands.emplace_back(JIR::Operation::MOVE, expr_res, JIR::Operand {JIR::Type::I32, 0, true, true});
+        node.commands.emplace_back(JIR::Operation::CMP, operand1, operand2);
+        const auto jirOp = conditionalOpToBooleanOperation(operation);
+        if (jirOp == JIR::BooleanOperation::ERR) {
+            return {"Invalid compare operation encountered."};
+        }
+        node.commands.emplace_back(JIR::Operation::BOOL, expr_res,
+                                   JIR::Operand {JIR::Type::VOID, (u64)jirOp, true, true});
+        operands.push(expr_res);
+        return {""};
+    }
 
+    // temporary: resulting type is always evaluated as the top operands stack element type
     if (operand1.is_instant || operand1.is_rvalue) {
-        node.nodes.emplace_back(to_add, operand1, operand2);
+        node.commands.emplace_back(to_add, operand1, operand2);
         expr_res.value = operand1.value;
         expr_res.is_instant = operand1.is_instant;
         expr_res.is_rvalue = true;
@@ -254,8 +280,8 @@ errable<void> ExpressionParser::push_expr_stack(std::stack<OperatorType>& operat
         expr_res.is_instant = false;
         expr_res.is_rvalue = true;
         //copy operand1
-        node.nodes.emplace_back(JIR::Operation::MOVE, expr_res, operand1);
-        node.nodes.emplace_back(to_add, expr_res, operand2);
+        node.commands.emplace_back(JIR::Operation::MOVE, expr_res, operand1);
+        node.commands.emplace_back(to_add, expr_res, operand2);
     }
 
     //result is a new operand
@@ -347,7 +373,7 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
                     }
                     args_passed++;
                     node += arg1.node;
-                    node.nodes.emplace_back(JIR::Operation::PASS, arg1.result, JIR::Operand {});
+                    node.commands.emplace_back(JIR::Operation::PASS, arg1.result, JIR::Operand {});
 
                     if (tokens[pos].t == Token::COMMA) {
                         pos++;
@@ -368,8 +394,8 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
                 if (!declT) {
                     return {declT.error, {}};
                 }
-                node.nodes.emplace_back(JIR::Operation::CALL, operand,
-                                  JIR::Operand {declT.value, call_result_id, false, true});
+                node.commands.emplace_back(JIR::Operation::CALL, operand,
+                                           JIR::Operand {declT.value, call_result_id, false, true});
                 operand = JIR::Operand(declT.value, call_result_id, false, true);
                 continue;
             }
@@ -404,175 +430,16 @@ errable<JIR::Operand> ExpressionParser::parse_expr_operand(const std::vector<Tok
             const auto type = keywordFromJirType(operand.type);
             u64 result_id = scope_manager.addAnonymousId((u64)type, false, true, node);
             const JIR::Operand operand1 {operand.type, result_id, false, true};
-            node.nodes.emplace_back(JIR::Operation::MOVE, operand1, operand);
+            node.commands.emplace_back(JIR::Operation::MOVE, operand1, operand);
             operand = operand1;
         }
 
         while (!prefix_ops.empty()) {
             const auto op = prefix_ops.top();
             prefix_ops.pop();
-            node.nodes.emplace_back(op, operand, JIR::Operand {});
+            node.commands.emplace_back(op, operand, JIR::Operand {});
         }
     }
 
     return {"", operand};
-}
-
-errable<ExpressionParser::ParseCondResult> ExpressionParser::parse_cond(const std::vector<Token>& tokens, size_t& pos,
-                                                                        const std::set<Token::type>& endTokens) {
-    CFG::CFGNode tr;
-
-    if (tokens[pos + 1].t == Token::OPERATOR && assign_operators.contains(operators.at(tokens[pos + 1].data))) {
-        return {"cannot assign inside condition", {}};
-    }
-
-    std::vector<JIR::Command> postfix_ops;
-
-    std::stack<JIR::Operand> operands {};
-    std::stack<OperatorType> operations {};
-
-    while (tokens[pos].t == Token::IDENTIFIER || tokens[pos].t == Token::L_BRACKET ||
-           tokens[pos].t == Token::OPERATOR || tokens[pos].t == Token::INSTANT) {
-
-        if (tokens[pos].t == Token::OPERATOR && prefix_operators.contains(tokens[pos].data)) {
-            auto operand_err = parse_expr_operand(tokens, pos, tr, postfix_ops);
-            if (!operand_err) {
-                return {"Error while parsing expression:\n" + operand_err.error, {}};
-            }
-            operands.push(operand_err.value);
-            if (endTokens.contains(tokens[pos].t)) {
-                break;
-            }
-            if (tokens[pos].t != Token::OPERATOR) {
-                return {"Expected end of expr or operator instead of " + tokens[pos].data, {}};
-            }
-            OperatorType op = operators.at(tokens[pos].data);
-            if (assign_operators.contains(op)) {
-                return {"Cannot assign to rvalue $" + std::to_string(operand_err.value.value), {}};
-            }
-            while (!operations.empty() && operator_priorities.at(operations.top()) < operator_priorities.at(op)) {
-                auto r = push_cond_expr_stack(operations, operands, tr);
-                if (!r) {
-                    return {r.error, {}};
-                }
-            }
-            operations.push(op);
-            pos++;
-            continue;
-        }
-
-        JIR::Operand operand {};
-
-        if (tokens[pos].t == Token::L_BRACKET) {
-            //recursive parse
-            pos++;
-            auto parentheses = parse(tokens, pos, {Token::R_BRACKET});
-            if (!parentheses) {
-                return {parentheses.error, {}};
-            }
-            operand = parentheses.value.result;
-            tr += parentheses.value.node;
-        } else if (tokens[pos].t == Token::INSTANT) {
-            auto instant = parse_instant(tokens[pos].data);
-            if (!instant) {
-                return {instant.error, {}};
-            }
-            operand = instant.value;
-            pos++;
-        } else {
-            auto operand_err = parse_expr_operand(tokens, pos, tr, postfix_ops);
-            if (!operand_err) {
-                return {"Error while parsing expression:\n" + operand_err.error, {}};
-            }
-
-            operand = operand_err.value;
-        }
-        if (endTokens.contains(tokens[pos].t)) {
-            operands.push(operand);
-            break;
-        }
-
-        if (tokens[pos].t != Token::OPERATOR) {
-            return {"Expected end of expr or operator instead of " + tokens[pos].data, {}};
-        }
-        OperatorType op = operators.at(tokens[pos].data);
-
-        if (assign_operators.contains(op)) {
-            return {"Cannot assign to rvalue $" + std::to_string(operand.value), {}};
-        }
-
-        operands.push(operand);
-
-        while (!operations.empty() && operator_priorities.at(operations.top()) < operator_priorities.at(op)) {
-            auto r = push_cond_expr_stack(operations, operands, tr);
-            if (!r) {
-                return {r.error, {}};
-            }
-        }
-
-        operations.push(op);
-        pos++;
-    }
-
-    // TODO test for a < b < c (should fail)
-
-    while (operands.size() > 1) {
-        auto push_result = push_cond_expr_stack(operations, operands, tr);
-        if (!push_result) {
-            return {push_result.error, {}};
-        }
-    }
-    for (auto& postfix : postfix_ops) {
-        tr.nodes.emplace_back(postfix);
-    }
-
-    if (endTokens.contains(tokens[pos].t)) {
-        pos++;
-        return {"",
-                {
-                    tr,
-                }};
-    }
-    return {"Expected end of expression instead of " + tokens[pos].data, {}};
-}
-
-errable<JIR::Operation> ExpressionParser::push_cond_expr_stack(std::stack<OperatorType>& operations,
-                                                               std::stack<JIR::Operand>& operands,
-                                                               CFG::CFGNode& node) const {
-    auto to_add = cmpOpToJirOp(operations.top());
-    if (to_add == JIR::Operation::ERR) {
-        return {"Invalid compare operation encountered.", to_add};
-    }
-    operations.pop();
-    //operands are on stack in backwards order so flip em
-    JIR::Operand operand2 = operands.top();
-    operands.pop();
-    JIR::Operand operand1 = operands.top();
-    operands.pop();
-
-    // temporary: resulting type is always evaluated as the top operands stack element type
-    JIR::Operand cond_res {operand1};
-    cond_res.is_rvalue = true;
-
-    // TODO rvalue logic and logic at all
-
-    if (!operand1.is_instant && operand1.is_rvalue) {
-        node.nodes.emplace_back(to_add, operand1, operand2);
-        cond_res.value = operand1.value;
-        cond_res.is_instant = operand1.is_instant;
-    } else {
-        const auto& keyword = keywordFromJirType(cond_res.type);
-        u64 result_id = scope_manager.addAnonymousId((u64)keyword, false, true, node);
-        cond_res.value = result_id;
-        cond_res.is_instant = false;
-        //copy operand1
-        node.nodes.emplace_back(JIR::Operation::MOVE, cond_res, operand1);
-        node.nodes.emplace_back(to_add, cond_res, operand2);
-        // const auto& keyword2 = keywordFromJirType(operand1.type);
-        // scope_manager.setDeclaration(operand1.value, Scope::Declaration {(u64)keyword2, result.value, false});
-    }
-
-    //result is a new operand
-    operands.push(cond_res);
-    return {"", to_add};
 }
