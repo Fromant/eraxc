@@ -48,7 +48,7 @@ inline error::errable<void> compilation_pipeline(const std::string& filename) {
     t2 = std::chrono::high_resolution_clock::now();
 
     if (!allocatedProgram) {
-        return {"Failed to allocate program. Error:\n" + structure.error};
+        return {"Failed to allocate program. Error:\n" + allocatedProgram.error};
     }
 
     dur = std::chrono::duration<double, std::milli>(t2 - t1).count();
