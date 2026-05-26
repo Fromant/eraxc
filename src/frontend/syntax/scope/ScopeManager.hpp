@@ -77,7 +77,7 @@ namespace eraxc::frontend {
         std::optional<u64> findTypeRecursive(const std::string& type) const;
 
         std::optional<u64> findType(const std::string& type) const;
-        std::optional<size_t> addId(const std::string& id, size_t type, bool is_func, bool is_rvalue,
+        std::optional<size_t> addId(const std::string& id, u64 type, bool is_func, bool is_rvalue,
                                     CFG::CFGNode& node);
 
         /// Function to add declaration into scope
@@ -86,10 +86,10 @@ namespace eraxc::frontend {
         /// \param type id of type of added identifier
         /// \param alloc is this identifier a function
         /// \return the index of declaration
-        std::optional<size_t> linkId(const std::string& name, u64 id, size_t type, bool alloc);
+        std::optional<size_t> linkId(const std::string& name, u64 id, u64 type, bool alloc);
 
         //for already allocated ids (e.g. func args)
-        std::optional<size_t> addIdWithoutAllocation(const std::string& id, size_t type, bool is_func);
+        std::optional<size_t> addIdWithoutAllocation(const std::string& id, u64 type, bool is_func);
         size_t addAnonymousId(u64 type, bool is_func, bool rValue, CFG::CFGNode& node);
 
         size_t scopesCount() const;

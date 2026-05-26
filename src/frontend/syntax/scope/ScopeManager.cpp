@@ -132,7 +132,7 @@ std::optional<u64> ScopeManager::findType(const std::string& type) const {
     return std::nullopt;
 }
 
-std::optional<size_t> ScopeManager::addId(const std::string& id, size_t type, bool is_func, bool is_rvalue,
+std::optional<size_t> ScopeManager::addId(const std::string& id, u64 type, bool is_func, bool is_rvalue,
                                           CFG::CFGNode& node) {
     if (const auto opt = top().addId(id, type, is_func)) {
         const auto e = opt.value().toJirDecl();
@@ -152,7 +152,7 @@ std::optional<size_t> ScopeManager::linkId(const std::string& name, u64 id, u64 
     return std::nullopt;
 }
 
-std::optional<size_t> ScopeManager::addIdWithoutAllocation(const std::string& id, size_t type, bool is_func) {
+std::optional<size_t> ScopeManager::addIdWithoutAllocation(const std::string& id, u64 type, bool is_func) {
     if (const auto res = top().addId(id, type, is_func, false)) {
         return res.value().getId();
     }
