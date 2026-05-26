@@ -111,11 +111,11 @@ error::errable<allocated::CFGNode> StackAllocator::allocateCFGNode(const CFGNode
             if (!passed) {
                 return {passed.error, {}};
             }
-            node.commands.emplace_back(
-                JIR::Operation::MOVE,
-                JIR::allocated::Operand {passed.value.type, (u64)pass_ABI[args_in_registers_count++],
-                                         JIR::allocated::Operand::REGISTER},
-                passed.value);
+
+            const auto reg = JIR::allocated::Operand {passed.value.type, (u64)pass_ABI[args_in_registers_count++],
+                                                      JIR::allocated::Operand::REGISTER};
+
+            node.commands.emplace_back(JIR::Operation::MOVE, reg, passed.value);
             continue;
         }
 
@@ -141,10 +141,6 @@ error::errable<allocated::CFGNode> StackAllocator::allocateCFGNode(const CFGNode
         }
 
         if (op.op == JIR::Operation::RET) {
-            node.commands.emplace_back(
-                JIR::Operation::STACKDEALLOC,
-                JIR::allocated::Operand {JIR::Type::VOID, used_stack_space, JIR::allocated::Operand::INSTANT},
-                JIR::allocated::Operand {});
             node.commands.emplace_back(JIR::Operation::RET, JIR::allocated::Operand {}, JIR::allocated::Operand {});
             continue;
         }

@@ -179,14 +179,6 @@ error::errable<void> asm_translator::printJirCommand(const JIR::allocated::Comma
     if (node.op == JIR::Operation::DEALLOC) {
         return {"ERROR: How dealloc cmd is here?"};
     }
-    if (node.op == JIR::Operation::STACKALLOC) {
-        // return {"ERROR: How STACKALLOC cmd is here?"};
-        return "";
-    }
-    if (node.op == JIR::Operation::STACKDEALLOC) {
-        // return {"ERROR: How STACKDEALLOC cmd is here?"};
-        return "";
-    }
 
     //TODO choose instruction better. Check if instant.
 
