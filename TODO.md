@@ -43,9 +43,9 @@
 - [x] re-do booleans
 - [x] fix segfaults
 - [ ] int r = 0; if(...) r = r + 1; WORKS BAD FIX IT
+- [x] fix recursion test
 - [ ] globals
 - [ ] conditionals 2 instants optimization (e.g. 2 > 1) [HERE](src/frontend/syntax/parser/ExpressionParser.cpp)
-- [ ] fix recursion test
 - [ ] fix scope test
 - [ ] globals impl & enable tests!
 - [ ] impl symbolTable for being able to pass main (entrypoint function id) in BE

@@ -30,9 +30,6 @@ error::errable<JIR::allocated::Program> StackAllocator::allocate(const JIR::Prog
 }
 
 error::errable<JIR::allocated::Function> StackAllocator::allocate(const JIR::Function& function) {
-    for (const auto& param : function.params) {
-        used_regs.emplace(param.id, pass_ABI[args_in_registers_count++]);
-    }
     args_in_registers_count = 0;
 
     const auto alloc = allocate(function.cfg);
@@ -44,6 +41,25 @@ error::errable<JIR::allocated::Function> StackAllocator::allocate(const JIR::Fun
     result.cfg = alloc.value;
     result.decl = function.decl;
     result.params = function.params;
+
+    // save registers on stack at the start of the function.
+    // Yeah, code's a little bad
+    // The idea of saving is to ensure that parameter value won't be overwritten by passing parameters to another call.
+    // So, we allocate them on stack (not here) and move values from passing ABI to stack (here)
+    auto& node = result.cfg.nodes[0].commands;
+    std::vector<JIR::allocated::Command> alloc_cmds;
+    for (const auto& param : function.params) {
+        const auto operand = JIR::Operand {param.type, param.id, false, false};
+        const auto allocatedOperand = operandToAllocated(operand);
+        if (!allocatedOperand) {
+            return {"Internal error: can't get allocated parameter operand for function", {}};
+        }
+        alloc_cmds.emplace_back(JIR::Operation::MOVE, allocatedOperand.value,
+                                JIR::allocated::Operand {param.type, (u64)pass_ABI[args_in_registers_count++],
+                                                         JIR::allocated::Operand::REGISTER});
+    }
+    node.insert(node.begin(), alloc_cmds.begin(), alloc_cmds.end());
+
     clear();
     return {"", std::move(result)};
 }
@@ -76,7 +92,7 @@ error::errable<allocated::CFG> StackAllocator::allocate(const CFG::CFG& cfg) {
     }
 
     tr.maxStackSize = maxStackSize;
-    clear();
+    // clear();
     return {"", std::move(tr)};
 }
 

@@ -27,6 +27,11 @@ error::errable<eraxc::JIR::Function> StructureAnalyzer::parseFunction(const std:
 
     scopeManager.pushFrame();
 
+    JIR::Function to_add {};
+
+    size_t node_id = 0;
+    to_add.cfg.nodes.emplace_back();
+
     std::vector<JIR::Declaration> params {};
 
     while (tokens[pos].t != Token::R_BRACKET) {
@@ -41,7 +46,7 @@ error::errable<eraxc::JIR::Function> StructureAnalyzer::parseFunction(const std:
             if (tokens[pos + 1].t != Token::IDENTIFIER) {
                 return {"Expected variable name in arguments list instead of " + tokens[pos + 1].data, {}};
             }
-            auto arg_id = scopeManager.addIdWithoutAllocation(tokens[pos + 1].data, arg_type.value(), false);
+            auto arg_id = scopeManager.addId(tokens[pos + 1].data, arg_type.value(), false, false, to_add.cfg.nodes[node_id]);
             if (!arg_id) {
                 return {"Cannot allocate parameter somehow", {}};
             }
@@ -63,7 +68,6 @@ error::errable<eraxc::JIR::Function> StructureAnalyzer::parseFunction(const std:
 
     pos++;  // skip right bracket
 
-    JIR::Function to_add {};
     to_add.decl = JIR::Declaration(funcId.value(), jirTypeFromKeyword((Keyword)return_type.value()));
     to_add.params = params;
 
@@ -75,8 +79,6 @@ error::errable<eraxc::JIR::Function> StructureAnalyzer::parseFunction(const std:
         return {"Expected function body '{' instead of " + tokens[pos].data, {}};
     }
 
-    size_t node_id = 0;
-    to_add.cfg.nodes.emplace_back();
     auto body = parseStatements(tokens, pos, to_add.cfg, node_id);
     if (!body) {
         return {body.error, {}};
