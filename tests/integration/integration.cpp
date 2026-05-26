@@ -32,6 +32,9 @@ TEST_P(IntegrationTest, integrationTest) {
 }
 
 std::vector<TestData> tests = {
+    // simple expressions
+    {"expressions/self_assignment.erx", 14},
+
     // if statements
     {"if/simpleIf.erx", 1},
     {"if/if_else.erx", 14},
@@ -57,6 +60,7 @@ std::vector<TestData> tests = {
     {"if/nested_double_if_else.erx", 2},
     {"if/nested_if_with_else.erx", 2},
     {"if/return_inside_block.erx", 4},
+    {"if/if_with_self_assignment.erx", 255},
     // function calls
     {"functions/call.erx", 2},
     {"functions/nested_call.erx", 2},

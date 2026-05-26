@@ -255,8 +255,8 @@ errable<void> ExpressionParser::push_expr_stack(std::stack<OperatorType>& operat
         expr_res.value = result_id;
         expr_res.is_instant = false;
         expr_res.is_rvalue = true;
-        expr_res.type = JIR::Type::I32;  // bool in i32 number
-        node.commands.emplace_back(JIR::Operation::MOVE, expr_res, JIR::Operand {JIR::Type::I32, 0, true, true});
+        expr_res.type = JIR::Type::I8;  // bool in i32 number
+        node.commands.emplace_back(JIR::Operation::MOVE, expr_res, JIR::Operand {JIR::Type::I8, 0, true, true});
         node.commands.emplace_back(JIR::Operation::CMP, operand1, operand2);
         const auto jirOp = conditionalOpToBooleanOperation(operation);
         if (jirOp == JIR::BooleanOperation::ERR) {

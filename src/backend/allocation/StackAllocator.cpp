@@ -24,6 +24,8 @@ error::errable<JIR::allocated::Program> StackAllocator::allocate(const JIR::Prog
         functions.emplace_back(allocated.value);
     }
 
+    clear();
+
     return {"", {functions, program.globals, program.entrypoint_id}};
 }
 
@@ -31,6 +33,7 @@ error::errable<JIR::allocated::Function> StackAllocator::allocate(const JIR::Fun
     for (const auto& param : function.params) {
         used_regs.emplace(param.id, pass_ABI[args_in_registers_count++]);
     }
+    args_in_registers_count = 0;
 
     const auto alloc = allocate(function.cfg);
     if (!alloc) {
@@ -41,6 +44,7 @@ error::errable<JIR::allocated::Function> StackAllocator::allocate(const JIR::Fun
     result.cfg = alloc.value;
     result.decl = function.decl;
     result.params = function.params;
+    clear();
     return {"", std::move(result)};
 }
 
@@ -72,7 +76,7 @@ error::errable<allocated::CFG> StackAllocator::allocate(const CFG::CFG& cfg) {
     }
 
     tr.maxStackSize = maxStackSize;
-
+    clear();
     return {"", std::move(tr)};
 }
 

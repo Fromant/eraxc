@@ -240,6 +240,7 @@ error::errable<void> StructureAnalyzer::parseIf(const std::vector<Token>& tokens
         cfg.nodes.emplace_back();
         cfg.edges[negative_branch].emplace_back(after_body_id, CFG::CFGEdge::SQUASH);
         cfg.edges[positive_branch].emplace_back(after_body_id, CFG::CFGEdge::SQUASH);
+        node_id = after_body_id;
     } else {
         // if body to after
         const size_t after_body_id = negative_branch;

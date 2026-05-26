@@ -1,0 +1,8 @@
+
+int main() {
+    int r = 0;
+    r = r + 2;
+    r = r + 4;
+    r = r + 8;
+    return r; // 14
+}

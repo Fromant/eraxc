@@ -15,6 +15,7 @@
 # Global tasks:
 
 - [ ] booleans
+- [ ] auto generation of tests
 - [ ] floating point numbers
 - [ ] Structs
 - [ ] Namespaces
@@ -26,6 +27,7 @@
 
 ## Preprocessor:
 
+- [ ] save the file, line and symbol where token contained at for errors
 - [ ] preprocessor `#if` macro?
 - [ ] preprocessor `#else` macro?
 - [ ] module system
@@ -39,6 +41,9 @@
 - [x] fix recursion - function is not registered before parsing body so can't call itself
 - [x] re-impl x64 asm win backend
 - [x] re-do booleans
+- [x] fix segfaults
+- [ ] int r = 0; if(...) r = r + 1; WORKS BAD FIX IT
+- [ ] globals
 - [ ] conditionals 2 instants optimization (e.g. 2 > 1) [HERE](src/frontend/syntax/parser/ExpressionParser.cpp)
 - [ ] fix recursion test
 - [ ] fix scope test

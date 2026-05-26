@@ -1,12 +1,12 @@
 int main() {
     int r = 0i;
-    if(1i==1i) r = r + 1i;
-    if(1i!=2i) r = r + 2i;
-    if(2i>1i) r = r + 4i;
-    if(1i<2i) r = r + 8i;
-    if(2i>=1i) r = r + 16i;
-    if(1i<=2i) r = r + 32i;
-    if(2i>=2i) r = r + 64i;
-    if(2i<=2i) r = r + 128i;
+    if(1i==1i) r += 1i;
+    if(1i!=2i) r += 2i;
+    if(2i>1i) r += 4i;
+    if(1i<2i) r += 8i;
+    if(2i>=1i) r += 16i;
+    if(1i<=2i) r += 32i;
+    if(2i>=2i) r += 64i;
+    if(2i<=2i) r += 128i;
     return r;
 }

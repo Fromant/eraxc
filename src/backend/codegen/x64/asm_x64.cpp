@@ -47,7 +47,7 @@ error::errable<std::string> asm_translator::get_operand(const JIR::allocated::Op
     const std::string size = size_errable.value;
 
     if (op.place == JIR::allocated::Operand::STACK) {
-        u64 offset = op.value;
+        u64 offset = op.value - type_size;
         if (offset == 0) {
             return {"", size + "[rsp]"};
         }
@@ -163,7 +163,7 @@ error::errable<void> asm_translator::printJirCommand(const JIR::allocated::Comma
         return {""};
     }
     if (node.op == JIR::Operation::CALL) {
-        const auto diff = stackSize % 16;
+        const auto diff = (stackSize + 8) % 16;
         if (diff != 0) {
             os << "sub rsp, " << 16 - diff << '\n';
         }
@@ -385,9 +385,13 @@ error::errable<void> eraxc::x64::asm_translator::translate(const JIR::allocated:
 
     // print all functions
     for (const auto& f : program.functions) {
-        size_t allocated_stack = 8 + f.cfg.maxStackSize;
+        size_t allocated_stack = f.cfg.maxStackSize;
+        if ((allocated_stack + 8) % 16 != 0) {
+            allocated_stack += 16 - (allocated_stack + 8) % 16;
+        }
         file << "$f_" << f.decl.id << ":\nsub rsp, " << allocated_stack << "\n";
         auto r = printFunction(f, file, allocated_stack);
+        //TODO remove auto return?
         file << "add rsp, " << allocated_stack << "\nret\n";
         if (!r) {
             return r;
